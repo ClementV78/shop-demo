@@ -12,7 +12,7 @@ Conception cible :
 
 | ID | Tache | Etat | Depend de |
 |---|---|---|---|
-| S0-T1 | Initialiser le socle du depot | En cours | - |
+| S0-T1 | Initialiser le socle du depot | Termine | - |
 | S0-T2 | Verifier l'environnement de travail | Termine | S0-T1 |
 | S0-T3 | Creer le squelette Ansible | Termine | S0-T1 |
 | S0-T4 | Implementer `k3s-install` | Termine | S0-T2, S0-T3 |
@@ -30,18 +30,39 @@ Conception cible :
 
 ### S0-T1 - Initialiser le socle du depot
 
-Etat : `En cours`
+Etat : `Termine`
 
-- [ ] Initialiser le depot Git.
-- [ ] Ajouter un `README.md` racine.
-- [ ] Ajouter un `.gitignore` adapte a Ansible, Terraform et aux outils locaux.
+- [x] Initialiser le depot Git.
+- [x] Ajouter un `README.md` racine.
+- [x] Ajouter un `.gitignore` adapte a Ansible, Terraform et aux outils locaux.
 - [x] Ajouter le dispositif de suivi Markdown.
 
 #### Criteres d'acceptation
 
-- [ ] `git status` fonctionne depuis la racine.
-- [ ] Les fichiers temporaires, secrets et states Terraform sont ignores.
-- [ ] Les documents de suivi sont relies entre eux.
+- [x] `git status` fonctionne depuis la racine.
+- [x] Les fichiers temporaires, secrets et states Terraform sont ignores.
+- [x] Les documents de suivi sont relies entre eux.
+
+#### Notes de progression
+
+- Implemente : premier historique Git cree par groupement logique (gitignore,
+  gouvernance agents, architecture, suivi de projet, notes d'apprentissage,
+  squelette Ansible, README racine), soit 14 commits.
+- Implemente : `README.md` racine avec schema Mermaid du flux applicatif,
+  table des competences demontrees, Quick start executable et badges de
+  progression par sprint.
+- Verifie : aucun secret ni fichier sensible commite, double controle par
+  grep manuel des patterns classiques (cles AWS, PEM, tokens) puis par
+  `gitleaks detect --source .` sur l'historique complet (13 commits scannes,
+  `no leaks found`).
+- Cree : depot distant public `github.com/ClementV78/shop-demo` via
+  `gh repo create`.
+- Corrige : push initial rejete par GitHub (`GH007`, protection anti-fuite
+  d'email) car les commits portaient l'adresse email reelle de l'auteur ;
+  historique reecrit localement avec l'adresse noreply GitHub
+  (`{id}+{login}@users.noreply.github.com`) avant le push reussi.
+- Risque accepte : `git filter-branch` laisse des refs de sauvegarde locales
+  (`refs/original/...`) ; sans impact sur le remote, nettoyage non urgent.
 
 ### S0-T2 - Verifier l'environnement de travail
 

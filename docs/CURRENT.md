@@ -11,9 +11,11 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S0-T1 | Initialiser le socle du depot | Termine | Aucune ; servir de base aux prochains commits |
-| S0-T4 | Implementer `k3s-install` | Termine | Utiliser ce role comme base des tests Molecule |
 | S0-T6 | Implementer `cilium-setup` | Planifie | Poser le role, installer Cilium en replacement mode et verifier le passage du noeud a `Ready` |
+
+`S0-T1`, `S0-T4` et `S0-T5` sont termines ; voir
+[`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) pour le
+detail et les preuves.
 
 ## Blocages
 
@@ -65,6 +67,17 @@ Aucun blocage connu.
   gouvernance agents, architecture, suivi de projet, notes d'apprentissage,
   squelette Ansible, README racine).
 - `S0-T1` est termine : le `README.md` racine a ete redige et commite.
+- Le `README.md` a ete enrichi : schema Mermaid du flux applicatif, table des
+  competences demontrees, Quick start executable, badges de progression par
+  sprint, mise en forme corrigee (paragraphes sur une ligne, aucun tiret
+  cadratin par preference utilisateur).
+- Avant le push, le depot a ete controle pour des secrets : grep manuel puis
+  `gitleaks detect` sur l'historique complet, aucun secret trouve.
+- Le depot distant `github.com/ClementV78/shop-demo` (public) a ete cree avec
+  `gh repo create` et le premier push a ete effectue sur `master`.
+- Le premier push a ete rejete par la protection email de GitHub (`GH007`) ;
+  l'historique local a ete reecrit avec l'adresse noreply GitHub avant de
+  pousser avec succes.
 
 ## Next Step
 
@@ -72,3 +85,5 @@ Aucun blocage connu.
 2. Installer Cilium en replacement mode, activer Hubble et observer le
    passage vers un noeud `Ready`.
 3. Preparer ensuite les tests Molecule pertinents pour `cilium-setup`.
+4. Nettoyer ulterieurement les refs de sauvegarde locales laissees par
+   `git filter-branch` (`refs/original/...`), sans urgence.
