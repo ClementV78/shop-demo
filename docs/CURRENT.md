@@ -11,7 +11,7 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S0-T1 | Initialiser le socle du depot | En cours | Verifier le contenu minimal du `README.md` et preparer le premier commit |
+| S0-T1 | Initialiser le socle du depot | Termine | Aucune ; servir de base aux prochains commits |
 | S0-T4 | Implementer `k3s-install` | Termine | Utiliser ce role comme base des tests Molecule |
 | S0-T6 | Implementer `cilium-setup` | Planifie | Poser le role, installer Cilium en replacement mode et verifier le passage du noeud a `Ready` |
 
@@ -61,6 +61,10 @@ Aucun blocage connu.
   `NotReady` a un etat exploitable sans Flannel.
 - Aucun composant applicatif ou d'infrastructure n'est encore implemente.
 - Aucun appel AWS ni ressource payante n'est necessaire pour ce jalon.
+- Le premier historique Git a ete cree par groupement logique (gitignore,
+  gouvernance agents, architecture, suivi de projet, notes d'apprentissage,
+  squelette Ansible, README racine).
+- `S0-T1` est termine : le `README.md` racine a ete redige et commite.
 
 ## Next Step
 
