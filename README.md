@@ -4,18 +4,9 @@
 
 **Internal Developer Platform construite from scratch — du serveur Ubuntu local à une architecture cible AWS multi-comptes.**
 
-![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white)
-![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
-![Status](https://img.shields.io/badge/Sprint-0%2F6-yellow?style=flat-square)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white) ![Status](https://img.shields.io/badge/Sprint-0%2F6-yellow?style=flat-square)
 
-[Pourquoi ce projet](#pourquoi-ce-projet) ·
-[Architecture](#aperçu-du-flux-applicatif) ·
-[Compétences démontrées](#compétences-démontrées) ·
-[Où en est le projet](#où-en-est-le-projet) ·
-[Démarrer ici](#démarrer-ici)
+[Pourquoi ce projet](#pourquoi-ce-projet) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
 
 </div>
 
