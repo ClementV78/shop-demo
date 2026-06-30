@@ -1,8 +1,8 @@
 <div align="center">
 
-# IDP Platform — ShopDemo
+# IDP Platform : ShopDemo
 
-**Internal Developer Platform construite from scratch — du serveur Ubuntu local à une architecture cible AWS multi-comptes.**
+**Internal Developer Platform construite from scratch, du serveur Ubuntu local à une architecture cible AWS multi-comptes.**
 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
 
@@ -14,14 +14,14 @@
 
 ## Pourquoi ce projet
 
-Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Kubernetes, CI/CD, observabilité et sécurité dans **un seul système cohérent**, construit autour de **ShopDemo** — une application e-commerce de démonstration volontairement simple côté métier. L'objectif : que chaque brique d'infrastructure se justifie par un besoin fonctionnel réel (inscription, catalogue, panier, commande, paiement simulé), pas par accumulation de technologies.
+Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Kubernetes, CI/CD, observabilité et sécurité dans **un seul système cohérent**, construit autour de **ShopDemo**, une application e-commerce de démonstration volontairement simple côté métier. L'objectif : que chaque brique d'infrastructure se justifie par un besoin fonctionnel réel (inscription, catalogue, panier, commande, paiement simulé), pas par accumulation de technologies.
 
 ## Aperçu du flux applicatif
 
 ```mermaid
 flowchart LR
     U([Utilisateur]) --> CF[CloudFront + WAF]
-    CF --> S3[(S3 — frontend statique)]
+    CF --> S3[(S3 : frontend statique)]
     CF --> GW[Gateway API NGINX]
     GW --> SVC[Microservices Go sur EKS]
     SVC --> RDS[(RDS PostgreSQL)]
@@ -32,7 +32,7 @@ flowchart LR
     LBD --> SNS
 ```
 
-> Le détail complet — séquence d'appels, justification de chaque service AWS, exigences non fonctionnelles — vit dans [`ARCHITECTURE.md`](ARCHITECTURE.md), qui fait foi sur la conception cible.
+> Le détail complet (séquence d'appels, justification de chaque service AWS, exigences non fonctionnelles) vit dans [`ARCHITECTURE.md`](ARCHITECTURE.md), qui fait foi sur la conception cible.
 
 ## Compétences démontrées
 
@@ -65,7 +65,7 @@ cd roles/k3s-install
 molecule test
 ```
 
-Le reste de la plateforme (Terraform, EKS, CI/CD) arrive sprint après sprint — voir [Où en est le projet](#où-en-est-le-projet).
+Le reste de la plateforme (Terraform, EKS, CI/CD) arrive sprint après sprint, voir [Où en est le projet](#où-en-est-le-projet).
 
 ## Où en est le projet
 
@@ -75,7 +75,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 0` — Ansible et fondations bootstrap |
+| Sprint actif | `Sprint 0` : Ansible et fondations bootstrap |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 | Vue globale | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 
@@ -106,6 +106,6 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 <div align="center">
 
-Laboratoire d'apprentissage et portfolio personnel — pas un projet en production commerciale. Voir les [exigences non fonctionnelles](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles) pour le détail des compromis assumés.
+Laboratoire d'apprentissage et portfolio personnel, pas un projet en production commerciale. Voir les [exigences non fonctionnelles](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles) pour le détail des compromis assumés.
 
 </div>
