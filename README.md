@@ -1,31 +1,35 @@
+<div align="center">
+
 # IDP Platform — ShopDemo
 
-> Une Internal Developer Platform construite de zéro, du serveur Ubuntu
-> local jusqu'à une architecture cible AWS multi-comptes — pour démontrer,
-> en conditions réelles, les compétences DevOps/Cloud Architecture senior.
+**Internal Developer Platform construite from scratch — du serveur Ubuntu local à une architecture cible AWS multi-comptes.**
 
-Ce dépôt documente la construction complète d'une plateforme de
-déploiement interne autour de **ShopDemo**, une application e-commerce de
-démonstration volontairement simple côté métier : chaque brique
-d'infrastructure existe pour une raison technique précise, pas par
-accumulation.
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white)
+![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
+![Status](https://img.shields.io/badge/Sprint-0%2F6-yellow?style=flat-square)
+
+[Pourquoi ce projet](#pourquoi-ce-projet) ·
+[Architecture](#aperçu-du-flux-applicatif) ·
+[Compétences démontrées](#compétences-démontrées) ·
+[Où en est le projet](#où-en-est-le-projet) ·
+[Démarrer ici](#démarrer-ici)
+
+</div>
+
+---
 
 ## Pourquoi ce projet
 
 Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible,
 Kubernetes, CI/CD, observabilité et sécurité dans **un seul système
-cohérent**, justifié de bout en bout par un cas d'usage fonctionnel :
-inscription, catalogue, panier, commande, paiement simulé.
-
-| Compétence | Ce qui est démontré |
-|---|---|
-| Landing Zone AWS | Organizations, SCPs, IAM Identity Center, multi-compte |
-| Kubernetes | k3s local et EKS cible, Cilium, Gateway API, GitOps avec Argo CD |
-| Infrastructure as Code | Modules Terraform internes versionnés, Ansible idempotent testé Molecule |
-| CI/CD | GitLab CI Components, OIDC vers AWS, digest pinning, pas de clé statique |
-| Observabilité | Prometheus, Loki, Grafana, Kubecost |
-| DevSecOps | Scans Trivy/OWASP/GitLeaks, admission control Kyverno, shift-left |
-| FinOps | Infra 100% éphémère, Spot/Graviton, `terraform destroy` systématique |
+cohérent**, construit autour de **ShopDemo** — une application e-commerce
+de démonstration volontairement simple côté métier. L'objectif : que chaque
+brique d'infrastructure se justifie par un besoin fonctionnel réel
+(inscription, catalogue, panier, commande, paiement simulé), pas par
+accumulation de technologies.
 
 ## Aperçu du flux applicatif
 
@@ -43,15 +47,32 @@ flowchart LR
     LBD --> SNS
 ```
 
-Le détail complet — séquence d'appels, justification de chaque service AWS,
-exigences non fonctionnelles — vit dans [`ARCHITECTURE.md`](ARCHITECTURE.md),
-qui fait foi sur la conception cible.
+> Le détail complet — séquence d'appels, justification de chaque service
+> AWS, exigences non fonctionnelles — vit dans
+> [`ARCHITECTURE.md`](ARCHITECTURE.md), qui fait foi sur la conception
+> cible.
+
+## Compétences démontrées
+
+| Domaine | Ce qui est mis en œuvre |
+|---|---|
+| **Landing Zone AWS** | Organizations, SCPs, IAM Identity Center, multi-compte |
+| **Kubernetes** | k3s local et EKS cible, Cilium, Gateway API, GitOps avec Argo CD |
+| **Infrastructure as Code** | Modules Terraform internes versionnés, Ansible idempotent testé Molecule |
+| **CI/CD** | GitLab CI Components, OIDC vers AWS, digest pinning, aucune clé statique |
+| **Observabilité** | Prometheus, Loki, Grafana, Kubecost |
+| **DevSecOps** | Scans Trivy / OWASP / GitLeaks, admission control Kyverno, shift-left |
+| **FinOps** | Infra 100 % éphémère, Spot/Graviton, `terraform destroy` systématique |
 
 ## Où en est le projet
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
-État courant et prochaine action : [`docs/CURRENT.md`](docs/CURRENT.md).
-Vue globale de la progression : [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+| | |
+|---|---|
+| Sprint actif | `Sprint 0` — Ansible et fondations bootstrap |
+| Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
+| Vue globale | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 
 ## Démarrer ici
 
@@ -67,16 +88,22 @@ Vue globale de la progression : [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Structure du dépôt
 
-```
+```text
 .
 ├── ansible/   # Provisioning et configuration des hôtes (k3s, Cilium, runners, hardening)
 ├── docs/      # Suivi de projet : sprints, ADR, preuves
-├── AGENTS.md, ARCHITECTURE.md, LEARNING.md
+├── AGENTS.md
+├── ARCHITECTURE.md
+└── LEARNING.md
 ```
 
 ---
 
-Ce dépôt est un laboratoire d'apprentissage et un portfolio personnel, pas un
-projet en production commerciale — voir les exigences non fonctionnelles
-dans [`ARCHITECTURE.md`](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles)
+<div align="center">
+
+Laboratoire d'apprentissage et portfolio personnel — pas un projet en
+production commerciale.
+Voir les [exigences non fonctionnelles](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles)
 pour le détail des compromis assumés.
+
+</div>
