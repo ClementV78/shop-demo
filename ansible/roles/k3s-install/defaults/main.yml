@@ -1,0 +1,15 @@
+---
+k3s_version: "v1.33.1+k3s1"
+k3s_install_script_url: https://get.k3s.io
+k3s_force_reinstall: false
+k3s_install_extra_args:
+  - "--flannel-backend=none"
+  - "--disable-network-policy"
+k3s_server_manifests_dir: /var/lib/rancher/k3s/server/manifests
+k3s_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+k3s_kubeconfig_mode: "0600"
+k3s_kubeconfig_user: xclem
+k3s_kubeconfig_group: "{{ k3s_kubeconfig_user }}"
+k3s_user_kubeconfig_dir: "/home/{{ k3s_kubeconfig_user }}/.kube"
+k3s_user_kubeconfig_path: "{{ k3s_user_kubeconfig_dir }}/config"
+k3s_create_kubectl_symlink: true

@@ -1,0 +1,71 @@
+---
+# Molecule is the test harness around the Ansible role.
+# This file answers: "in what kind of machine do we test, with which tool,
+# and in what order do the test phases run?"
+dependency:
+  # Reuse Ansible Galaxy dependency resolution, even if this scenario
+  # currently has no extra role/collection requirement.
+  name: galaxy
+
+driver:
+  # Run the test instance as a local Docker container.
+  name: docker
+
+platforms:
+  - name: instance
+    # Use an Ubuntu image that is known to work with Ansible and systemd.
+    image: geerlingguy/docker-ubuntu2404-ansible:latest
+    # Do not build a custom image for now; start directly from the upstream one.
+    pre_build_image: true
+    # k3s and systemd both need elevated container capabilities in this lab.
+    privileged: true
+    # PID 1 inside the container must be systemd, or service management tests
+    # become meaningless.
+    command: /lib/systemd/systemd
+    # Share cgroup namespace with the host so systemd can manage services.
+    cgroupns_mode: host
+    # systemd expects writable runtime directories in the container.
+    tmpfs:
+      - /run
+      - /tmp
+    # Mount host cgroups so systemd can inspect and control services correctly.
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+
+provisioner:
+  # Use Ansible itself to drive the scenario.
+  name: ansible
+  env:
+    # The scenario lives under roles/k3s-install/molecule/default.
+    # We point Ansible to the parent roles directory so "role: k3s-install"
+    # resolves correctly during syntax/converge.
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..
+  inventory:
+    host_vars:
+      instance:
+        # Be explicit about the Python interpreter inside the container.
+        ansible_python_interpreter: /usr/bin/python3
+
+verifier:
+  # Verification is also written as an Ansible playbook.
+  name: ansible
+
+scenario:
+  test_sequence:
+    # dependency: install optional role/collection requirements
+    # cleanup/destroy: start from a clean state
+    # syntax: validate playbook structure
+    # create: boot the Docker instance
+    # converge: apply the role under test
+    # idempotence: run the same converge again and expect changed=0
+    # verify: assert the resulting machine state
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    - destroy

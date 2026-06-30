@@ -1,0 +1,5 @@
+---
+project_name: shop-demo
+project_root: "{{ playbook_dir | dirname }}"
+local_kubernetes_distribution: k3s
+use_local_ministack: true

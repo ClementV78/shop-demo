@@ -1,0 +1,7 @@
+---
+- name: Validate k3s-install role scaffold
+  hosts: local
+  gather_facts: true
+  become: true
+  roles:
+    - role: k3s-install

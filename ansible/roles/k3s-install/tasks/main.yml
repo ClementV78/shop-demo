@@ -1,0 +1,174 @@
+---
+- name: Assert supported host for k3s local bootstrap
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["system"] == "Linux"
+      - ansible_facts["service_mgr"] == "systemd"
+      - ansible_facts["os_family"] == "Debian"
+    fail_msg: >-
+      The k3s-install role currently targets a local Debian-family Linux host
+      managed by systemd.
+    success_msg: Local host matches the initial k3s-install assumptions.
+
+- name: Assert k3s version format
+  ansible.builtin.assert:
+    that:
+      - k3s_version is match("^v[0-9]+\\.[0-9]+\\.[0-9]+\\+k3s[0-9]+$")
+    fail_msg: k3s_version must look like vX.Y.Z+k3sN.
+
+- name: Assert kubeconfig target user settings
+  ansible.builtin.assert:
+    that:
+      - k3s_kubeconfig_user | length > 0
+      - k3s_kubeconfig_group | length > 0
+      - k3s_user_kubeconfig_path.startswith("/home/")
+    fail_msg: k3s kubeconfig target user, group, and path must be configured.
+
+- name: Show current k3s install parameters
+  ansible.builtin.debug:
+    msg:
+      version: "{{ k3s_version }}"
+      extra_args: "{{ k3s_install_extra_args }}"
+      kubeconfig_path: "{{ k3s_kubeconfig_path }}"
+      kubeconfig_mode: "{{ k3s_kubeconfig_mode }}"
+      user_kubeconfig_path: "{{ k3s_user_kubeconfig_path }}"
+      kubeconfig_user: "{{ k3s_kubeconfig_user }}"
+      manifests_dir: "{{ k3s_server_manifests_dir }}"
+
+- name: Check whether k3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Read current k3s version when installed
+  ansible.builtin.command: /usr/local/bin/k3s --version
+  register: k3s_current_version
+  check_mode: false
+  changed_when: false
+  when: k3s_binary.stat.exists
+
+- name: Compute whether k3s installation is required
+  ansible.builtin.set_fact:
+    k3s_needs_install: >-
+      {{
+        (not k3s_binary.stat.exists)
+        or (
+          k3s_binary.stat.exists
+          and k3s_version not in k3s_current_version.stdout
+        )
+        or (k3s_force_reinstall | bool)
+      }}
+
+- name: Ensure required package for installer is present
+  become: true
+  ansible.builtin.package:
+    name: curl
+    state: present
+
+- name: Download k3s installer script
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ k3s_install_script_url }}"
+    dest: /usr/local/bin/get-k3s.sh
+    mode: "0755"
+
+- name: Install or upgrade k3s server
+  become: true
+  ansible.builtin.command: /usr/local/bin/get-k3s.sh
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_EXEC: >-
+      server --write-kubeconfig-mode {{ k3s_kubeconfig_mode }}
+      {{ k3s_install_extra_args | join(' ') }}
+    INSTALL_K3S_SYMLINK: "{{ 'force' if k3s_create_kubectl_symlink else 'skip' }}"
+  register: k3s_install_result
+  changed_when: true
+  when: k3s_needs_install
+  notify: restart k3s
+
+- name: Explain skipped runtime validation in check mode on a fresh host
+  ansible.builtin.debug:
+    msg: >-
+      Check mode detected a fresh host without k3s. Runtime service, kubeconfig,
+      and API validation tasks are skipped until the real installation runs.
+  when:
+    - ansible_check_mode
+    - k3s_needs_install
+
+- name: Ensure k3s service is enabled and started
+  become: true
+  ansible.builtin.service:
+    name: k3s
+    enabled: true
+    state: started
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Wait for kubeconfig to be created
+  become: true
+  ansible.builtin.wait_for:
+    path: "{{ k3s_kubeconfig_path }}"
+    timeout: 120
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Wait for Kubernetes API to listen locally
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 6443
+    timeout: 120
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Ensure kubectl symlink exists for user workflows
+  become: true
+  ansible.builtin.stat:
+    path: /usr/local/bin/kubectl
+    follow: false
+  register: kubectl_symlink
+  when:
+    - k3s_create_kubectl_symlink
+    - not ansible_check_mode or not k3s_needs_install
+
+- name: Ensure kubectl symlink exists for user workflows
+  become: true
+  ansible.builtin.file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+  when:
+    - k3s_create_kubectl_symlink
+    - not ansible_check_mode or not k3s_needs_install
+    - not kubectl_symlink.stat.exists
+      or not kubectl_symlink.stat.islnk
+      or kubectl_symlink.stat.lnk_source != "/usr/local/bin/k3s"
+
+- name: Ensure user kubeconfig directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ k3s_user_kubeconfig_dir }}"
+    state: directory
+    owner: "{{ k3s_kubeconfig_user }}"
+    group: "{{ k3s_kubeconfig_group }}"
+    mode: "0700"
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Read system kubeconfig from k3s
+  become: true
+  ansible.builtin.slurp:
+    src: "{{ k3s_kubeconfig_path }}"
+  register: k3s_system_kubeconfig
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Synchronize kubeconfig for target user
+  become: true
+  ansible.builtin.copy:
+    content: "{{ k3s_system_kubeconfig.content | b64decode }}"
+    dest: "{{ k3s_user_kubeconfig_path }}"
+    owner: "{{ k3s_kubeconfig_user }}"
+    group: "{{ k3s_kubeconfig_group }}"
+    mode: "0600"
+  when: not ansible_check_mode or not k3s_needs_install
+
+- name: Verify local node is reachable with user kubeconfig
+  ansible.builtin.command: kubectl --kubeconfig "{{ k3s_user_kubeconfig_path }}" get nodes -o wide
+  register: k3s_nodes_check
+  changed_when: false
+  when: not ansible_check_mode or not k3s_needs_install

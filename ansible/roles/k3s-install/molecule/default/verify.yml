@@ -1,0 +1,93 @@
+---
+- name: Verify k3s-install
+  # "Verify" does not configure the host anymore.
+  # It only asks: "after converge, do we observe the expected state?"
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    # Query the live systemd state of the k3s service.
+    - name: Check k3s service is active
+      ansible.builtin.command: systemctl is-active k3s
+      register: k3s_service_status
+      # A read-only check must not appear as a configuration change.
+      changed_when: false
+
+    # Turn the command output into an explicit test expectation.
+    - name: Assert k3s service is active
+      ansible.builtin.assert:
+        that:
+          - k3s_service_status.stdout == "active"
+        fail_msg: k3s service is not active after converge.
+
+    # Read the generated unit so we can confirm the role passed the expected
+    # startup flags to k3s.
+    - name: Read k3s service unit
+      ansible.builtin.command: systemctl cat k3s
+      register: k3s_unit
+      changed_when: false
+
+    # Verify the role really disabled the default CNI/network-policy behavior
+    # required by the architecture before Cilium is installed.
+    - name: Assert k3s starts without flannel and native network policy
+      ansible.builtin.assert:
+        that:
+          - "'--flannel-backend=none' in k3s_unit.stdout"
+          - "'--disable-network-policy' in k3s_unit.stdout"
+        fail_msg: k3s unit does not contain the expected CNI-related flags.
+
+    # Inspect the user kubeconfig file created by the role.
+    - name: Stat user kubeconfig
+      ansible.builtin.stat:
+        path: /home/molecule/.kube/config
+      register: molecule_kubeconfig
+
+    # Security check: the kubeconfig must exist and stay private to the target
+    # user, because it contains cluster admin access.
+    - name: Assert user kubeconfig permissions
+      ansible.builtin.assert:
+        that:
+          - molecule_kubeconfig.stat.exists
+          - molecule_kubeconfig.stat.pw_name == "molecule"
+          - molecule_kubeconfig.stat.gr_name == "molecule"
+          - molecule_kubeconfig.stat.mode == "0600"
+        fail_msg: Molecule user kubeconfig is missing or has insecure permissions.
+
+    # Inspect the kubectl helper path created by the role.
+    - name: Stat kubectl symlink
+      ansible.builtin.stat:
+        path: /usr/local/bin/kubectl
+        follow: false
+      register: kubectl_symlink
+
+    # Usability check: "kubectl" should transparently call the k3s binary.
+    - name: Assert kubectl symlink points to k3s
+      ansible.builtin.assert:
+        that:
+          - kubectl_symlink.stat.exists
+          - kubectl_symlink.stat.islnk
+          - kubectl_symlink.stat.lnk_source == "/usr/local/bin/k3s"
+        fail_msg: kubectl symlink is missing or does not point to k3s.
+
+    # Final functional check: the kubeconfig should be usable to talk to the
+    # local API server and list at least one node.
+    - name: Query nodes with user kubeconfig
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - /home/molecule/.kube/config
+          - get
+          - nodes
+          - -o
+          - name
+      register: k3s_nodes
+      changed_when: false
+
+    # We do not care about the exact node status here; S0-T5 proves role
+    # behavior, while full node readiness depends on Cilium in S0-T6.
+    - name: Assert at least one node is returned
+      ansible.builtin.assert:
+        that:
+          - k3s_nodes.stdout_lines | length > 0
+        fail_msg: kubectl did not return any node.

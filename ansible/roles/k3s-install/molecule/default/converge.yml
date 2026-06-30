@@ -1,0 +1,37 @@
+---
+- name: Converge k3s-install
+  # "Converge" is the phase where Molecule applies the role on the test host.
+  # If this playbook succeeds, the role can build the expected machine state.
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    # The base test image is minimal. Refresh apt first so package installs
+    # performed by the role behave like on a real Ubuntu host.
+    - name: Refresh apt cache for Ubuntu Molecule image
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+    # Create a dedicated test user so the scenario does not depend on a real
+    # workstation account such as "xclem".
+    - name: Ensure Molecule kubeconfig user exists
+      ansible.builtin.user:
+        name: molecule
+        create_home: true
+        shell: /bin/bash
+  roles:
+    - role: k3s-install
+      vars:
+        # Keep the same k3s flags as the real host...
+        k3s_install_extra_args:
+          - "--flannel-backend=none"
+          - "--disable-network-policy"
+          # ...but add a test-only workaround for Docker containers.
+          # In this Molecule image, overlayfs snapshotting blocks k3s startup,
+          # so the scenario switches containerd to the native snapshotter.
+          - "--snapshotter=native"
+        # Redirect kubeconfig handling to the dedicated Molecule user.
+        k3s_kubeconfig_user: molecule
+        k3s_kubeconfig_group: molecule
+        k3s_user_kubeconfig_dir: /home/molecule/.kube
+        k3s_user_kubeconfig_path: /home/molecule/.kube/config

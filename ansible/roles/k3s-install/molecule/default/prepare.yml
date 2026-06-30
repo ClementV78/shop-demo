@@ -1,0 +1,5 @@
+---
+- name: Prepare Molecule scenario
+  hosts: localhost
+  gather_facts: false
+  tasks: []
