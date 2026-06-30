@@ -217,6 +217,8 @@ terraform destroy -auto-approve # fin de session — facturation arrêtée
 
 > **Note sur MiniStack** : LocalStack Community a passé ses services core en payant. MiniStack est le drop-in replacement MIT-licensé, zéro compte, zéro télémétrie — même port 4566. Il supporte EKS API, Cognito (JWTs valides), RDS (vrai Postgres), SQS, Secrets Manager. Pour Organizations et SCPs, un compte sandbox AWS reste la seule option fiable.
 
+> **Cilium : replacement mode (local) vs chaining mode (EKS)** : en local, Cilium remplace entièrement le CNI puisqu'il n'y a aucune contrainte d'intégration cloud à respecter. Sur EKS, le VPC CNI d'AWS reste obligatoire pour l'attribution d'IP réelles depuis le VPC et l'intégration native (Security Groups par pod, peering, VPC Endpoints) : c'est ce qui permet à un pod d'être routable nativement dans l'infrastructure réseau AWS. Le VPC CNI seul ne sait toutefois pas appliquer de `NetworkPolicy` Kubernetes. Cilium est donc chaîné par-dessus : AWS reste responsable du *qui a quelle IP et comment ça route dans le VPC*, Cilium reste responsable du *qui a le droit de parler à qui*. Ce chaînage apporte l'enforcement `default-deny` + règles explicites (`platform/k8s/cilium/`) et l'observabilité Hubble, sans renoncer à l'intégration AWS native.
+
 ---
 
 ## Architecture cible
