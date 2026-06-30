@@ -4,9 +4,9 @@
 
 **Internal Developer Platform construite from scratch — du serveur Ubuntu local à une architecture cible AWS multi-comptes.**
 
-![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white) ![Status](https://img.shields.io/badge/Sprint-0%2F6-yellow?style=flat-square)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
 
-[Pourquoi ce projet](#pourquoi-ce-projet) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
+[Pourquoi ce projet](#pourquoi-ce-projet) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Quick start](#quick-start) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
 
 </div>
 
@@ -14,13 +14,7 @@
 
 ## Pourquoi ce projet
 
-Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible,
-Kubernetes, CI/CD, observabilité et sécurité dans **un seul système
-cohérent**, construit autour de **ShopDemo** — une application e-commerce
-de démonstration volontairement simple côté métier. L'objectif : que chaque
-brique d'infrastructure se justifie par un besoin fonctionnel réel
-(inscription, catalogue, panier, commande, paiement simulé), pas par
-accumulation de technologies.
+Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Kubernetes, CI/CD, observabilité et sécurité dans **un seul système cohérent**, construit autour de **ShopDemo** — une application e-commerce de démonstration volontairement simple côté métier. L'objectif : que chaque brique d'infrastructure se justifie par un besoin fonctionnel réel (inscription, catalogue, panier, commande, paiement simulé), pas par accumulation de technologies.
 
 ## Aperçu du flux applicatif
 
@@ -38,10 +32,7 @@ flowchart LR
     LBD --> SNS
 ```
 
-> Le détail complet — séquence d'appels, justification de chaque service
-> AWS, exigences non fonctionnelles — vit dans
-> [`ARCHITECTURE.md`](ARCHITECTURE.md), qui fait foi sur la conception
-> cible.
+> Le détail complet — séquence d'appels, justification de chaque service AWS, exigences non fonctionnelles — vit dans [`ARCHITECTURE.md`](ARCHITECTURE.md), qui fait foi sur la conception cible.
 
 ## Compétences démontrées
 
@@ -55,9 +46,32 @@ flowchart LR
 | **DevSecOps** | Scans Trivy / OWASP / GitLeaks, admission control Kyverno, shift-left |
 | **FinOps** | Infra 100 % éphémère, Spot/Graviton, `terraform destroy` systématique |
 
+## Quick start
+
+Ce qui existe aujourd'hui (Sprint 0) : un role Ansible idempotent qui installe et valide `k3s` sur un hôte Ubuntu local.
+
+```bash
+git clone <url-du-depot>
+cd shop-demo/ansible
+
+# Installer les collections requises
+ansible-galaxy collection install -r requirements.yml
+
+# Installer et valider k3s sur l'hôte local (sudo requis)
+ansible-playbook playbooks/k3s-install.yml --ask-become-pass
+
+# Rejouer le role en isolation, avec tests d'idempotence (Molecule + Docker)
+cd roles/k3s-install
+molecule test
+```
+
+Le reste de la plateforme (Terraform, EKS, CI/CD) arrive sprint après sprint — voir [Où en est le projet](#où-en-est-le-projet).
+
 ## Où en est le projet
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
+
+![Sprint 0](https://img.shields.io/badge/S0_Ansible-En_cours-yellow?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_k3s_%2B_Cilium-Planifié-lightgrey?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
 
 | | |
 |---|---|
@@ -92,9 +106,6 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 <div align="center">
 
-Laboratoire d'apprentissage et portfolio personnel — pas un projet en
-production commerciale.
-Voir les [exigences non fonctionnelles](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles)
-pour le détail des compromis assumés.
+Laboratoire d'apprentissage et portfolio personnel — pas un projet en production commerciale. Voir les [exigences non fonctionnelles](ARCHITECTURE.md#exigences-non-fonctionnelles-cibles) pour le détail des compromis assumés.
 
 </div>
