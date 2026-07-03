@@ -47,6 +47,26 @@
   changed_when: false
   when: k3s_binary.stat.exists
 
+- name: Read current k3s systemd unit when installed
+  ansible.builtin.slurp:
+    src: /etc/systemd/system/k3s.service
+  register: k3s_current_unit
+  when: k3s_binary.stat.exists
+  failed_when: false
+
+- name: Detect whether the running k3s flags match the desired ones
+  ansible.builtin.set_fact:
+    k3s_flags_drift: >-
+      {{
+        k3s_binary.stat.exists
+        and (k3s_current_unit.content is defined)
+        and (
+          k3s_install_extra_args
+          | reject('in', k3s_current_unit.content | b64decode)
+          | list | length > 0
+        )
+      }}
+
 - name: Compute whether k3s installation is required
   ansible.builtin.set_fact:
     k3s_needs_install: >-
@@ -56,6 +76,7 @@
           k3s_binary.stat.exists
           and k3s_version not in k3s_current_version.stdout
         )
+        or (k3s_flags_drift | bool)
         or (k3s_force_reinstall | bool)
       }}
 

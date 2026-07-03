@@ -5,6 +5,7 @@ k3s_force_reinstall: false
 k3s_install_extra_args:
   - "--flannel-backend=none"
   - "--disable-network-policy"
+  - "--disable-kube-proxy"
 k3s_server_manifests_dir: /var/lib/rancher/k3s/server/manifests
 k3s_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
 k3s_kubeconfig_mode: "0600"

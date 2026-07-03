@@ -1,0 +1,40 @@
+---
+cilium_helm_repo_name: cilium
+cilium_helm_repo_url: https://helm.cilium.io/
+cilium_chart_version: "1.19.5"
+cilium_namespace: kube-system
+cilium_release_name: cilium
+
+cilium_kubeconfig_user: xclem
+cilium_kubeconfig_path: "/home/{{ cilium_kubeconfig_user }}/.kube/config"
+
+cilium_ipam_mode: cluster-pool
+cilium_cluster_pool_ipv4_cidr: "10.42.0.0/16"
+cilium_cluster_pool_ipv4_mask_size: 24
+
+# k3s est demarre avec --disable-kube-proxy, donc Cilium prend en charge le
+# routage des Services en mode kube-proxy replacement complet. Comme il n'y a
+# plus de kube-proxy pour exposer l'API via sa ClusterIP, l'agent doit joindre
+# l'API directement par l'IP et le port du noeud au demarrage.
+cilium_kube_proxy_replacement: true
+cilium_k8s_service_host: "{{ ansible_default_ipv4.address }}"
+cilium_k8s_service_port: 6443
+
+# Cluster mono-noeud : un seul replica d'operator peut etre schedule (les deux
+# replicas par defaut se disputent les memes hostPorts). Sans cela, le second
+# replica reste Pending et le `helm --wait` echoue en timeout.
+cilium_operator_replicas: 1
+
+# Avec ufw actif en politique deny et Cilium en direct routing, le trafic
+# pod -> IP du noeud (API 6443, agent Cilium 4244 via hubble-peer, etc.) arrive
+# sur la chaine INPUT et est rejete. On autorise le CIDR pod a joindre l'hote ;
+# l'isolation reelle entre charges reste assuree par les NetworkPolicies Cilium.
+cilium_manage_host_firewall: true
+cilium_pod_cidr: "{{ cilium_cluster_pool_ipv4_cidr }}"
+
+cilium_hubble_relay_enabled: true
+cilium_hubble_ui_enabled: true
+
+cilium_helm_wait: true
+cilium_runtime_validation_enabled: true
+cilium_wait_timeout: "5m"

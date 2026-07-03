@@ -1,0 +1,56 @@
+---
+- name: Converge cilium-setup
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Refresh apt cache for Ubuntu Molecule image
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install test prerequisites
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Ensure Molecule kubeconfig user exists
+      ansible.builtin.user:
+        name: molecule
+        create_home: true
+        shell: /bin/bash
+
+    - name: Download Helm install script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: /tmp/get-helm-3.sh
+        mode: "0755"
+
+    - name: Install Helm for Molecule scenario
+      ansible.builtin.command:
+        argv:
+          - /tmp/get-helm-3.sh
+      args:
+        creates: /usr/local/bin/helm
+  roles:
+    - role: k3s-install
+      vars:
+        k3s_install_extra_args:
+          - "--flannel-backend=none"
+          - "--disable-network-policy"
+          - "--disable-kube-proxy"
+          - "--snapshotter=native"
+        k3s_kubeconfig_user: molecule
+        k3s_kubeconfig_group: molecule
+        k3s_user_kubeconfig_dir: /home/molecule/.kube
+        k3s_user_kubeconfig_path: /home/molecule/.kube/config
+
+    - role: cilium-setup
+      vars:
+        cilium_kubeconfig_user: molecule
+        cilium_kubeconfig_path: /home/molecule/.kube/config
+        cilium_manage_host_firewall: false
+        cilium_helm_wait: false
+        cilium_runtime_validation_enabled: false

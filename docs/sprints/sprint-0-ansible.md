@@ -6,7 +6,7 @@ Rendre le serveur Ubuntu local reproductible avec Ansible et poser la frontiere
 Terraform/Ansible reutilisee pour le runner EC2, RDS et Gitea.
 
 Conception cible :
-[`ARCHITECTURE.md - Sprint 0`](../../ARCHITECTURE.md#sprint-0--ansible--provisioning-local--fondations-bootstrap).
+[`docs/sprint-planning.md - Sprint 0`](../sprint-planning.md#sprint-0--ansible--provisioning-local--fondations-bootstrap).
 
 ## Tableau de bord
 
@@ -17,7 +17,7 @@ Conception cible :
 | S0-T3 | Creer le squelette Ansible | Termine | S0-T1 |
 | S0-T4 | Implementer `k3s-install` | Termine | S0-T2, S0-T3 |
 | S0-T5 | Tester `k3s-install` avec Molecule | Termine | S0-T4 |
-| S0-T6 | Implementer `cilium-setup` | Planifie | S0-T5 |
+| S0-T6 | Implementer `cilium-setup` | En cours | S0-T5 |
 | S0-T7 | Implementer `ministack-setup` | Planifie | S0-T3 |
 | S0-T8 | Implementer `cloudflare-tunnel` | Planifie | S0-T3 |
 | S0-T9 | Implementer `gitlab-runner` | Planifie | S0-T3 |
@@ -240,22 +240,85 @@ Depend de : `S0-T4`
 
 ### S0-T6 - Implementer le role `cilium-setup`
 
-Etat : `Planifie`  
+Etat : `En cours`  
 Depend de : `S0-T5`
 
-- [ ] Installer Cilium par Helm en replacement mode.
-- [ ] Configurer l'IPAM cluster-pool.
-- [ ] Activer Hubble.
-- [ ] Attendre la disponibilite des composants.
-- [ ] Ajouter les tests Molecule pertinents.
+- [x] Installer Cilium par Helm en replacement mode.
+- [x] Configurer l'IPAM cluster-pool.
+- [x] Activer Hubble (relay + UI).
+- [x] Ajouter les tests Molecule pertinents.
+- [ ] Rejouer les validations runtime sur l'hote reel.
 
 #### Criteres d'acceptation
 
-- [ ] Les pods Cilium sont disponibles.
-- [ ] Les noeuds Kubernetes sont `Ready`.
-- [ ] Hubble est actif.
-- [ ] Un pod de test dispose de connectivite reseau.
-- [ ] Le role est idempotent.
+- [ ] Le scenario Molecule converge, reste idempotent, et verifie le release
+  Helm ainsi que les valeurs critiques du role.
+- [ ] Sur l'hote reel, `cilium status --wait` confirme un etat sain.
+- [ ] Sur l'hote reel, les noeuds Kubernetes sont `Ready` et Hubble est actif.
+- [ ] Sur l'hote reel, `cilium connectivity test` confirme la connectivite.
+- [ ] Sur l'hote reel, le rerun du playbook reste idempotent.
+
+#### Notes de progression
+
+- Implemente : role `ansible/roles/cilium-setup/` (`defaults/main.yml`,
+  `tasks/main.yml`) et playbook `ansible/playbooks/cilium-setup.yml`,
+  installation via `kubernetes.core.helm` (collection ajoutee a
+  `requirements.yml`).
+- Implemente : scenario Molecule
+  `ansible/roles/cilium-setup/molecule/default/` avec une frontiere de preuve
+  explicite :
+  - Molecule prouve l'automatisation Ansible (`converge -> idempotence ->
+    verify`) et controle le release Helm, les valeurs cles et les objets
+    Kubernetes attendus.
+  - Les validations de reference du datapath Cilium restent sur l'hote reel
+    via `cilium status --wait`, `cilium connectivity test`, Hubble et le
+    rerun idempotent du playbook.
+- Decide : chart Cilium pinnee en `1.19.5` (derniere stable au moment du
+  sprint), IPAM `cluster-pool` sur `10.42.0.0/16` (le defaut interne de k3s,
+  pas de reinstallation necessaire), Hubble relay + UI actives.
+- Bloque : premiere execution en `CrashLoopBackOff` sur l'agent Cilium.
+  Diagnostic mene en chaine : `cilium-operator` restait `Pending`
+  (`untolerated taint node.kubernetes.io/disk-pressure`) -> les CRDs Cilium
+  n'etaient jamais enregistrees -> l'agent plantait en attendant ces CRDs.
+- Cause racine : partition `/` a 94% d'usage, sous le seuil kubelet
+  `imagefs.available<15%`. Le poste sert aussi de serveur personnel actif
+  (Vaultwarden, Immich, Nextcloud, AdGuard, Coolify, VMs `libvirt`) ; aucune
+  de ces donnees n'a ete touchee.
+- Nettoyage applique sans toucher aux services actifs : conteneurs Docker
+  `Exited` supprimes, `docker image prune -a` (images sans conteneur actif
+  uniquement, ~1,7 Go), cache `apt`, backends CUDA Ollama inutilises
+  supprimes (~3,2 Go, aucun GPU NVIDIA present, service Ollama
+  inactif/disabled).
+- Point d'attention non resolu : `/media/xclem/user/docker` (data-root
+  Docker reel) se trouve sur la partition `/` (`sda7`, 55G) alors qu'un
+  disque `sdb3` de 3,8 To est monte juste a cote (`/media/xclem/ext4`) quasi
+  vide. Migration de la `data-root` Docker reportee par le proprietaire
+  (coupure de service le temps du transfert) : a planifier hors urgence.
+- Decouverte : `/media/xclem/snapd/` (5,9 Go) ressemble a un duplicata de
+  `/var/lib/snapd/` non reference par le `snapd` actif, mais ses fichiers
+  ont des dates de modification recentes (avril 2026) ; laisse intact tant
+  que son origine n'est pas confirmee par le proprietaire.
+- Note technique : `--eviction-pressure-transition-period` (5 min par
+  defaut chez kubelet) retarde la levee de `DiskPressure` meme apres un
+  nettoyage suffisant ; ne pas conclure trop vite a un nettoyage insuffisant
+  sur la base d'une verification immediate.
+- Verifie sur l'hote reel : `cilium status --verbose` est sain, Hubble Relay
+  est `OK`, le noeud reste `Ready` et les composants `cilium`,
+  `cilium-envoy`, `cilium-operator`, `coredns`, `hubble-relay` et
+  `hubble-ui` sont prets.
+- Verifie sur l'hote reel : `kubectl exec deploy/client -- curl -sv
+  http://echo-same-node:8080/` et le meme test depuis `client2` retournent
+  `HTTP/1.1 200 OK`.
+- Verifie sur l'hote reel : `hubble observe` montre les flows attendus pour
+  `pod -> service` (`pre-xlate-fwd`, puis `SYN/SYN-ACK/ACK/FIN` vers le pod
+  backend) et pour `pod -> world`.
+- Risque accepte : `cilium connectivity test --test no-policies` garde un
+  echec residuel sur `no-policies/pod-to-service`. Le trafic reel est
+  pourtant valide par `curl` et Hubble ; l'echec est donc traite comme un
+  faux negatif probable de validation Hubble / `connectivity test` sur ce
+  cluster local mono-noeud, pas comme une panne datapath.
+- Etat du suivi : `S0-T6` reste `En cours` tant que les validations ne sont
+  pas rejouees apres ajout du scenario Molecule et consignees comme preuves.
 
 ## S0-E3 - Services du serveur local
 
@@ -378,7 +441,7 @@ Depend de : `S0-T5` a `S0-T12`
 - [ ] Tous les roles applicables passent leurs validations.
 - [ ] Les validations non executees sont justifiees.
 - [ ] Les risques residuels sont documentes.
-- [ ] `ROADMAP.md` et `CURRENT.md` refletent l'etat reel.
+- [ ] La table de suivi de `README.md` et `CURRENT.md` refletent l'etat reel.
 
 ## Preuves
 

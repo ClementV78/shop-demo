@@ -1,0 +1,133 @@
+---
+- name: Assert kubeconfig is available before installing Cilium
+  ansible.builtin.stat:
+    path: "{{ cilium_kubeconfig_path }}"
+  register: cilium_kubeconfig_stat
+
+- name: Fail when kubeconfig is missing
+  ansible.builtin.assert:
+    that:
+      - cilium_kubeconfig_stat.stat.exists
+    fail_msg: >-
+      {{ cilium_kubeconfig_path }} does not exist. Run the k3s-install role
+      first so the user kubeconfig is synchronized.
+
+- name: Check whether ufw is present and active
+  ansible.builtin.command: ufw status
+  register: cilium_ufw_status
+  changed_when: false
+  failed_when: false
+  become: true
+  environment:
+    LANG: C
+    LC_ALL: C
+  when: cilium_manage_host_firewall | bool
+
+- name: Allow the Cilium pod CIDR to reach the host through ufw
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ cilium_pod_cidr }}"
+    comment: "Cilium pod CIDR to host (k3s API, cilium agent, hubble-peer)"
+  become: true
+  when:
+    - cilium_manage_host_firewall | bool
+    - cilium_ufw_status.stdout is defined
+    - "'Status: active' in cilium_ufw_status.stdout"
+
+- name: Add the Cilium Helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ cilium_helm_repo_name }}"
+    repo_url: "{{ cilium_helm_repo_url }}"
+
+- name: Install or upgrade Cilium via Helm
+  kubernetes.core.helm:
+    name: "{{ cilium_release_name }}"
+    chart_ref: "{{ cilium_helm_repo_name }}/cilium"
+    chart_version: "{{ cilium_chart_version }}"
+    release_namespace: "{{ cilium_namespace }}"
+    kubeconfig: "{{ cilium_kubeconfig_path }}"
+    wait: "{{ cilium_helm_wait }}"
+    wait_timeout: "{{ cilium_wait_timeout }}"
+    values:
+      kubeProxyReplacement: "{{ cilium_kube_proxy_replacement }}"
+      k8sServiceHost: "{{ cilium_k8s_service_host }}"
+      k8sServicePort: "{{ cilium_k8s_service_port }}"
+      operator:
+        replicas: "{{ cilium_operator_replicas }}"
+      ipam:
+        mode: "{{ cilium_ipam_mode }}"
+        operator:
+          clusterPoolIPv4PodCIDRList:
+            - "{{ cilium_cluster_pool_ipv4_cidr }}"
+          clusterPoolIPv4MaskSize: "{{ cilium_cluster_pool_ipv4_mask_size }}"
+      hubble:
+        relay:
+          enabled: "{{ cilium_hubble_relay_enabled }}"
+        ui:
+          enabled: "{{ cilium_hubble_ui_enabled }}"
+  register: cilium_helm_result
+
+- name: Verify the local node reports Ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    get nodes -o jsonpath="{.items[0].status.conditions[?(@.type=='Ready')].status}"
+  register: cilium_node_ready
+  changed_when: false
+  failed_when: cilium_node_ready.stdout != "True"
+  retries: 10
+  delay: 15
+  until: cilium_node_ready.stdout == "True"
+  when: cilium_runtime_validation_enabled | bool
+
+- name: Check whether CoreDNS is already Ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    get pods -n {{ cilium_namespace }} -l k8s-app=kube-dns
+    -o jsonpath="{.items[*].status.conditions[?(@.type=='Ready')].status}"
+  register: cilium_coredns_initial
+  changed_when: false
+  when: cilium_runtime_validation_enabled | bool
+
+# Au boot, k3s schedule CoreDNS avant que Cilium et la regle ufw soient en
+# place ; le pod reste alors bloque sur l'API. Un rollout restart le recree une
+# fois le reseau pret. Idempotent : on ne redemarre que si aucun replica n'est
+# Ready.
+- name: Restart CoreDNS when it failed to come up before Cilium was ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    rollout restart deployment/coredns -n {{ cilium_namespace }}
+  when:
+    - cilium_runtime_validation_enabled | bool
+    - "'True' not in cilium_coredns_initial.stdout"
+  changed_when: true
+
+- name: Wait for CoreDNS to become Ready after pod restart
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    get pods -n {{ cilium_namespace }} -l k8s-app=kube-dns
+    -o jsonpath="{.items[*].status.conditions[?(@.type=='Ready')].status}"
+  register: cilium_coredns_ready
+  changed_when: false
+  retries: 15
+  delay: 10
+  until: "'True' in cilium_coredns_ready.stdout"
+  when: cilium_runtime_validation_enabled | bool
+
+- name: Verify Hubble relay and UI pods are running
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    get pods -n {{ cilium_namespace }} -l app.kubernetes.io/part-of=cilium
+    -o jsonpath="{.items[*].status.phase}"
+  register: cilium_pods_status
+  changed_when: false
+  failed_when: "'Running' not in cilium_pods_status.stdout"
+  when: cilium_runtime_validation_enabled | bool
+
+- name: Show Cilium install summary
+  ansible.builtin.debug:
+    msg:
+      chart_version: "{{ cilium_chart_version }}"
+      release_changed: "{{ cilium_helm_result.changed }}"
+      runtime_validation_enabled: "{{ cilium_runtime_validation_enabled }}"
+      node_ready: "{{ cilium_node_ready.stdout | default('skipped') }}"
+      pods_status: "{{ cilium_pods_status.stdout | default('skipped') }}"

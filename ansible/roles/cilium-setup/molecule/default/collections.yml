@@ -1,6 +1,4 @@
 ---
-roles: []
 collections:
-  - name: amazon.aws
   - name: kubernetes.core
   - name: community.general
