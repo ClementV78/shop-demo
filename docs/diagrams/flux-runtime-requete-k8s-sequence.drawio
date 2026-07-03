@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="flux-runtime-requete-k8s-sequence">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1200" background="#f7f8f4" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f7f8f4;strokeColor=#f7f8f4;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1600" height="1180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="3" value="Kubernetes runtime request - /api/commande" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=24;fontColor=#2b2f38;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="20" width="640" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="Comprendre qui intervient reellement pendant la requete, et qui prepare le chemin en amont" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;fontColor=#60748a;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="50" width="780" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="5" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="95" width="1480" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Phase 0 - preparation (hors requete)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#ffffff;strokeColor=#ff7e98;strokeWidth=1;fontStyle=1;fontSize=13;fontColor=#b45563;" vertex="1" parent="1">
+          <mxGeometry x="80" y="108" width="280" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="kube-apiserver&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;etat desire du cluster&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=18;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=1;fontStyle=1;fontSize=13;fontColor=#2b2f38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="145" width="170" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Cilium agent&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;watch Services / Endpoints / Policies&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=18;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#5d2430;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="700" y="145" width="220" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Cilium datapath&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;eBPF maps + policy deja programmees&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=18;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#173a38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="145" width="250" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff7e98;fontColor=#b45563;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;" edge="1" parent="1" source="7" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff7e98;fontColor=#b45563;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;" edge="1" parent="1" source="8" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="11b" value="watch Services / Endpoints / Policies" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#b45563;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="555" y="150" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="11c" value="program eBPF service maps + policy" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#b45563;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="945" y="150" width="190" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Cette phase explique pourquoi le routage Service + l'enforcement NetworkPolicy existent deja quand la requete HTTP arrive." style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#fff8dd;strokeColor=#f0b44c;strokeWidth=1;fontSize=12;fontColor=#7c5a00;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="140" width="190" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="13" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="270" width="1480" height="760" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Phase 1 - hot path runtime" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=1;fontStyle=1;fontSize=13;fontColor=#1f6f69;" vertex="1" parent="1">
+          <mxGeometry x="80" y="283" width="240" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Ici, kube-apiserver n'est plus appele. La requete traverse uniquement le datapath deja prepare, les pods applicatifs, DNS si besoin, puis RDS." style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=1;fontSize=12;fontColor=#556476;" vertex="1" parent="1">
+          <mxGeometry x="340" y="278" width="560" height="38" as="geometry" />
+        </mxCell>
+
+        <mxCell id="16" value="Client&#xa;&lt;font style=&quot;font-size:11px;color:#556476&quot;&gt;navigateur&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#556476;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="90" y="350" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="ALB&#xa;&lt;font style=&quot;font-size:11px;color:#7c3600&quot;&gt;HTTPRoute&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff1e8;strokeColor=#f58534;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#7c3600;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="270" y="350" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="Cilium datapath&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;eBPF inline&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#173a38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="450" y="350" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="Gateway API&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;NGINX Gateway Fabric&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#173a38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="650" y="350" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="jwt-authorizer&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;ExternalAuth&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#5d2430;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="350" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="service-commande&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;Go pod workload&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#173a38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="350" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="CoreDNS&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;pod systeme&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#173a38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="350" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="RDS&#xa;&lt;font style=&quot;font-size:11px;color:#215a34&quot;&gt;PostgreSQL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#215a34;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="350" width="90" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="24" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="154" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="25" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="334" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="26" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="524" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="27" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="729" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="28" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="934" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="29" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="1144" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="30" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="1344" y="420" width="2" height="520" as="geometry" /></mxCell>
+        <mxCell id="31" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dfe5ec;strokeColor=#c4ced9;dashed=1;dashPattern=6 4;strokeWidth=1;" vertex="1" parent="1"><mxGeometry x="1494" y="420" width="2" height="520" as="geometry" /></mxCell>
+
+        <mxCell id="32" value="1. HTTPS POST /api/commande" style="edgeStyle=none;html=1;strokeWidth=3;strokeColor=#f58534;fontColor=#7c3600;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="155" y="470" as="sourcePoint" /><mxPoint x="335" y="470" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="33" value="2. target Gateway Service" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#7fa3b8;fontColor=#556476;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="335" y="520" as="sourcePoint" /><mxPoint x="525" y="520" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="34" value="3. LB vers pod Gateway API" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#43d3c2;fontColor=#1f6f69;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="525" y="570" as="sourcePoint" /><mxPoint x="730" y="570" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="35" value="4. auth-request" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#ff7e98;fontColor=#b45563;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="730" y="620" as="sourcePoint" /><mxPoint x="935" y="620" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="36" value="5. allow + claims" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#9ca9ba;fontColor=#6b7280;endArrow=open;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="935" y="660" as="sourcePoint" /><mxPoint x="730" y="660" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="37" value="6. target service-commande Service" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#7fa3b8;fontColor=#556476;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="730" y="710" as="sourcePoint" /><mxPoint x="525" y="710" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="38" value="7. LB vers pod service-commande" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#43d3c2;fontColor=#1f6f69;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="525" y="760" as="sourcePoint" /><mxPoint x="1145" y="760" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="39" value="8. resolve RDS endpoint (si cache miss)" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#8fb8ff;fontColor=#426bb3;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1145" y="810" as="sourcePoint" /><mxPoint x="1345" y="810" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="40" value="9. A/AAAA response" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#9ca9ba;fontColor=#6b7280;endArrow=open;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1345" y="850" as="sourcePoint" /><mxPoint x="1145" y="850" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="41" value="10. INSERT commande" style="edgeStyle=none;html=1;strokeWidth=2;strokeColor=#8ee3a3;fontColor=#215a34;endArrow=classic;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1145" y="900" as="sourcePoint" /><mxPoint x="1495" y="900" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="42" value="11. OK" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#9ca9ba;fontColor=#6b7280;endArrow=open;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1495" y="930" as="sourcePoint" /><mxPoint x="1145" y="930" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="43" value="12. 201 Created" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#9ca9ba;fontColor=#6b7280;endArrow=open;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1145" y="970" as="sourcePoint" /><mxPoint x="730" y="970" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="44" value="13. response" style="edgeStyle=none;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#9ca9ba;fontColor=#6b7280;endArrow=open;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="730" y="1000" as="sourcePoint" /><mxPoint x="155" y="1000" as="targetPoint" /></mxGeometry></mxCell>
+
+        <mxCell id="45" value="Hubble relay&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;observe seulement&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=1;fontStyle=1;fontSize=13;fontColor=#2b2f38;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="480" width="170" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="46" value="observe flux + verdicts&#xa;hors hot path" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#fff8dd;strokeColor=#f0b44c;strokeWidth=1;fontSize=12;fontColor=#7c5a00;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="475" width="150" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=6 4;strokeWidth=1;strokeColor=#9ca9ba;endArrow=open;" edge="1" parent="1" source="45" target="18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="48" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=6 4;strokeWidth=1;strokeColor=#9ca9ba;endArrow=open;" edge="1" parent="1" source="45" target="21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="49" value="Lecture" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=1;fontStyle=1;fontSize=13;fontColor=#2b2f38;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1060" width="90" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="50" value="Pendant la requete, tu traverses surtout ALB, le datapath Cilium, Gateway API, jwt-authorizer, service-commande, puis eventuellement CoreDNS et RDS. kube-apiserver et Cilium agent sont essentiels, mais surtout pour preparer l'etat avant le trafic. Hubble observe sans etre appele inline." style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=1;fontSize=12;fontColor=#556476;" vertex="1" parent="1">
+          <mxGeometry x="190" y="1050" width="1320" height="48" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

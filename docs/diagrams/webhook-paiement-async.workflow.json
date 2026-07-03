@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — Webhook paiement (async)",
+    "subtitle": "Provider simulé → API Gateway → Lambda → SNS → consumers",
+    "output": "webhook-paiement-async.html"
+  },
+  "lanes": [
+    { "id": "main", "label": "Webhook" },
+    { "id": "stock", "label": "Queue stock" },
+    { "id": "notif", "label": "Queue notification" }
+  ],
+  "nodes": [
+    { "id": "provider", "lane": "main", "col": 0, "type": "external", "label": "Provider", "sublabel": "paiement simulé" },
+    { "id": "apigw", "lane": "main", "col": 2, "type": "cloud", "label": "API GW AWS", "sublabel": "API Key + HMAC" },
+    { "id": "lbd", "lane": "main", "col": 3, "type": "backend", "label": "Lambda", "sublabel": "webhook-paiement", "width": 70 },
+    { "id": "sns", "lane": "main", "col": 5, "type": "messagebus", "label": "SNS", "sublabel": "paiement-confirmé", "width": 70 },
+    { "id": "stocksvc", "lane": "stock", "col": 5, "type": "backend", "label": "svc-stock", "sublabel": "Go — via SQS queue-stock + DLQ" },
+    { "id": "notifsvc", "lane": "notif", "col": 5, "type": "backend", "label": "svc-notif", "sublabel": "Go — via SQS queue-notif + DLQ" }
+  ],
+  "edges": [
+    { "from": "provider", "to": "apigw", "label": "POST /webhook/paiement", "variant": "emphasis" },
+    { "from": "apigw", "to": "lbd", "variant": "default" },
+    { "from": "lbd", "to": "sns", "label": "publish confirmé", "variant": "emphasis" },
+    { "from": "sns", "to": "stocksvc", "label": "décrémente stock", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 34, "labelDx": -30 },
+    { "from": "sns", "to": "notifsvc", "label": "log confirmation", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 1, "labelDy": -20 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Terminologie", "items": ["API Gateway AWS : service managé, webhook entrant", "Gateway API Kubernetes : routage interne EKS, JWT", "Deux concepts homonymes distincts dans ce projet"] }
+  ]
+}

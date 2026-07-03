@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — 2 states Terraform séparés",
+    "subtitle": "bootstrap (permanent) vs workload (éphémère)",
+    "output": "terraform-states.html",
+    "viewBox": [1000, 480]
+  },
+  "components": [
+    { "id": "glshared", "type": "external", "label": "GitLab shared runners", "sublabel": "tier gratuit, 400 min/mois", "pos": [30, 210], "size": [170, 60] },
+    { "id": "ec2runner", "type": "backend", "label": "EC2 runner", "sublabel": "Ubuntu t3.micro + GitLab runner", "pos": [300, 90], "size": [170, 60] },
+    { "id": "s3state", "type": "database", "label": "S3 tfstate workload", "sublabel": "+ DynamoDB lock", "pos": [300, 170], "size": [170, 60] },
+    { "id": "oidc", "type": "security", "label": "Provider OIDC", "sublabel": "GitLab → AWS, rôle IAM scopé", "pos": [300, 250], "size": [170, 60] },
+    { "id": "vpceks", "type": "backend", "label": "VPC + EKS + Karpenter", "sublabel": "Amazon Linux 2023", "pos": [650, 90], "size": [190, 60] },
+    { "id": "rdssns", "type": "database", "label": "RDS · SNS/SQS", "sublabel": "CloudFront/WAF", "pos": [650, 170], "size": [190, 60] },
+    { "id": "cognitolbd", "type": "cloud", "label": "Cognito · API GW · Lambda", "pos": [650, 250], "size": [190, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "State bootstrap — permanent, jamais détruit", "wraps": ["ec2runner", "s3state", "oidc"] },
+    { "kind": "region", "label": "State workload — détruit après chaque session", "wraps": ["vpceks", "rdssns", "cognitolbd"] }
+  ],
+  "connections": [
+    { "from": "glshared", "to": "ec2runner", "label": "apply/destroy bootstrap/ (rare, manuel)", "variant": "dashed", "fromSide": "top", "toSide": "left", "labelAt": [300, 20] },
+    { "from": "glshared", "to": "vpceks", "label": "apply/destroy envs/staging/ (début et fin de session)", "variant": "emphasis", "fromSide": "bottom", "toSide": "left", "labelAt": [400, 400] },
+    { "from": "ec2runner", "to": "vpceks", "label": "kubectl apply, jobs réseau privé", "variant": "default" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Pourquoi 2 states", "items": ["bootstrap contient l'EC2 runner + bucket S3 du state workload", "un seul state détruirait le runner en train d'exécuter le destroy", "apply ET destroy workload tournent sur les shared runners"] }
+  ]
+}

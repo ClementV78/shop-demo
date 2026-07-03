@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — Pipeline CI/CD vers GitOps",
+    "subtitle": "GitLab CI, scans DevSecOps, GitOps repo, Argo CD sync waves",
+    "output": "pipeline-gitops.html"
+  },
+  "lanes": [
+    { "id": "dev", "label": "Développeur" },
+    { "id": "ci", "label": "GitLab CI" },
+    { "id": "gitops", "label": "GitOps (Gitea)" },
+    { "id": "argocd", "label": "Argo CD" }
+  ],
+  "nodes": [
+    { "id": "push", "lane": "dev", "col": 0, "type": "frontend", "label": "Dev push", "sublabel": "feature branch" },
+    { "id": "scans", "lane": "ci", "col": 0, "type": "security", "label": "Scans SAST", "sublabel": "GitLeaks + OWASP", "tag": "bloque le commit" },
+    { "id": "build", "lane": "ci", "col": 2, "type": "backend", "label": "Build image", "sublabel": "Kaniko + SBOM" },
+    { "id": "trivy", "lane": "ci", "col": 4, "type": "security", "label": "Trivy", "sublabel": "image + IaC", "tag": "bloque si CRITICAL" },
+    { "id": "tag", "lane": "gitops", "col": 3, "type": "backend", "label": "Patch GitOps", "sublabel": "update-gitops-tag", "width": 110 },
+    { "id": "repo", "lane": "gitops", "col": 5, "type": "database", "label": "Repo GitOps", "sublabel": "k8s/staging · k8s/prod" },
+    { "id": "argo", "lane": "argocd", "col": 5, "type": "backend", "label": "ApplicationSet", "sublabel": "staging: merge · prod: tag" }
+  ],
+  "edges": [
+    { "from": "push", "to": "scans", "variant": "default", "fromSide": "bottom", "toSide": "top", "route": "drop" },
+    { "from": "scans", "to": "build", "variant": "default" },
+    { "from": "build", "to": "trivy", "variant": "default" },
+    { "from": "trivy", "to": "tag", "label": "gates OK + digest", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 16 },
+    { "from": "tag", "to": "repo", "label": "commit + skip-ci", "variant": "default", "labelDy": -18 },
+    { "from": "repo", "to": "argo", "label": "watch branch / tag", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 16 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Sync waves Argo CD", "items": ["wave -5 : Namespaces, CRDs", "wave -2 : ExternalSecrets → K8s Secrets", "wave 0 : Deployments + probes", "wave 2 : HTTPRoutes"] },
+    { "dot": "rose", "title": "Gates DevSecOps", "items": ["GitLeaks + OWASP bloquent avant le build", "Trivy bloque sur CVE CRITICAL (image + IaC)", "Kyverno vérifie les policies avant scheduling"] },
+    { "dot": "emerald", "title": "Anti-boucle CI", "items": ["update-gitops-tag committe avec [skip ci]", "selfHeal Argo CD annule toute dérive manuelle", "digest sha256 — jamais de tag mutable"] }
+  ]
+}

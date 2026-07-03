@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — Flux runtime inter-pods",
+    "subtitle": "Qui parle a qui pendant l'execution normale dans le cluster",
+    "output": "flux-runtime-k8s.html",
+    "viewBox": [1240, 560]
+  },
+  "components": [
+    { "id": "alb", "type": "cloud", "label": "ALB", "sublabel": "entrée HTTPRoute", "pos": [40, 250], "size": [130, 60] },
+    { "id": "gw", "type": "backend", "label": "Gateway API", "sublabel": "NGINX Gateway Fabric", "pos": [250, 250], "size": [160, 60] },
+    { "id": "authz", "type": "security", "label": "jwt-authorizer", "sublabel": "ExternalAuth central", "pos": [250, 110], "size": [170, 64], "tag": "JWT Cognito" },
+    { "id": "catalogue", "type": "backend", "label": "service-catalogue", "sublabel": "Go", "pos": [520, 70], "size": [160, 56] },
+    { "id": "panier", "type": "backend", "label": "service-panier", "sublabel": "Go", "pos": [520, 160], "size": [160, 56] },
+    { "id": "commande", "type": "backend", "label": "service-commande", "sublabel": "Go", "pos": [520, 250], "size": [160, 56] },
+    { "id": "paiement", "type": "backend", "label": "service-paiement", "sublabel": "Go", "pos": [520, 340], "size": [160, 56] },
+    { "id": "coredns", "type": "backend", "label": "CoreDNS", "sublabel": "svc.cluster.local", "pos": [820, 120], "size": [160, 56] },
+    { "id": "cilium", "type": "security", "label": "Cilium agent", "sublabel": "service LB + NetworkPolicy", "pos": [820, 250], "size": [180, 60], "tag": "replacement local / chaining EKS" },
+    { "id": "hubble", "type": "backend", "label": "Hubble relay", "sublabel": "flux et verdicts", "pos": [820, 380], "size": [160, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cluster Kubernetes (k3s local puis EKS)", "wraps": ["gw", "authz", "catalogue", "panier", "commande", "paiement", "coredns", "cilium", "hubble"] },
+    { "kind": "security-group", "label": "namespace gateway-system", "wraps": ["gw", "authz"] },
+    { "kind": "security-group", "label": "namespace shopdemo", "wraps": ["catalogue", "panier", "commande", "paiement"] },
+    { "kind": "security-group", "label": "namespace kube-system", "wraps": ["coredns", "cilium", "hubble"] }
+  ],
+  "connections": [
+    { "from": "alb", "to": "gw", "label": "HTTPRoute", "variant": "emphasis" },
+    { "from": "gw", "to": "authz", "label": "auth-request", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "gw", "to": "catalogue", "label": "/api/catalogue", "route": "orthogonal-h" },
+    { "from": "gw", "to": "panier", "label": "/api/panier", "route": "orthogonal-h" },
+    { "from": "gw", "to": "commande", "label": "/api/commande", "route": "orthogonal-h" },
+    { "from": "gw", "to": "paiement", "label": "/api/paiement", "route": "orthogonal-h" },
+    { "from": "commande", "to": "coredns", "label": "DNS lookup", "variant": "dashed", "fromSide": "right", "toSide": "left", "route": "orthogonal-h", "labelAt": [748, 205] },
+    { "from": "cilium", "to": "commande", "label": "service LB + policy", "variant": "security", "fromSide": "left", "toSide": "right", "labelAt": [750, 330] },
+    { "from": "hubble", "to": "cilium", "label": "hubble-peer", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Chemin applicatif", "items": ["ALB envoie vers Gateway API", "Gateway API appelle jwt-authorizer avant de router", "Le routage applicatif vise ensuite les services Go"] },
+    { "dot": "rose", "title": "Services de cluster", "items": ["Les workloads resolvent leurs noms via CoreDNS", "Cilium porte le service load-balancing et l'enforcement east-west", "Hubble observe les flux via l'agent Cilium"] },
+    { "dot": "emerald", "title": "Frontiere de la vue", "items": ["Cette vue montre les flux runtime internes au cluster", "Elle ne montre ni Argo CD ni External Secrets", "Les appels AWS externes sont traites dans les autres vues plateforme"] }
+  ]
+}

@@ -1,0 +1,256 @@
+<svg viewBox="0 0 1380 950" role="img" aria-label="ShopDemo — Flux achat et paiement — Navigation, création de commande, fan-out SNS/SQS, paiement simulé (sequence diagram)" width="1380" height="950" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 600; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+svg { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', 'Noto Sans Mono CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', monospace; }
+:root, [data-theme="dark"] { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+[data-theme="light"] { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; }
+svg { width: 100%; min-width: min(900px, 100%); display: block; }
+.c-grid { stroke: var(--grid); fill: none; }
+.c-mask { fill: var(--mask); stroke: none; }
+.c-frontend { fill: var(--frontend-fill); stroke: var(--frontend-stroke); }
+.c-backend { fill: var(--backend-fill); stroke: var(--backend-stroke); }
+.c-database { fill: var(--database-fill); stroke: var(--database-stroke); }
+.c-cloud { fill: var(--cloud-fill); stroke: var(--cloud-stroke); }
+.c-security { fill: var(--security-fill); stroke: var(--security-stroke); }
+.c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
+.c-external { fill: var(--external-fill); stroke: var(--external-stroke); }
+.t-primary { fill: var(--text); }
+.t-muted { fill: var(--text-muted); }
+.t-dim { fill: var(--text-dim); }
+.t-frontend { fill: var(--frontend-stroke); }
+.t-backend { fill: var(--backend-stroke); }
+.t-database { fill: var(--database-stroke); }
+.t-cloud { fill: var(--cloud-stroke); }
+.t-security { fill: var(--security-stroke); }
+.t-messagebus { fill: var(--messagebus-stroke); }
+.t-external { fill: var(--external-stroke); }
+.a-default { stroke: var(--arrow); fill: none; }
+.a-emphasis { stroke: var(--arrow-emphasis); fill: none; }
+.a-security { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5, 5; }
+.a-dashed { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4, 4; }
+.m-default { fill: var(--arrow); }
+.m-emphasis { fill: var(--arrow-emphasis); }
+.m-security { fill: var(--security-stroke); }
+.m-dashed { fill: var(--database-stroke); }
+.c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4, 4; }
+.c-region { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8, 4; }
+.c-lane { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6, 6; }
+:root, svg { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+@media (prefers-color-scheme: light) { :root, svg { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; } }
+svg[data-theme="light"] { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; }
+svg[data-theme="dark"] { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+rect.c-bg-rect { fill: var(--bg); }
+</style><rect width="100%" height="100%" class="c-bg-rect"/>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default"/>
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis"/>
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security"/>
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed"/>
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+        <!-- Time Segments -->
+        <rect x="48" y="160" width="1284" height="110" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="178" class="t-dim" font-size="9" font-weight="600">01 / NAVIGATION</text>
+
+        <rect x="48" y="285" width="1284" height="245" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="303" class="t-dim" font-size="9" font-weight="600">02 / COMMANDE</text>
+
+        <rect x="48" y="545" width="1284" height="145" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="563" class="t-dim" font-size="9" font-weight="600">03 / PAIEMENT SIMULÉ</text>
+
+        <rect x="48" y="705" width="1284" height="160" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="723" class="t-dim" font-size="9" font-weight="600">04 / WEBHOOK PAIEMENT (ASYNC)</text>
+
+        <!-- Lifelines -->
+        <path d="M 62 142 L 62 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 170 142 L 170 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 278 142 L 278 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 386 142 L 386 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 494 142 L 494 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 602 142 L 602 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 710 142 L 710 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 818 142 L 818 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 926 142 L 926 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1034 142 L 1034 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1142 142 L 1142 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1250 142 L 1250 885" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+
+        <!-- Messages -->
+        <path d="M 69 185 L 163 185" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="68.4" y="165" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="175" class="t-backend" font-size="9" text-anchor="middle">GET / (frontend)</text>
+
+        <path d="M 177 215 L 271 215" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="166" y="195" width="116" height="16" rx="3" class="c-mask"/>
+        <text x="224" y="205" class="t-backend" font-size="9" text-anchor="middle">GET assets statiques</text>
+
+        <path d="M 271 248 L 69 248" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="125" y="228" width="90" height="16" rx="3" class="c-mask"/>
+        <text x="170" y="238" class="t-muted" font-size="9" text-anchor="middle">HTML / CSS / JS</text>
+
+        <path d="M 69 300 L 163 300" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="47.599999999999994" y="280" width="136.8" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="290" class="t-backend" font-size="9" text-anchor="middle">POST /api/commande (JWT)</text>
+
+        <path d="M 177 330 L 379 330" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="240.8" y="310" width="74.4" height="16" rx="3" class="c-mask"/>
+        <text x="278" y="320" class="t-backend" font-size="9" text-anchor="middle">route /api/*</text>
+
+        <path d="M 393 360 L 487 360" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <rect x="363.8" y="340" width="152.4" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="350" class="t-security" font-size="9" text-anchor="middle">JWT validé → créer commande</text>
+
+        <path d="M 501 396 L 703 396" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="557" y="376" width="90" height="16" rx="3" class="c-mask"/>
+        <text x="602" y="386" class="t-backend" font-size="9" text-anchor="middle">INSERT commande</text>
+
+        <path d="M 703 425 L 501 425" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="585" y="405" width="34" height="16" rx="3" class="c-mask"/>
+        <text x="602" y="415" class="t-muted" font-size="9" text-anchor="middle">OK</text>
+
+        <path d="M 501 460 L 811 460" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="592.8" y="440" width="126.4" height="16" rx="3" class="c-mask"/>
+        <text x="656" y="450" class="t-backend" font-size="9" text-anchor="middle">publish commande-créée</text>
+
+        <path d="M 825 490 L 919 490" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="847.8" y="470" width="48.4" height="16" rx="3" class="c-mask"/>
+        <text x="872" y="480" class="t-messagebus" font-size="9" text-anchor="middle">fan-out</text>
+
+        <path d="M 825 518 L 1027 518" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="901.8" y="498" width="48.4" height="16" rx="3" class="c-mask"/>
+        <text x="926" y="508" class="t-messagebus" font-size="9" text-anchor="middle">fan-out</text>
+
+        <path d="M 69 560 L 163 560" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="47.599999999999994" y="540" width="136.8" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="550" class="t-backend" font-size="9" text-anchor="middle">POST /api/paiement (JWT)</text>
+
+        <path d="M 177 592 L 379 592" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="240.8" y="572" width="74.4" height="16" rx="3" class="c-mask"/>
+        <text x="278" y="582" class="t-backend" font-size="9" text-anchor="middle">route /api/*</text>
+
+        <path d="M 393 624 L 595 624" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <rect x="415.2" y="604" width="157.6" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="614" class="t-security" font-size="9" text-anchor="middle">JWT validé → paiement simulé</text>
+
+        <path d="M 595 660 L 69 660" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="268.8" y="640" width="126.4" height="16" rx="3" class="c-mask"/>
+        <text x="332" y="650" class="t-muted" font-size="9" text-anchor="middle">200 OK (succès simulé)</text>
+
+        <path d="M 1149 730 L 1243 730" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="1088.6" y="710" width="214.8" height="16" rx="3" class="c-mask"/>
+        <text x="1196" y="720" class="t-backend" font-size="9" text-anchor="middle">POST /webhook/paiement (API Key + HMAC)</text>
+
+        <path d="M 1243 765 L 825 765" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="963" y="745" width="142" height="16" rx="3" class="c-mask"/>
+        <text x="1034" y="755" class="t-backend" font-size="9" text-anchor="middle">publish paiement-confirmé</text>
+
+        <path d="M 825 798 L 919 798" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="824.4" y="778" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="872" y="788" class="t-messagebus" font-size="9" text-anchor="middle">décrémente stock</text>
+
+        <path d="M 825 826 L 1027 826" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="878.4" y="806" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="926" y="816" class="t-messagebus" font-size="9" text-anchor="middle">log confirmation</text>
+
+        <!-- Activations -->
+        <rect x="381" y="325" width="10" height="315" rx="3" class="c-mask"/>
+        <rect x="381" y="325" width="10" height="315" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="489" y="355" width="10" height="110" rx="3" class="c-mask"/>
+        <rect x="489" y="355" width="10" height="110" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="597" y="619" width="10" height="46" rx="3" class="c-mask"/>
+        <rect x="597" y="619" width="10" height="46" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="813" y="455" width="10" height="68" rx="3" class="c-mask"/>
+        <rect x="813" y="455" width="10" height="68" rx="3" class="c-messagebus" stroke-width="1"/>
+        <rect x="1245" y="725" width="10" height="75" rx="3" class="c-mask"/>
+        <rect x="1245" y="725" width="10" height="75" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="813" y="760" width="10" height="71" rx="3" class="c-mask"/>
+        <rect x="813" y="760" width="10" height="71" rx="3" class="c-messagebus" stroke-width="1"/>
+
+        <!-- Participants -->
+        <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Utilisateur</text>
+        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">navigateur</text>
+
+        <rect x="127" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="127" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CloudFront</text>
+        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">+ WAF</text>
+
+        <rect x="235" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="235" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">S3</text>
+        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">frontend statique</text>
+
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway API</text>
+        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">NGINX + JWT</text>
+
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">svc-commande</text>
+        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">Go</text>
+
+        <rect x="559" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="559" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">svc-paiement</text>
+        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">Go</text>
+
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">RDS</text>
+        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">PostgreSQL</text>
+
+        <rect x="775" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="775" y="72" width="86" height="54" rx="6" class="c-messagebus" stroke-width="1.5"/>
+        <text x="818" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SNS</text>
+        <text x="818" y="111" class="t-muted" font-size="7" text-anchor="middle">commande-créée</text>
+
+        <rect x="883" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="883" y="72" width="86" height="54" rx="6" class="c-messagebus" stroke-width="1.5"/>
+        <text x="926" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SQS stock</text>
+        <text x="926" y="111" class="t-muted" font-size="7" text-anchor="middle">+ DLQ</text>
+
+        <rect x="991" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="991" y="72" width="86" height="54" rx="6" class="c-messagebus" stroke-width="1.5"/>
+        <text x="1034" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SQS notif</text>
+        <text x="1034" y="111" class="t-muted" font-size="7" text-anchor="middle">+ DLQ</text>
+
+        <rect x="1099" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="1099" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1142" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API GW AWS</text>
+        <text x="1142" y="111" class="t-muted" font-size="7" text-anchor="middle">API Key + HMAC</text>
+
+        <rect x="1207" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="1207" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1250" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda</text>
+        <text x="1250" y="111" class="t-muted" font-size="7" text-anchor="middle">webhook-paiement</text>
+
+        <!-- Legend -->
+        <text x="150" y="876" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <path d="M 150 896 L 184 896" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <text x="193" y="899" class="t-muted" font-size="8">request</text>
+        <path d="M 270 896 L 304 896" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <text x="313" y="899" class="t-muted" font-size="8">return</text>
+        <path d="M 385 896 L 419 896" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <text x="428" y="899" class="t-muted" font-size="8">security</text>
+        <path d="M 530 896 L 564 896" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <text x="573" y="899" class="t-muted" font-size="8">async trace</text>
+      </svg>

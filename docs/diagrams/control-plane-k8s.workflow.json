@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — Control plane Kubernetes",
+    "subtitle": "Qui configure, synchronise ou alimente les workloads du cluster",
+    "output": "control-plane-k8s.html"
+  },
+  "lanes": [
+    { "id": "gitops", "label": "GitOps / Delivery" },
+    { "id": "secrets", "label": "Secrets / Config" },
+    { "id": "network", "label": "Network / Observability" }
+  ],
+  "nodes": [
+    { "id": "repo", "lane": "gitops", "col": 0, "type": "database", "label": "Repo GitOps", "sublabel": "manifests cibles" },
+    { "id": "argocd", "lane": "gitops", "col": 2, "type": "backend", "label": "Argo CD", "sublabel": "sync desired state" },
+    { "id": "workloads", "lane": "gitops", "col": 5, "type": "backend", "label": "Workloads", "sublabel": "Deployments + Services + Routes", "width": 92 },
+    { "id": "sm", "lane": "secrets", "col": 0, "type": "security", "label": "AWS Secrets", "sublabel": "source externe" },
+    { "id": "eso", "lane": "secrets", "col": 2, "type": "security", "label": "ESO", "sublabel": "projette des Secrets" },
+    { "id": "k8ssecrets", "lane": "secrets", "col": 5, "type": "security", "label": "Secrets K8s", "sublabel": "consommes par les pods", "width": 110 },
+    { "id": "policies", "lane": "network", "col": 0, "type": "security", "label": "CiliumPolicy", "sublabel": "default-deny + allowlists" },
+    { "id": "cilium", "lane": "network", "col": 2, "type": "security", "label": "Cilium", "sublabel": "enforce + service LB" },
+    { "id": "hubble", "lane": "network", "col": 5, "type": "backend", "label": "Hubble", "sublabel": "observabilité réseau", "width": 100 }
+  ],
+  "edges": [
+    { "from": "repo", "to": "argocd", "label": "watch / pull", "variant": "default" },
+    { "from": "argocd", "to": "workloads", "label": "apply manifests", "variant": "emphasis" },
+    { "from": "sm", "to": "eso", "label": "read secret", "variant": "security" },
+    { "from": "eso", "to": "k8ssecrets", "label": "create / refresh", "variant": "emphasis" },
+    { "from": "policies", "to": "cilium", "label": "load policies", "variant": "security" },
+    { "from": "cilium", "to": "hubble", "label": "export flow events", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "GitOps", "items": ["Argo CD applique l'etat desire depuis le repo GitOps", "Les workloads cibles incluent Deployments, Services et HTTPRoutes"] },
+    { "dot": "rose", "title": "Secrets", "items": ["External Secrets lit la source externe puis projette des Secrets Kubernetes", "Les pods consomment ensuite ces Secrets au runtime"] },
+    { "dot": "emerald", "title": "Reseau", "items": ["Cilium charge les policies et applique l'isolation east-west", "Hubble rend visibles les flux produits par Cilium"] }
+  ]
+}

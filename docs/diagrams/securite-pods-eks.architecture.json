@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — Sécurité des pods EKS",
+    "subtitle": "Sidecars, init containers, IRSA, Kyverno, External Secrets Operator",
+    "output": "securite-pods-eks.html",
+    "viewBox": [980, 460]
+  },
+  "components": [
+    { "id": "init_cmd", "type": "backend", "label": "init: db-migrate", "sublabel": "migrations SQL avant démarrage", "pos": [60, 90], "size": [190, 56] },
+    { "id": "app_cmd", "type": "backend", "label": "service-commande", "sublabel": "Go", "pos": [60, 170], "size": [190, 56] },
+    { "id": "side_cmd", "type": "messagebus", "label": "sidecars", "sublabel": "sqs-producer-proxy + fluent-bit", "pos": [60, 250], "size": [190, 56] },
+    { "id": "init_cat", "type": "backend", "label": "init: db-migrate", "pos": [340, 90], "size": [190, 56] },
+    { "id": "app_cat", "type": "backend", "label": "service-catalogue", "sublabel": "Go", "pos": [340, 170], "size": [190, 56] },
+    { "id": "side_cat", "type": "messagebus", "label": "sidecar", "sublabel": "fluent-bit → Loki", "pos": [340, 250], "size": [190, 56] },
+    { "id": "irsa", "type": "security", "label": "IRSA", "sublabel": "IAM role par SA, creds éphémères", "pos": [680, 90], "size": [190, 60] },
+    { "id": "kyverno", "type": "security", "label": "Kyverno", "sublabel": "admission control", "pos": [680, 180], "size": [190, 60] },
+    { "id": "eso", "type": "security", "label": "External Secrets Op", "sublabel": "Secrets Manager → K8s Secret", "pos": [680, 270], "size": [190, 60] }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "Pod service-commande", "wraps": ["init_cmd", "app_cmd", "side_cmd"] },
+    { "kind": "security-group", "label": "Pod service-catalogue", "wraps": ["init_cat", "app_cat", "side_cat"] }
+  ],
+  "connections": [
+    { "from": "init_cmd", "to": "app_cmd", "fromSide": "bottom", "toSide": "top" },
+    { "from": "init_cat", "to": "app_cat", "fromSide": "bottom", "toSide": "top" },
+    { "from": "kyverno", "to": "app_cmd", "label": "vérifie policies", "variant": "security", "fromSide": "left", "toSide": "right", "labelAt": [600, 150] },
+    { "from": "kyverno", "to": "app_cat", "label": "vérifie policies", "variant": "security", "fromSide": "left", "toSide": "right", "labelAt": [600, 190] },
+    { "from": "eso", "to": "app_cmd", "label": "injecte secrets", "variant": "dashed", "fromSide": "left", "toSide": "bottom", "labelAt": [600, 260] },
+    { "from": "eso", "to": "app_cat", "label": "injecte secrets", "variant": "dashed", "fromSide": "left", "toSide": "bottom", "labelAt": [600, 300] },
+    { "from": "irsa", "to": "app_cmd", "label": "SQS, SNS, S3", "variant": "security", "fromSide": "left", "toSide": "top", "labelAt": [600, 110] }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — DevSecOps shift-left",
+    "subtitle": "Poste local → Pipeline CI → Runtime EKS → Posture AWS",
+    "output": "devsecops-shift-left.html"
+  },
+  "lanes": [
+    { "id": "local", "label": "Poste local" },
+    { "id": "ci", "label": "Pipeline CI (GitLab)" },
+    { "id": "runtime", "label": "EKS runtime" },
+    { "id": "aws", "label": "Posture AWS" }
+  ],
+  "nodes": [
+    { "id": "ds", "lane": "local", "col": 0, "type": "security", "label": "detect-secrets", "sublabel": "pre-commit" },
+    { "id": "hd", "lane": "local", "col": 2, "type": "security", "label": "hadolint", "sublabel": "pre-commit" },
+    { "id": "tf", "lane": "local", "col": 4, "type": "security", "label": "tfsec", "sublabel": "pre-commit" },
+
+    { "id": "gl", "lane": "ci", "col": 0, "type": "security", "label": "GitLeaks", "sublabel": "scan historique Git" },
+    { "id": "tr", "lane": "ci", "col": 2, "type": "security", "label": "Trivy", "sublabel": "image + IaC" },
+    { "id": "ow", "lane": "ci", "col": 3, "type": "security", "label": "OWASP", "sublabel": "Dep-Check" },
+    { "id": "dp", "lane": "ci", "col": 5, "type": "backend", "label": "Digest pin", "sublabel": "sha256 immuable" },
+
+    { "id": "ky", "lane": "runtime", "col": 0, "type": "security", "label": "Kyverno", "sublabel": "admission control" },
+    { "id": "fa", "lane": "runtime", "col": 2, "type": "security", "label": "Falco", "sublabel": "runtime threat detection" },
+    { "id": "cn", "lane": "runtime", "col": 3, "type": "security", "label": "Cilium", "sublabel": "NetworkPolicy" },
+    { "id": "ex", "lane": "runtime", "col": 5, "type": "security", "label": "ESO", "sublabel": "External Secrets Op" },
+
+    { "id": "sh", "lane": "aws", "col": 0, "type": "cloud", "label": "Security Hub", "sublabel": "+ GuardDuty" },
+    { "id": "ac", "lane": "aws", "col": 2, "type": "cloud", "label": "AWS Config", "sublabel": "règles CIS" },
+    { "id": "sc", "lane": "aws", "col": 3, "type": "cloud", "label": "SCPs", "sublabel": "Organizations" },
+    { "id": "ca", "lane": "aws", "col": 5, "type": "cloud", "label": "Cost Anomaly", "sublabel": "Detection" }
+  ],
+  "edges": [
+    { "from": "ds", "to": "hd", "variant": "default" },
+    { "from": "hd", "to": "tf", "variant": "default" },
+    { "from": "tf", "to": "gl", "label": "bloque le commit", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 16 },
+    { "from": "gl", "to": "tr", "variant": "default" },
+    { "from": "tr", "to": "ow", "variant": "default" },
+    { "from": "ow", "to": "dp", "variant": "default" },
+    { "from": "dp", "to": "ky", "label": "bloque si CVE CRITICAL", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 16 },
+    { "from": "ky", "to": "fa", "variant": "default" },
+    { "from": "fa", "to": "cn", "variant": "default" },
+    { "from": "cn", "to": "ex", "variant": "default" },
+    { "from": "fa", "to": "sh", "label": "findings", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelSegment": 0, "labelDy": 16 },
+    { "from": "sh", "to": "ac", "variant": "default" },
+    { "from": "ac", "to": "sc", "variant": "default" },
+    { "from": "sc", "to": "ca", "variant": "default" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Shift-left", "items": ["Pre-commit bloque avant même le push", "CI bloque sur CVE CRITICAL avant merge", "Aucune image non scannée ne part en GitOps"] },
+    { "dot": "rose", "title": "Défense en profondeur", "items": ["Poste local → CI → runtime → posture cloud", "Chaque couche a ses propres contrôles", "Kyverno + Cilium encadrent le runtime EKS"] }
+  ]
+}

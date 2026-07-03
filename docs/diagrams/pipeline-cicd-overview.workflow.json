@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — Vue d'ensemble du pipeline",
+    "subtitle": "Pipeline par service ShopDemo, gates staging/prod, GitOps",
+    "output": "pipeline-cicd-overview.html"
+  },
+  "lanes": [
+    { "id": "ci", "label": "Pipeline CI" },
+    { "id": "release", "label": "Release" },
+    { "id": "gitops", "label": "GitOps" }
+  ],
+  "nodes": [
+    { "id": "lint", "lane": "ci", "col": 0, "type": "backend", "label": "lint / test", "sublabel": "stage 1" },
+    { "id": "build", "lane": "ci", "col": 2, "type": "backend", "label": "build-image", "sublabel": "stage 2 — Kaniko + SBOM" },
+    { "id": "scan", "lane": "ci", "col": 3, "type": "security", "label": "scan-security", "sublabel": "stage 3 — Trivy+OWASP+GitLeaks" },
+    { "id": "staging", "lane": "release", "col": 3, "type": "backend", "label": "deploy staging", "sublabel": "OIDC → AWS" },
+    { "id": "prod", "lane": "release", "col": 5, "type": "backend", "label": "deploy prod", "sublabel": "protected env + approbation", "tag": "manual gate" },
+    { "id": "repo", "lane": "gitops", "col": 3, "type": "database", "label": "Repo GitOps", "sublabel": "patch digest sha256" },
+    { "id": "argo", "lane": "gitops", "col": 5, "type": "backend", "label": "Argo CD", "sublabel": "détecte + déploie auto" }
+  ],
+  "edges": [
+    { "from": "lint", "to": "build", "label": "needs", "variant": "default" },
+    { "from": "build", "to": "scan", "label": "needs", "variant": "default" },
+    { "from": "scan", "to": "staging", "label": "needs", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelDy": 16 },
+    { "from": "staging", "to": "prod", "label": "manual gate", "variant": "security" },
+    { "from": "staging", "to": "repo", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelDy": 16 },
+    { "from": "prod", "to": "repo", "label": "patch digest sha256", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "drop", "labelDy": 16 },
+    { "from": "repo", "to": "argo", "label": "détecte changement", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Components — hébergés sur Gitea", "items": ["build-image@1.x : Kaniko + digest sha256 + SBOM", "scan-security@1.x : Trivy + OWASP + GitLeaks ∥ (DAG)", "update-gitops-tag@1.x : patch digest + [skip ci]"] },
+    { "dot": "rose", "title": "Include à version fixe", "items": ["Chaque pipeline service inclut les Components @1.x", "Pas de latest — rollback prévisible", "Prod protégé par environnement + approbation manuelle"] }
+  ]
+}

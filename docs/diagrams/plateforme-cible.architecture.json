@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — Vue plateforme cible",
+    "subtitle": "ShopDemo — chemin HTTP synchrone (CloudFront → Gateway API → EKS → RDS/SNS/SQS)",
+    "output": "plateforme-cible.html",
+    "viewBox": [1300, 700]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Utilisateur", "sublabel": "navigateur", "pos": [30, 300], "size": [110, 56] },
+    { "id": "cf", "type": "cloud", "label": "CloudFront + WAF", "sublabel": "HTTPS, cache, compression", "pos": [220, 300], "size": [140, 60] },
+    { "id": "s3", "type": "cloud", "label": "S3", "sublabel": "frontend statique + images", "pos": [220, 120], "size": [140, 60], "tag": "OAC" },
+    { "id": "alb", "type": "cloud", "label": "ALB", "sublabel": "AWS LB Controller", "pos": [440, 300], "size": [130, 60] },
+    { "id": "gw", "type": "backend", "label": "Gateway API", "sublabel": "NGINX Gateway Fabric", "pos": [650, 300], "size": [140, 60] },
+    { "id": "authz", "type": "security", "label": "jwt-authorizer", "sublabel": "ExternalAuth — JWT Cognito", "pos": [650, 120], "size": [150, 64], "tag": "JWKS + issuer + aud" },
+    { "id": "catalogue", "type": "backend", "label": "service-catalogue", "sublabel": "Go", "pos": [900, 90], "size": [140, 56] },
+    { "id": "panier", "type": "backend", "label": "service-panier", "sublabel": "Go", "pos": [900, 200], "size": [140, 56] },
+    { "id": "commande", "type": "backend", "label": "service-commande", "sublabel": "Go", "pos": [900, 310], "size": [140, 56] },
+    { "id": "paiement", "type": "backend", "label": "service-paiement", "sublabel": "Go", "pos": [900, 420], "size": [140, 56] },
+    { "id": "rds", "type": "database", "label": "RDS PostgreSQL", "sublabel": "t4g Graviton, Multi-AZ", "pos": [1120, 250], "size": [150, 60] },
+    { "id": "sns", "type": "messagebus", "label": "SNS", "sublabel": "commande-créée", "pos": [900, 540], "size": [140, 56] },
+    { "id": "sqsstock", "type": "messagebus", "label": "SQS queue-stock", "sublabel": "+ DLQ", "pos": [1120, 500], "size": [150, 56] },
+    { "id": "sqsnotif", "type": "messagebus", "label": "SQS queue-notif", "sublabel": "+ DLQ", "pos": [1120, 590], "size": [150, 56] },
+    { "id": "vpcep", "type": "cloud", "label": "VPC Endpoints", "sublabel": "ecr · sqs · secretsmanager · sts · s3", "pos": [440, 500], "size": [160, 60] },
+    { "id": "nat", "type": "cloud", "label": "NAT Gateway", "sublabel": "trafic non-AWS", "pos": [650, 500], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "VPC — subnets privés 3 AZs", "wraps": ["alb", "gw", "authz", "catalogue", "panier", "commande", "paiement", "rds", "sns", "sqsstock", "sqsnotif", "vpcep", "nat"] },
+    { "kind": "security-group", "label": "frontière d'auth JWT", "wraps": ["gw", "authz"] }
+  ],
+  "connections": [
+    { "from": "user", "to": "cf", "label": "HTTPS", "variant": "emphasis" },
+    { "from": "cf", "to": "s3", "label": "GET / (frontend)", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelDy": -8 },
+    { "from": "cf", "to": "alb", "label": "/api/*", "variant": "emphasis" },
+    { "from": "alb", "to": "gw" },
+    { "from": "gw", "to": "authz", "label": "ExtensionRef auth-request", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "gw", "to": "catalogue", "route": "orthogonal-h" },
+    { "from": "gw", "to": "panier", "route": "orthogonal-h" },
+    { "from": "gw", "to": "commande", "route": "orthogonal-h" },
+    { "from": "gw", "to": "paiement", "route": "orthogonal-h" },
+    { "from": "catalogue", "to": "rds", "label": "SQL", "route": "orthogonal-h" },
+    { "from": "panier", "to": "rds", "route": "orthogonal-h" },
+    { "from": "commande", "to": "rds", "route": "orthogonal-h" },
+    { "from": "paiement", "to": "rds", "route": "orthogonal-h" },
+    { "from": "commande", "to": "sns", "label": "publish commande-créée", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 40 },
+    { "from": "sns", "to": "sqsstock", "label": "fan-out", "route": "orthogonal-h" },
+    { "from": "sns", "to": "sqsnotif", "route": "orthogonal-h" },
+    { "from": "paiement", "to": "vpcep", "label": "ECR / SQS / Secrets Manager / STS / S3 (pods)", "variant": "dashed", "fromSide": "left", "toSide": "top" },
+    { "from": "paiement", "to": "nat", "label": "images publiques, deps Go, Gitea", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 20 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Chemin synchrone", "items": ["CloudFront route / vers S3, /api/* vers l'ALB", "Un seul point d'auth : jwt-authorizer central (ExternalAuth)", "4 services Go stateless derrière Gateway API"] },
+    { "dot": "emerald", "title": "Fan-out événementiel", "items": ["service-commande publie sur SNS après INSERT RDS", "2 queues SQS indépendantes, DLQ par queue", "Idempotence via processed_events (event_id)"] },
+    { "dot": "rose", "title": "Réseau privé", "items": ["EKS + RDS + SNS/SQS dans des subnets privés, 3 AZs", "VPC Endpoints pour le trafic AWS-to-AWS (évite le NAT)", "NAT Gateway conservé pour les dépendances non-AWS"] }
+  ]
+}

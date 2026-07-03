@@ -1,0 +1,174 @@
+<mxfile host="65bd71144e">
+    <diagram name="cilium-connectivity-test" id="0">
+        <mxGraphModel dx="1680" dy="647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="980" background="#f7f8f4" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f7f8f4;strokeColor=#f7f8f4;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="20" width="1460" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Cilium connectivity test snapshot&#xa;&lt;font style=&quot;font-size:13px;color:#60748a&quot;&gt;resources created by the CLI, checks executed, and the single failing check&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=24;fontColor=#293241;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="40" width="900" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Poste local&#xa;&lt;font style=&quot;font-size:12px;color:#60748a&quot;&gt;CLI `cilium connectivity test`&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=18;fillColor=#fffdf7;strokeColor=#f0c36d;strokeWidth=2;dashed=1;dashPattern=10 6;fontStyle=1;fontSize=18;fontColor=#8a5a00;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="74" width="290" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="cilium CLI&#xa;&lt;font style=&quot;font-size:11px;color:#5f3d00&quot;&gt;déploie les namespaces / pods de test&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontStyle=1;fontSize=15;fontColor=#5f3d00;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="1190" y="288" width="210" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Hubble telescope&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;localhost:4245 attendu&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=15;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="130" width="210" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="État observé&#xa;&lt;font style=&quot;font-size:11px;color:#60748a&quot;&gt;flow validation désactivée : pas de port-forward Hubble Relay&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#b8c4d9;strokeWidth=2;fontSize=13;fontColor=#334155;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="1180" y="488" width="230" height="86" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Résultat final&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;1 échec : `check-log-errors` (restarts / erreurs historiques)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=15;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="1190" y="628" width="230" height="84" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=18;fillColor=#fffdf7;strokeColor=#8ee3a3;strokeWidth=2;dashed=1;dashPattern=10 6;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="98" width="1070" height="740" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Cluster Kubernetes sous test&#xa;&lt;font style=&quot;font-size:12px;color:#60748a&quot;&gt;k3s local + Cilium replacement mode&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=18;fontColor=#23654c;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="116" width="360" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f7faff;strokeColor=#8fb8ff;strokeWidth=2;dashed=1;dashPattern=6 5;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="160" width="500" height="182" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="kube-system" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=14;fontColor=#426bb3;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="164" width="120" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="cilium-agent&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;datapath + policies&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="160" y="216" width="170" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="hubble-relay&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;flows cluster-wide&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="216" width="170" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;dashed=1;dashPattern=6 5;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="388" width="500" height="402" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="namespace cilium-test-1" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=14;fontColor=#2c7a4b;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="392" width="180" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="client&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;curl pod&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="574" width="180" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="client2&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;2e curl pod&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="438" width="180" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="echo-same-node&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;echo pod + service + NodePort&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="448" width="210" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="l7-lb&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;service L7 de test&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="550" width="210" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="l7-lb-non-l7&#xa;&lt;font style=&quot;font-size:11px;color:#173a38&quot;&gt;service sans proxy L7&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="638" width="210" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="ConfigMap DNS test server&#xa;&lt;font style=&quot;font-size:11px;color:#60748a&quot;&gt;cible DNS pour les checks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#b8c4d9;strokeWidth=2;fontSize=13;fontColor=#334155;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="720" width="300" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#fff7f7;strokeColor=#f59aa0;strokeWidth=2;dashed=1;dashPattern=6 5;" parent="1" vertex="1">
+                    <mxGeometry x="630" y="328" width="210" height="152" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="namespace cilium-test-ccnp1" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=14;fontColor=#c24b59;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="645" y="360" width="180" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="client-ccnp&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;test namespace policy&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="645" y="392" width="150" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#fff7f7;strokeColor=#f59aa0;strokeWidth=2;dashed=1;dashPattern=6 5;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="328" width="220" height="152" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="namespace cilium-test-ccnp2" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=14;fontColor=#c24b59;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="360" width="180" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="client-ccnp&#xa;&lt;font style=&quot;font-size:11px;color:#5d2430&quot;&gt;test namespace policy&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#5d2430;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="388" width="150" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="Vérifications réellement passées&#xa;&lt;font style=&quot;font-size:11px;color:#23654c&quot;&gt;service LB, DNS, API kubernetes, ingress/egress deny, FQDN, L7 policies, namespace policies&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ecfff0;strokeColor=#7dcf89;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#1f5131;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="670" y="628" width="400" height="84" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="Tests skipés normaux ici&#xa;&lt;font style=&quot;font-size:11px;color:#8a5a00&quot;&gt;multi-node, unsafe, clustermesh, encryption, egress-gateway, ingress-controller, features 1.20+&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff7db;strokeColor=#f0c36d;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#5f4a00;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="670" y="518" width="400" height="84" as="geometry"/>
+                </mxCell>
+                <mxCell id="80" value="deploy / cleanup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7b8794;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="11" target="40" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1295" y="230"/>
+                            <mxPoint x="610" y="230"/>
+                            <mxPoint x="610" y="360"/>
+                            <mxPoint x="470" y="360"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="81" value="deploy / cleanup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7b8794;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="11" target="50" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1190" y="234" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1295" y="230"/>
+                            <mxPoint x="745" y="230"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="82" value="deploy / cleanup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7b8794;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="11" target="60" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1295" y="230"/>
+                            <mxPoint x="970" y="230"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="83" value="Hubble Relay local attendu" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;dashed=1;dashPattern=6 4;strokeColor=#ff7e98;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="12" target="33" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="475" y="140"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="84" value="DNS + service reachability" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43d3c2;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="42" target="44" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="210" y="530"/>
+                            <mxPoint x="465" y="530"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="85" value="DNS + service reachability" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43d3c2;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="43" target="44" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="210" y="420"/>
+                            <mxPoint x="460" y="420"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="86" value="L7 / non-L7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43d3c2;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="42" target="45" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="420" y="560" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="210" y="560"/>
+                            <mxPoint x="340" y="560"/>
+                            <mxPoint x="340" y="582"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="87" value="L7 / non-L7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43d3c2;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="42" target="46" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="210" y="670"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="88" value="CCNP namespace checks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff7e98;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="52" target="62" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="89" value="program / enforce" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff7e98;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="32" target="40" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" value="single failing check" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff7e98;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="1" source="70" target="14" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

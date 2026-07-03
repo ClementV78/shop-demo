@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "ShopDemo — Flux achat et paiement",
+    "subtitle": "Navigation, création de commande, fan-out SNS/SQS, paiement simulé",
+    "output": "flux-achat-paiement.html",
+    "viewBox": [1380, 950]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Utilisateur", "sublabel": "navigateur" },
+    { "id": "cf", "type": "cloud", "label": "CloudFront", "sublabel": "+ WAF" },
+    { "id": "s3", "type": "cloud", "label": "S3", "sublabel": "frontend statique" },
+    { "id": "gw", "type": "backend", "label": "Gateway API", "sublabel": "NGINX + JWT" },
+    { "id": "commande", "type": "backend", "label": "svc-commande", "sublabel": "Go" },
+    { "id": "paiement", "type": "backend", "label": "svc-paiement", "sublabel": "Go" },
+    { "id": "rds", "type": "database", "label": "RDS", "sublabel": "PostgreSQL" },
+    { "id": "sns", "type": "messagebus", "label": "SNS", "sublabel": "commande-créée" },
+    { "id": "sqsstock", "type": "messagebus", "label": "SQS stock", "sublabel": "+ DLQ" },
+    { "id": "sqsnotif", "type": "messagebus", "label": "SQS notif", "sublabel": "+ DLQ" },
+    { "id": "apigw", "type": "cloud", "label": "API GW AWS", "sublabel": "API Key + HMAC" },
+    { "id": "lbd", "type": "backend", "label": "Lambda", "sublabel": "webhook-paiement" }
+  ],
+  "segments": [
+    { "from": 160, "to": 270, "label": "01 / NAVIGATION" },
+    { "from": 285, "to": 530, "label": "02 / COMMANDE" },
+    { "from": 545, "to": 690, "label": "03 / PAIEMENT SIMULÉ" },
+    { "from": 705, "to": 865, "label": "04 / WEBHOOK PAIEMENT (ASYNC)" }
+  ],
+  "messages": [
+    { "from": "user", "to": "cf", "y": 185, "label": "GET / (frontend)", "variant": "default" },
+    { "from": "cf", "to": "s3", "y": 215, "label": "GET assets statiques", "variant": "default" },
+    { "from": "s3", "to": "user", "y": 248, "label": "HTML / CSS / JS", "variant": "return" },
+    { "from": "user", "to": "cf", "y": 300, "label": "POST /api/commande (JWT)", "variant": "emphasis" },
+    { "from": "cf", "to": "gw", "y": 330, "label": "route /api/*", "variant": "default" },
+    { "from": "gw", "to": "commande", "y": 360, "label": "JWT validé → créer commande", "variant": "security" },
+    { "from": "commande", "to": "rds", "y": 396, "label": "INSERT commande", "variant": "default" },
+    { "from": "rds", "to": "commande", "y": 425, "label": "OK", "variant": "return" },
+    { "from": "commande", "to": "sns", "y": 460, "label": "publish commande-créée", "variant": "emphasis" },
+    { "from": "sns", "to": "sqsstock", "y": 490, "label": "fan-out", "variant": "dashed" },
+    { "from": "sns", "to": "sqsnotif", "y": 518, "label": "fan-out", "variant": "dashed" },
+    { "from": "user", "to": "cf", "y": 560, "label": "POST /api/paiement (JWT)", "variant": "emphasis" },
+    { "from": "cf", "to": "gw", "y": 592, "label": "route /api/*", "variant": "default" },
+    { "from": "gw", "to": "paiement", "y": 624, "label": "JWT validé → paiement simulé", "variant": "security" },
+    { "from": "paiement", "to": "user", "y": 660, "label": "200 OK (succès simulé)", "variant": "return" },
+    { "from": "apigw", "to": "lbd", "y": 730, "label": "POST /webhook/paiement (API Key + HMAC)", "variant": "emphasis" },
+    { "from": "lbd", "to": "sns", "y": 765, "label": "publish paiement-confirmé", "variant": "emphasis" },
+    { "from": "sns", "to": "sqsstock", "y": 798, "label": "décrémente stock", "variant": "dashed" },
+    { "from": "sns", "to": "sqsnotif", "y": 826, "label": "log confirmation", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "gw", "from": 325, "to": 640, "type": "backend" },
+    { "participant": "commande", "from": 355, "to": 465, "type": "backend" },
+    { "participant": "paiement", "from": 619, "to": 665, "type": "backend" },
+    { "participant": "sns", "from": 455, "to": 523, "type": "messagebus" },
+    { "participant": "lbd", "from": 725, "to": 800, "type": "backend" },
+    { "participant": "sns", "from": 760, "to": 831, "type": "messagebus" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Chemin synchrone", "items": ["Navigation servie par S3 derrière CloudFront", "Un seul point d'auth JWT : Gateway API NGINX", "service-paiement répond immédiatement (succès simulé)"] },
+    { "dot": "emerald", "title": "Fan-out événementiel", "items": ["service-commande publie sur SNS après l'INSERT RDS", "2 queues SQS indépendantes : stock et notification", "Chaque queue a sa propre DLQ"] },
+    { "dot": "rose", "title": "Chemin webhook async", "items": ["Provider simulé → API Gateway AWS (API Key + HMAC)", "Lambda webhook-paiement republie sur SNS", "paiement-confirmé décrémente le stock et log la notif"] }
+  ]
+}

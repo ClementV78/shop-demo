@@ -1,0 +1,159 @@
+<svg viewBox="0 0 1320 650" role="img" aria-label="IDP Platform — Flux inter-pods et composants Kubernetes — Gateway API, services Go, CoreDNS, Cilium/Hubble, Argo CD et External Secrets (architecture diagram)">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="220" y="50" width="1060" height="426" rx="12" class="c-region" stroke-width="1"/>
+        <text x="228" y="68" class="t-cloud" font-size="9" font-weight="600">Cluster Kubernetes (k3s local puis EKS)</text>
+
+        <rect x="220" y="90" width="220" height="270" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="228" y="108" class="t-security" font-size="9" font-weight="600">namespace gateway-system</text>
+
+        <rect x="490" y="50" width="210" height="406" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="498" y="68" class="t-security" font-size="9" font-weight="600">namespace shopdemo</text>
+
+        <rect x="770" y="90" width="230" height="386" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="778" y="108" class="t-security" font-size="9" font-weight="600">namespace kube-system</text>
+
+        <rect x="1050" y="90" width="230" height="270" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="1058" y="108" class="t-security" font-size="9" font-weight="600">controllers / platform</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 170 310 L 250 310" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 325 280 L 326.25 280 Q 327.5 280 327.5 278.75 L 327.5 185.25 Q 327.5 184 328.75 184 L 330 184" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 400 310 L 452 310 Q 460 310 460 302 L 460 116 Q 460 108 468 108 L 520 108" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 400 310 L 452 310 Q 460 310 460 302 L 460 216 Q 460 208 468 208 L 520 208" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 400 310 L 459 310 Q 460 310 460 309 L 460 309 Q 460 308 461 308 L 520 308" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 400 310 L 452 310 Q 460 310 460 318 L 460 400 Q 460 408 468 408 L 520 408" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 400 310 L 592 310 Q 600 310 600 302 L 600 156 Q 600 148 608 148 L 800 148" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 670 308 L 727 308 Q 735 308 735 300 L 735 156 Q 735 148 743 148 L 800 148" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 800 290 L 570.5 290 Q 562.5 290 562.5 298 L 562.5 332 Q 562.5 340 554.5 340 L 325 340" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 800 290 L 743 290 Q 735 290 735 298 L 735 300 Q 735 308 727 308 L 670 308" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 875 400 L 877.5 400 Q 880 400 880 397.5 L 880 322.5 Q 880 320 882.5 320 L 885 320" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 1080 150 L 710.5 150 Q 702.5 150 702.5 158 L 702.5 272 Q 702.5 280 694.5 280 L 325 280" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1080 150 L 845.5 150 Q 837.5 150 837.5 158 L 837.5 272 Q 837.5 280 829.5 280 L 595 280" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1080 310 L 753 310 Q 745 310 745 302 L 745 160 Q 745 152 737 152 L 410 152" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1080 310 L 883 310 Q 875 310 875 318 L 875 400 Q 875 408 867 408 L 670 408" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Components -->
+        <rect x="40" y="280" width="130" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="280" width="130" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="105" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ALB</text>
+        <text x="105" y="324" class="t-muted" font-size="9" text-anchor="middle">entrée HTTPRoute</text>
+
+        <rect x="250" y="280" width="150" height="60" rx="6" class="c-mask"/>
+        <rect x="250" y="280" width="150" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="325" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway API</text>
+        <text x="325" y="324" class="t-muted" font-size="9" text-anchor="middle">NGINX Gateway Fabric</text>
+
+        <rect x="250" y="120" width="160" height="64" rx="6" class="c-mask"/>
+        <rect x="250" y="120" width="160" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="330" y="150" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">jwt-authorizer</text>
+        <text x="330" y="166" class="t-muted" font-size="9" text-anchor="middle">ExternalAuth central</text>
+        <text x="330" y="176" class="t-security" font-size="7" text-anchor="middle">JWT Cognito</text>
+
+        <rect x="520" y="80" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="520" y="80" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="595" y="106" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">service-catalogue</text>
+        <text x="595" y="122" class="t-muted" font-size="9" text-anchor="middle">Go</text>
+
+        <rect x="520" y="180" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="520" y="180" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="595" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">service-panier</text>
+        <text x="595" y="222" class="t-muted" font-size="9" text-anchor="middle">Go</text>
+
+        <rect x="520" y="280" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="520" y="280" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="595" y="306" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">service-commande</text>
+        <text x="595" y="322" class="t-muted" font-size="9" text-anchor="middle">Go</text>
+
+        <rect x="520" y="380" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="520" y="380" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="595" y="406" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">service-paiement</text>
+        <text x="595" y="422" class="t-muted" font-size="9" text-anchor="middle">Go</text>
+
+        <rect x="800" y="120" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="800" y="120" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="875" y="146" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CoreDNS</text>
+        <text x="875" y="162" class="t-muted" font-size="9" text-anchor="middle">svc.cluster.local</text>
+
+        <rect x="800" y="260" width="170" height="60" rx="6" class="c-mask"/>
+        <rect x="800" y="260" width="170" height="60" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="885" y="288" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cilium agent</text>
+        <text x="885" y="304" class="t-muted" font-size="9" text-anchor="middle">datapath + NetworkPolicy</text>
+        <text x="885" y="312" class="t-security" font-size="7" text-anchor="middle">replacement local / chaining EKS</text>
+
+        <rect x="800" y="400" width="150" height="56" rx="6" class="c-mask"/>
+        <rect x="800" y="400" width="150" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="875" y="426" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Hubble relay</text>
+        <text x="875" y="442" class="t-muted" font-size="9" text-anchor="middle">flux + verdicts</text>
+
+        <rect x="1080" y="120" width="150" height="60" rx="6" class="c-mask"/>
+        <rect x="1080" y="120" width="150" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1155" y="148" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Argo CD</text>
+        <text x="1155" y="164" class="t-muted" font-size="9" text-anchor="middle">sync GitOps</text>
+
+        <rect x="1080" y="280" width="170" height="60" rx="6" class="c-mask"/>
+        <rect x="1080" y="280" width="170" height="60" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="1165" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">External Secrets</text>
+        <text x="1165" y="324" class="t-muted" font-size="9" text-anchor="middle">Secrets Manager → Secret</text>
+
+        <!-- Connection labels -->
+        <rect x="183.4" y="290" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+        <text x="210" y="300" class="t-backend" font-size="8" text-anchor="middle">HTTPRoute</text>
+        <rect x="293.7" y="212" width="67.6" height="14" rx="3" class="c-mask"/>
+        <text x="327.5" y="222" class="t-security" font-size="8" text-anchor="middle">auth-request</text>
+        <rect x="421.4" y="189" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="460" y="199" class="t-muted" font-size="8" text-anchor="middle">/api/catalogue</text>
+        <rect x="428.6" y="239" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="460" y="249" class="t-muted" font-size="8" text-anchor="middle">/api/panier</text>
+        <rect x="423.8" y="289" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="460" y="299" class="t-muted" font-size="8" text-anchor="middle">/api/commande</text>
+        <rect x="423.8" y="339" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="460" y="349" class="t-muted" font-size="8" text-anchor="middle">/api/paiement</text>
+        <rect x="705" y="144" width="30" height="14" rx="3" class="c-mask"/>
+        <text x="720" y="154" class="t-messagebus" font-size="8" text-anchor="middle">DNS</text>
+        <rect x="689.2" y="218" width="91.6" height="14" rx="3" class="c-mask"/>
+        <text x="735" y="228" class="t-messagebus" font-size="8" text-anchor="middle">DNS cluster / AWS</text>
+
+        <rect x="669.4" y="335" width="101.2" height="14" rx="3" class="c-mask"/>
+        <text x="720" y="345" class="t-security" font-size="8" text-anchor="middle">service LB + policy</text>
+        <rect x="848.6" y="340" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="880" y="350" class="t-backend" font-size="8" text-anchor="middle">hubble-peer</text>
+        <rect x="681.4" y="100" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="720" y="110" class="t-messagebus" font-size="8" text-anchor="middle">sync manifests</text>
+        <rect x="818.2" y="185" width="163.6" height="14" rx="3" class="c-mask"/>
+        <text x="900" y="195" class="t-messagebus" font-size="8" text-anchor="middle">Deployment / Service / HTTPRoute</text>
+        <rect x="939" y="230" width="82" height="14" rx="3" class="c-mask"/>
+        <text x="980" y="240" class="t-messagebus" font-size="8" text-anchor="middle">projecte Secret</text>
+        <rect x="939" y="350" width="82" height="14" rx="3" class="c-mask"/>
+        <text x="980" y="360" class="t-messagebus" font-size="8" text-anchor="middle">projecte Secret</text>
+
+        <!-- Legend -->
+        <text x="40" y="621" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="626" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="60" y="634" class="t-muted" font-size="8">Cloud</text>
+        <rect x="123" y="626" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="143" y="634" class="t-muted" font-size="8">Backend</text>
+        <rect x="216" y="626" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="236" y="634" class="t-muted" font-size="8">Security</text>
+      </svg>

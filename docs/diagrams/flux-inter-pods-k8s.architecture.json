@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — Flux inter-pods et composants Kubernetes",
+    "subtitle": "Gateway API, services Go, CoreDNS, Cilium/Hubble, Argo CD et External Secrets",
+    "output": "flux-inter-pods-k8s.html",
+    "viewBox": [1320, 650]
+  },
+  "components": [
+    { "id": "alb", "type": "cloud", "label": "ALB", "sublabel": "entrée HTTPRoute", "pos": [40, 280], "size": [130, 60] },
+    { "id": "gw", "type": "backend", "label": "Gateway API", "sublabel": "NGINX Gateway Fabric", "pos": [250, 280], "size": [150, 60] },
+    { "id": "authz", "type": "security", "label": "jwt-authorizer", "sublabel": "ExternalAuth central", "pos": [250, 120], "size": [160, 64], "tag": "JWT Cognito" },
+    { "id": "catalogue", "type": "backend", "label": "service-catalogue", "sublabel": "Go", "pos": [520, 80], "size": [150, 56] },
+    { "id": "panier", "type": "backend", "label": "service-panier", "sublabel": "Go", "pos": [520, 180], "size": [150, 56] },
+    { "id": "commande", "type": "backend", "label": "service-commande", "sublabel": "Go", "pos": [520, 280], "size": [150, 56] },
+    { "id": "paiement", "type": "backend", "label": "service-paiement", "sublabel": "Go", "pos": [520, 380], "size": [150, 56] },
+    { "id": "coredns", "type": "backend", "label": "CoreDNS", "sublabel": "svc.cluster.local", "pos": [800, 120], "size": [150, 56] },
+    { "id": "cilium", "type": "security", "label": "Cilium agent", "sublabel": "datapath + NetworkPolicy", "pos": [800, 260], "size": [170, 60], "tag": "replacement local / chaining EKS" },
+    { "id": "hubble", "type": "backend", "label": "Hubble relay", "sublabel": "flux + verdicts", "pos": [800, 400], "size": [150, 56] },
+    { "id": "argocd", "type": "backend", "label": "Argo CD", "sublabel": "sync GitOps", "pos": [1080, 120], "size": [150, 60] },
+    { "id": "eso", "type": "security", "label": "External Secrets", "sublabel": "Secrets Manager → Secret", "pos": [1080, 280], "size": [170, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cluster Kubernetes (k3s local puis EKS)", "wraps": ["gw", "authz", "catalogue", "panier", "commande", "paiement", "coredns", "cilium", "hubble", "argocd", "eso"] },
+    { "kind": "security-group", "label": "namespace gateway-system", "wraps": ["gw", "authz"] },
+    { "kind": "security-group", "label": "namespace shopdemo", "wraps": ["catalogue", "panier", "commande", "paiement"] },
+    { "kind": "security-group", "label": "namespace kube-system", "wraps": ["coredns", "cilium", "hubble"] },
+    { "kind": "security-group", "label": "controllers / platform", "wraps": ["argocd", "eso"] }
+  ],
+  "connections": [
+    { "from": "alb", "to": "gw", "label": "HTTPRoute", "variant": "emphasis" },
+    { "from": "gw", "to": "authz", "label": "auth-request", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "gw", "to": "catalogue", "label": "/api/catalogue", "route": "orthogonal-h" },
+    { "from": "gw", "to": "panier", "label": "/api/panier", "route": "orthogonal-h" },
+    { "from": "gw", "to": "commande", "label": "/api/commande", "route": "orthogonal-h" },
+    { "from": "gw", "to": "paiement", "label": "/api/paiement", "route": "orthogonal-h" },
+    { "from": "gw", "to": "coredns", "label": "DNS", "variant": "dashed", "fromSide": "right", "toSide": "left", "route": "orthogonal-h", "labelAt": [720, 154] },
+    { "from": "commande", "to": "coredns", "label": "DNS cluster / AWS", "variant": "dashed", "fromSide": "right", "toSide": "left", "route": "orthogonal-h", "labelDy": 10 },
+    { "from": "cilium", "to": "gw", "variant": "security", "fromSide": "left", "toSide": "bottom" },
+    { "from": "cilium", "to": "commande", "label": "service LB + policy", "variant": "security", "fromSide": "left", "toSide": "right", "labelAt": [720, 345] },
+    { "from": "hubble", "to": "cilium", "label": "hubble-peer", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
+    { "from": "argocd", "to": "gw", "label": "sync manifests", "variant": "dashed", "fromSide": "left", "toSide": "top", "labelAt": [720, 110] },
+    { "from": "argocd", "to": "commande", "label": "Deployment / Service / HTTPRoute", "variant": "dashed", "fromSide": "left", "toSide": "top", "labelAt": [900, 195] },
+    { "from": "eso", "to": "authz", "label": "projecte Secret", "variant": "dashed", "fromSide": "left", "toSide": "right", "labelAt": [980, 240] },
+    { "from": "eso", "to": "paiement", "label": "projecte Secret", "variant": "dashed", "fromSide": "left", "toSide": "right", "labelAt": [980, 360] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Flux inter-pods réels", "items": ["Gateway API appelle jwt-authorizer puis route vers les services Go", "Les pods résolvent `svc.cluster.local` via CoreDNS", "Argo CD applique les manifests dans les namespaces cibles"] },
+    { "dot": "rose", "title": "Rôle de Cilium", "items": ["Local k3s : Cilium remplace Flannel et `kube-proxy`", "EKS cible : AWS VPC CNI garde les IP, Cilium ajoute policy + observabilité", "Hubble consomme les flux observés via `hubble-peer`"] },
+    { "dot": "emerald", "title": "Contrôleurs de plateforme", "items": ["External Secrets projette les secrets applicatifs dans les namespaces", "CoreDNS, Cilium et Hubble sont des briques de `kube-system`", "Cette vue montre le trafic interne au cluster, pas les appels AWS externes"] }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDP Platform — Comptes AWS",
+    "subtitle": "Management account → Organizations → comptes enfants",
+    "output": "couts-aws.html",
+    "viewBox": [880, 420]
+  },
+  "components": [
+    { "id": "ma", "type": "cloud", "label": "Management account", "pos": [40, 180], "size": [150, 60] },
+    { "id": "org", "type": "cloud", "label": "AWS Organizations", "pos": [260, 180], "size": [150, 60] },
+    { "id": "audit", "type": "security", "label": "compte audit", "sublabel": "+audit@gmail.com", "pos": [520, 40], "size": [150, 60] },
+    { "id": "staging", "type": "backend", "label": "compte staging", "sublabel": "+staging@gmail.com", "pos": [520, 140], "size": [150, 60] },
+    { "id": "prod", "type": "backend", "label": "compte prod", "sublabel": "+prod@gmail.com", "pos": [520, 240], "size": [150, 60] },
+    { "id": "sandbox", "type": "external", "label": "compte sandbox", "sublabel": "+sandbox@gmail.com", "pos": [520, 340], "size": [150, 60] }
+  ],
+  "connections": [
+    { "from": "ma", "to": "org" },
+    { "from": "org", "to": "audit", "route": "orthogonal-h" },
+    { "from": "org", "to": "staging", "route": "orthogonal-h" },
+    { "from": "org", "to": "prod", "route": "orthogonal-h" },
+    { "from": "org", "to": "sandbox", "route": "orthogonal-h" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Coût permanent", "items": ["Landing Zone ~5$/mois (management account)", "CloudTrail + Config minimal + S3 logs"] },
+    { "dot": "emerald", "title": "Coût en session", "items": ["EKS/VPC/RDS/SQS uniquement sur staging/prod", "terraform destroy systématique hors session"] }
+  ]
+}

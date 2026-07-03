@@ -14,8 +14,8 @@ exploitables pour le portfolio.
 - Ne pas creer un fichier par tache.
 - Limiter `CURRENT.md` a trois taches actives.
 - Ne detailler completement que le sprint en cours.
-- Garder les sprints futurs au niveau des objectifs et livrables dans
-  `ROADMAP.md`.
+- Garder les sprints futurs au niveau des objectifs et livrables dans la
+  table de suivi de `README.md`.
 - Ajouter une preuve uniquement pour une validation importante.
 - Referencer une preuve existante au lieu de la dupliquer.
 - Creer un ADR uniquement pour une decision structurante, couteuse ou difficile
@@ -76,7 +76,7 @@ Les identifiants restent stables, meme si l'ordre des taches change.
 
 1. Mettre a jour le fichier du sprint.
 2. Actualiser `CURRENT.md`.
-3. Actualiser `ROADMAP.md` si l'etat du sprint change.
+3. Actualiser la table de suivi de `README.md` si l'etat du sprint change.
 4. Referencer les preuves importantes.
 5. Indiquer la prochaine action concrete.
 
@@ -99,7 +99,8 @@ doivent jamais etre conserves comme preuves.
 | Document | Responsabilite |
 |---|---|
 | `ARCHITECTURE.md` | Conception cible et arbitrages d'architecture |
-| `docs/ROADMAP.md` | Vue globale et etat des sprints |
+| `docs/sprint-planning.md` | Objectifs et livrables detailles par sprint |
+| `README.md` (section « Où en est le projet ») | Vue globale et etat des sprints |
 | `docs/CURRENT.md` | Travail actif et prochaine action |
 | `docs/sprints/*.md` | Taches, dependances et criteres d'acceptation |
 | `docs/adr/*.md` | Decisions structurantes |

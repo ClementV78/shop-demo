@@ -1,0 +1,38 @@
+{
+  "title": "Kubernetes runtime request - /api/commande",
+  "participants": [
+    { "id": "user", "label": "Client\nnavigateur", "actor": true },
+    { "id": "alb", "label": "ALB\nHTTPRoute" },
+    { "id": "datapath", "label": "Cilium datapath\neBPF inline" },
+    { "id": "gateway", "label": "Gateway API\nNGINX Gateway Fabric" },
+    { "id": "authz", "label": "jwt-authorizer\nExternalAuth" },
+    { "id": "commande", "label": "service-commande\nGo pod" },
+    { "id": "dns", "label": "CoreDNS\nsvc.cluster.local" },
+    { "id": "rds", "label": "RDS\nPostgreSQL" },
+    { "id": "hubble", "label": "Hubble relay\nobserve only" },
+    { "id": "ciliumagent", "label": "Cilium agent\ncontrol-plane" },
+    { "id": "apiserver", "label": "kube-apiserver\nstate source" }
+  ],
+  "messages": [
+    { "note": "Phase 0 - preparation : cette partie se produit avant la requete. Elle explique pourquoi le datapath Cilium est pret au moment ou le trafic arrive.", "over": "apiserver" },
+    { "from": "apiserver", "to": "ciliumagent", "label": "watch Services / Endpoints / Policies", "async": true },
+    { "from": "ciliumagent", "to": "datapath", "label": "program eBPF service maps + policy", "async": true },
+    { "note": "Hubble observe les flux et verdicts, mais n'est pas dans le hot path de la requete.", "over": "hubble" },
+    { "note": "Phase 1 - hot path runtime : la requete HTTP n'appelle plus kube-apiserver. Elle traverse le datapath deja programme.", "over": "gateway" },
+    { "from": "user", "to": "alb", "label": "HTTPS POST /api/commande" },
+    { "from": "alb", "to": "datapath", "label": "target Gateway Service" },
+    { "from": "datapath", "to": "gateway", "label": "LB vers pod Gateway API" },
+    { "from": "gateway", "to": "authz", "label": "auth-request" },
+    { "from": "authz", "to": "gateway", "label": "allow + claims", "return": true },
+    { "from": "gateway", "to": "datapath", "label": "target service-commande Service" },
+    { "from": "datapath", "to": "commande", "label": "LB vers pod service-commande" },
+    { "from": "commande", "to": "dns", "label": "resolve RDS endpoint (si cache miss)" },
+    { "from": "dns", "to": "commande", "label": "A/AAAA response", "return": true },
+    { "from": "commande", "to": "rds", "label": "INSERT commande" },
+    { "from": "rds", "to": "commande", "label": "OK", "return": true },
+    { "from": "commande", "to": "gateway", "label": "201 Created", "return": true },
+    { "from": "gateway", "to": "alb", "label": "HTTP response", "return": true },
+    { "from": "alb", "to": "user", "label": "response", "return": true },
+    { "note": "Lecture : CoreDNS et le datapath Cilium peuvent intervenir pendant le traitement. kube-apiserver et Cilium agent interviennent surtout avant, pour preparer l'etat. Hubble reste passif.", "over": "commande" }
+  ]
+}
