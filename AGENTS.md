@@ -57,7 +57,9 @@ Pour une revue, commencez par le point le plus critique. Utilisez `Risque eleve`
 - Inspectez les fichiers existants et respectez la structure du depot.
 - Avant toute modification, lisez `docs/CONTRIBUTING.md` puis `docs/CURRENT.md`, s'ils existent.
 - Identifiez le sprint et la tache concernes avant d'agir. Limitez-vous aux taches actives, sauf demande explicite contraire.
-- Apres une modification significative, mettez a jour le fichier de sprint concerne et `docs/CURRENT.md`. Mettez a jour `docs/ROADMAP.md` uniquement si l'etat global evolue.
+- Apres une modification significative, mettez a jour le fichier de sprint concerne et `docs/CURRENT.md`. Mettez a jour la table de suivi dans `README.md` (section « Où en est le projet ») uniquement si l'etat global evolue.
+- Si une modification change le perimetre d'un sprint, un jalon, un statut global ou l'ordre de la roadmap, verifiez et alignez dans la meme passe `README.md`, `ARCHITECTURE.md`, `docs/sprint-planning.md` et le fichier de sprint concerne.
+- En cas d'ecart entre documents de pilotage, traitez `ARCHITECTURE.md` et `docs/sprint-planning.md` comme sources de verite pour le contenu et le sequencing, puis realignez `README.md` et `docs/CURRENT.md` au lieu de laisser une derive documentaire.
 - Referencez les validations et preuves importantes selon les regles de `docs/CONTRIBUTING.md`.
 - Preferez le code, l'IaC, les manifests, les tests et les procedures reproductibles aux manipulations manuelles.
 - Par defaut, n'executez pas en autonomie une correction non triviale, un script de provisionnement, un test long ou une sequence de validation complete sans expliquer d'abord ce qui va etre verifie, ce qui peut etre modifie et ce que l'on cherche a apprendre.
