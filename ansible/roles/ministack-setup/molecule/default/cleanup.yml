@@ -1,0 +1,15 @@
+---
+- name: Cleanup MiniStack Molecule artifacts
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove MiniStack Molecule container from host Docker
+      ansible.builtin.command:
+        argv:
+          - docker
+          - rm
+          - -f
+          - ministack-molecule
+      register: ministack_cleanup
+      changed_when: ministack_cleanup.rc == 0
+      failed_when: false

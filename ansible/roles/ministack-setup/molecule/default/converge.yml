@@ -1,0 +1,34 @@
+---
+- name: Converge ministack-setup
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Refresh apt cache for Ubuntu Molecule image
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install test prerequisites
+      ansible.builtin.apt:
+        name:
+          - awscli
+          - ca-certificates
+          - curl
+          - python3-docker
+        state: present
+
+    - name: Ensure Molecule AWS CLI user exists
+      ansible.builtin.user:
+        name: molecule
+        create_home: true
+        shell: /bin/bash
+
+  roles:
+    - role: ministack-setup
+      vars:
+        ministack_container_name: ministack-molecule
+        ministack_host_port: 14566
+        ministack_aws_cli_user: molecule
+        ministack_aws_cli_group: molecule
+        ministack_aws_home: /home/molecule

@@ -1,0 +1,133 @@
+---
+- name: Assert supported host for local MiniStack bootstrap
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["system"] == "Linux"
+    fail_msg: The ministack-setup role currently targets a local Linux host.
+
+- name: Assert MiniStack AWS CLI target user settings
+  ansible.builtin.assert:
+    that:
+      - ministack_aws_cli_user | length > 0
+      - ministack_aws_cli_group | length > 0
+      - ministack_aws_home.startswith("/home/")
+      - ministack_host_port | int > 0
+      - ministack_container_port | int > 0
+    fail_msg: MiniStack user, home, group, and port settings must be configured.
+
+- name: Show current MiniStack parameters
+  ansible.builtin.debug:
+    msg:
+      container_name: "{{ ministack_container_name }}"
+      image: "{{ ministack_image }}"
+      host_port: "{{ ministack_host_port }}"
+      aws_profile: "{{ ministack_aws_profile_name }}"
+      aws_region: "{{ ministack_aws_region }}"
+      aws_cli_user: "{{ ministack_aws_cli_user }}"
+
+- name: Check Docker CLI is available
+  ansible.builtin.command: docker version --format '{{"{{"}}.Server.Version{{"}}"}}'
+  register: ministack_docker_version
+  changed_when: false
+
+- name: Check AWS CLI is available
+  ansible.builtin.command: aws --version
+  register: ministack_aws_cli_version
+  changed_when: false
+
+- name: Ensure MiniStack AWS config directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ ministack_aws_dir }}"
+    state: directory
+    owner: "{{ ministack_aws_cli_user }}"
+    group: "{{ ministack_aws_cli_group }}"
+    mode: "0700"
+
+- name: Write MiniStack AWS credentials profile
+  become: true
+  community.general.ini_file:
+    path: "{{ ministack_aws_credentials_file }}"
+    section: "{{ ministack_aws_profile_name }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    owner: "{{ ministack_aws_cli_user }}"
+    group: "{{ ministack_aws_cli_group }}"
+    mode: "0600"
+    no_extra_spaces: true
+  loop:
+    - option: aws_access_key_id
+      value: "{{ ministack_aws_access_key_id }}"
+    - option: aws_secret_access_key
+      value: "{{ ministack_aws_secret_access_key }}"
+
+- name: Write MiniStack AWS config profile
+  become: true
+  community.general.ini_file:
+    path: "{{ ministack_aws_config_file }}"
+    section: "profile {{ ministack_aws_profile_name }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    owner: "{{ ministack_aws_cli_user }}"
+    group: "{{ ministack_aws_cli_group }}"
+    mode: "0600"
+    no_extra_spaces: true
+  loop:
+    - option: region
+      value: "{{ ministack_aws_region }}"
+    - option: output
+      value: json
+
+- name: Ensure MiniStack container is running
+  become: true
+  community.docker.docker_container:
+    name: "{{ ministack_container_name }}"
+    image: "{{ ministack_image }}"
+    pull: true
+    recreate: false
+    restart_policy: "{{ ministack_restart_policy }}"
+    published_ports:
+      - "{{ ministack_host_port }}:{{ ministack_container_port }}"
+    env:
+      LOG_LEVEL: "{{ ministack_log_level }}"
+    state: started
+  register: ministack_container_result
+
+- name: Wait for MiniStack health endpoint
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ ministack_host_port }}/_ministack/health"
+    method: GET
+    status_code: 200
+    return_content: true
+  register: ministack_healthcheck
+  changed_when: false
+  retries: "{{ ministack_runtime_validation_retries }}"
+  delay: "{{ ministack_runtime_validation_delay }}"
+  until: ministack_healthcheck.status == 200
+  when: ministack_runtime_validation_enabled | bool
+
+- name: Validate MiniStack STS smoke test with AWS CLI profile
+  ansible.builtin.command:
+    argv:
+      - aws
+      - --profile
+      - "{{ ministack_aws_profile_name }}"
+      - --endpoint-url
+      - "http://127.0.0.1:{{ ministack_host_port }}"
+      - sts
+      - get-caller-identity
+  environment:
+    AWS_SHARED_CREDENTIALS_FILE: "{{ ministack_aws_credentials_file }}"
+    AWS_CONFIG_FILE: "{{ ministack_aws_config_file }}"
+  register: ministack_sts_check
+  changed_when: false
+  when: ministack_runtime_validation_enabled | bool
+
+- name: Show MiniStack install summary
+  ansible.builtin.debug:
+    msg:
+      container_changed: "{{ ministack_container_result.changed }}"
+      docker_version: "{{ ministack_docker_version.stdout }}"
+      aws_cli_version: "{{ ministack_aws_cli_version.stdout }}"
+      health_status: "{{ ministack_healthcheck.status | default('skipped') }}"
+      sts_check_rc: "{{ ministack_sts_check.rc | default('skipped') }}"

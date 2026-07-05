@@ -1,0 +1,23 @@
+---
+ministack_container_name: ministack
+ministack_image: "ministackorg/ministack:1.3.70"
+ministack_host_port: 4566
+ministack_container_port: 4566
+ministack_log_level: INFO
+ministack_restart_policy: unless-stopped
+
+ministack_aws_profile_name: ministack
+ministack_aws_region: us-east-1
+ministack_aws_access_key_id: test
+ministack_aws_secret_access_key: test
+ministack_aws_cli_user: "{{ local_host_user }}"
+ministack_aws_cli_group: "{{ ministack_aws_cli_user }}"
+ministack_aws_home: "/home/{{ ministack_aws_cli_user }}"
+ministack_aws_dir: "{{ ministack_aws_home }}/.aws"
+ministack_aws_credentials_file: "{{ ministack_aws_dir }}/credentials"
+ministack_aws_config_file: "{{ ministack_aws_dir }}/config"
+
+ministack_runtime_validation_enabled: true
+ministack_runtime_validation_timeout: 30
+ministack_runtime_validation_retries: 10
+ministack_runtime_validation_delay: 3
