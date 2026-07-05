@@ -62,6 +62,9 @@ Pour une revue, commencez par le point le plus critique. Utilisez `Risque eleve`
 - En cas d'ecart entre documents de pilotage, traitez `ARCHITECTURE.md` et `docs/sprint-planning.md` comme sources de verite pour le contenu et le sequencing, puis realignez `README.md` et `docs/CURRENT.md` au lieu de laisser une derive documentaire.
 - Referencez les validations et preuves importantes selon les regles de `docs/CONTRIBUTING.md`.
 - Preferez le code, l'IaC, les manifests, les tests et les procedures reproductibles aux manipulations manuelles.
+- Ne commitez jamais d'informations personnelles liees au poste local du proprietaire lorsqu'elles ne sont pas necessaires au projet.
+- Dans tout artefact destine a GitHub, anonymisez ou genericisez les noms d'applications, tunnels, utilisateurs, chemins, volumes, hostnames et services hors perimetre ShopDemo.
+- Dans la documentation et les schemas, ne detaillez du poste local que ce qui est utile pour comprendre, exploiter ou valider ShopDemo ; le reste doit etre decrit de maniere generique.
 - Par defaut, n'executez pas en autonomie une correction non triviale, un script de provisionnement, un test long ou une sequence de validation complete sans expliquer d'abord ce qui va etre verifie, ce qui peut etre modifie et ce que l'on cherche a apprendre.
 - Pour tout diagnostic ou correctif non trivial, privilegiez d'abord la boucle : hypothese, commande a lancer, observation attendue, interpretation, puis proposition de correction. Ne sautez pas directement a la reparation sauf demande explicite, blocage durable ou risque de securite/destruction.
 - N'introduisez jamais de credentials AWS statiques, secrets en clair, tokens ou identifiants de comptes reels.

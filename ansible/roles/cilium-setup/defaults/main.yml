@@ -5,7 +5,7 @@ cilium_chart_version: "1.19.5"
 cilium_namespace: kube-system
 cilium_release_name: cilium
 
-cilium_kubeconfig_user: xclem
+cilium_kubeconfig_user: "{{ local_host_user }}"
 cilium_kubeconfig_path: "/home/{{ cilium_kubeconfig_user }}/.kube/config"
 
 cilium_ipam_mode: cluster-pool

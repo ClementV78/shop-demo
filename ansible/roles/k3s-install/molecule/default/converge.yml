@@ -12,8 +12,8 @@
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
-    # Create a dedicated test user so the scenario does not depend on a real
-    # workstation account such as "xclem".
+    # Create a dedicated test user so the scenario does not depend on the real
+    # workstation account.
     - name: Ensure Molecule kubeconfig user exists
       ansible.builtin.user:
         name: molecule

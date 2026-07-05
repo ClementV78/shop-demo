@@ -9,7 +9,7 @@ k3s_install_extra_args:
 k3s_server_manifests_dir: /var/lib/rancher/k3s/server/manifests
 k3s_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
 k3s_kubeconfig_mode: "0600"
-k3s_kubeconfig_user: xclem
+k3s_kubeconfig_user: "{{ local_host_user }}"
 k3s_kubeconfig_group: "{{ k3s_kubeconfig_user }}"
 k3s_user_kubeconfig_dir: "/home/{{ k3s_kubeconfig_user }}/.kube"
 k3s_user_kubeconfig_path: "{{ k3s_user_kubeconfig_dir }}/config"
