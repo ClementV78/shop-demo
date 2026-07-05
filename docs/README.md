@@ -10,8 +10,11 @@
 
 ## Documents techniques
 
+- [`../ARCHITECTURE.md`](../ARCHITECTURE.md) — page maitre architecture avec schema global et navigation
+- [`architecture/README.md`](architecture/README.md) — sous-pages detaillees d'architecture
 - [`ansible-structure.md`](ansible-structure.md)
 - [`concepts-sprint-0.md`](concepts-sprint-0.md)
+- [`decouverte-ministack.md`](decouverte-ministack.md)
 
 ## Repertoires annexes
 

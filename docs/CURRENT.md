@@ -11,15 +11,16 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S0-T6 | Implementer `cilium-setup` | En cours | Conserver la reserve connue sur `cilium connectivity test` (faux negatif probable Hubble sur `pod-to-service`), puis avancer sur la tache suivante du sprint |
+| S0-T8 | Implementer `cloudflare-tunnel` | Termine | Conserver le tunnel `shopdemo` sain, puis raccorder plus tard les routes Cloudflare aux vraies origins locales quand les services existeront |
 
-`S0-T1`, `S0-T4` et `S0-T5` sont termines ; voir
+`S0-T1`, `S0-T4`, `S0-T5`, `S0-T6` et `S0-T7` sont termines ; voir
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) pour le
 detail et les preuves.
 
 ## Blocages
 
-- Aucun blocage actif. Les deux blocages de `S0-T6` sont resolus :
+- Aucun blocage actif. Les deux blocages principaux rencontres pendant `S0-T6`
+  sont resolus :
   - `DiskPressure` sur le noeud local (partition `/` saturee) leve apres
     nettoyage sans risque ; voir `docs/sprints/sprint-0-ansible.md` (S0-T6).
   - Connectivite pod -> plan de controle cassee apres l'arrivee de Cilium :
@@ -30,6 +31,11 @@ detail et les preuves.
     (k3s), `kubeProxyReplacement: true` + `k8sServiceHost`/`k8sServicePort`
     (Cilium) et une regle `ufw allow from 10.42.0.0/16`, le tout encode dans
     les roles Ansible.
+- Aucun blocage actif sur `S0-T8`, mais un recadrage a ete necessaire :
+  `cloudflared` est deja installe et d'autres tunnels non lies au projet
+  existaient deja sur l'hote. La sous-etape "installer `cloudflared`" est
+  donc annulee pour ce sprint ; `S0-T8` doit maintenant viser une integration
+  ShopDemo non intrusive plutot qu'une prise de controle globale du composant.
 
 ## Notes de session
 
@@ -47,7 +53,7 @@ detail et les preuves.
 - `kubectl` n'est plus disponible en binaire autonome sur le poste ; il etait
   utilise via `k3s kubectl`.
 - `k3s` a ete reinstalle par Ansible en version `v1.33.1+k3s1`.
-- Le kubeconfig utilisateur `xclem` est maintenant synchronise depuis la source
+- Le kubeconfig utilisateur local est maintenant synchronise depuis la source
   de verite systeme, ce qui evite la derive root/user constatee auparavant.
 - Le role `k3s-install` passe maintenant en idempotence sur un second passage.
 - La version installee est comparee a `k3s_version` afin qu'un changement de
@@ -101,9 +107,9 @@ detail et les preuves.
 - Point reporte par le proprietaire : migration de la `data-root` Docker
   (actuellement sur la partition saturee) vers le disque `sdb3` quasi vide
   (3,8 To). A planifier hors urgence, hors perimetre Sprint 0.
-- Point non resolu, laisse intact : `/media/xclem/snapd/` (5,9 Go) ressemble
-  a un duplicata `snapd` non reference par le systeme actif, mais ses
-  fichiers ont des dates recentes ; origine a confirmer avant toute action.
+- Point non resolu, laisse intact : un repertoire local de ~5,9 Go ressemble a
+  un duplicata `snapd` non reference par le systeme actif, mais ses fichiers
+  ont des dates recentes ; origine a confirmer avant toute action.
 - `k3s-install` reinstalle desormais aussi lorsque les flags du service
   different de ceux desires (detection de derive via lecture de l'unite
   `k3s.service`), et non plus seulement sur changement de version.
@@ -138,6 +144,69 @@ detail et les preuves.
     Ce point est traite comme un faux negatif probable de Hubble /
     `connectivity test` sur ce lab local mono-noeud, non bloquant pour la
     suite.
+- `S0-T6` est considere termine : role Ansible, Molecule, et validation
+  runtime sont alignes avec un risque residuel documente et accepte.
+- Le focus actif a bascule vers `S0-T7` : `ministack-setup`.
+- Pour demarrer `S0-T7` proprement, une synthese de decouverte MiniStack a ete
+  redigee dans [`docs/decouverte-ministack.md`](decouverte-ministack.md) a
+  partir de la doc officielle recente, afin de cadrer le perimetre technique
+  avant implementation.
+- `S0-T7` est maintenant termine :
+  - MiniStack demarre localement sur `localhost:4566`.
+  - `/_ministack/health` repond `200`.
+  - le profil AWS CLI `ministack` fonctionne.
+  - `sts get-caller-identity` retourne l'identite locale synthetique
+    `000000000000`.
+  - le second passage du playbook est idempotent (`changed=0`).
+- Une vue d'architecture MiniStack locale a ete ajoutee dans
+  [`ARCHITECTURE.md`](../ARCHITECTURE.md) avec sa source editable
+  [`docs/diagrams/ministack-local-infra.drawio`](diagrams/ministack-local-infra.drawio).
+- Une seconde vue MiniStack, cette fois centree sur les **services AWS
+  emules** et leur statut d'usage dans le projet, a ete ajoutee dans
+  [`ARCHITECTURE.md`](../ARCHITECTURE.md) avec sa source editable
+  [`docs/diagrams/ministack-emulated-services.drawio`](diagrams/ministack-emulated-services.drawio).
+- `ARCHITECTURE.md` a ensuite ete **reorganise en page maitre** avec table des
+  matieres cliquable, schema global conserve en tete, et extraction des
+  details vers `docs/architecture/`.
+- Le focus actif bascule maintenant vers `S0-T8` : `cloudflare-tunnel`.
+- Audit de prerequis `S0-T8` realise :
+  - `cloudflared` etait deja installe sur l'hote ;
+  - d'autres tunnels non lies a ShopDemo existaient deja ;
+  - une unite systemd generique preexistante a ete renommee localement pour
+    clarifier l'exploitation ;
+  - `cloudflared-update.service` a ete aligne sur les unites systemd encore
+    gerees localement.
+- `S0-T8` a maintenant une implementation repo :
+  - role `ansible/roles/cloudflare-tunnel/` ;
+  - playbook `ansible/playbooks/cloudflare-tunnel.yml` ;
+  - unite cible `cloudflared-shopdemo.service` ;
+  - token externe via `/etc/cloudflared/shopdemo.env` ;
+  - schema d'architecture locale
+    `docs/diagrams/cloudflare-tunnels-local.{drawio,svg}`.
+- Correctif runtime `S0-T8` identifie sur l'hote reel :
+  - un autre tunnel `cloudflared` ecoutait deja sur `127.0.0.1:20244` ;
+  - `cloudflared-shopdemo.service` entrait donc en collision au demarrage ;
+  - le role a ete recadre pour utiliser par defaut `127.0.0.1:20245`.
+- La decision retenue reste non intrusive : aucun takeover des autres tunnels
+  preexistants, et les routes metier `argocd`, `grafana`, `gitea` restent a
+  activer quand leurs origins locales existeront.
+- `S0-T8` est maintenant considere termine :
+  - tunnel `shopdemo` cree cote Cloudflare ;
+  - token runtime conserve dans `/etc/cloudflared/shopdemo.env` ;
+  - playbook relance avec succes et idempotence utile observee (`changed=0`) ;
+  - `cloudflared-shopdemo.service` actif sur l'hote ;
+  - tunnel confirme `Healthy` dans le dashboard Cloudflare.
+- Memo operatoire pour un rerun manuel :
+
+  ```bash
+  export SHOPDEMO_TUNNEL_TOKEN="$(sudo awk -F= '/^TUNNEL_TOKEN=/{print $2}' /etc/cloudflared/shopdemo.env)"
+  cd ansible
+  ansible-playbook playbooks/cloudflare-tunnel.yml \
+    -e cloudflare_tunnel_shopdemo_token="$SHOPDEMO_TUNNEL_TOKEN"
+  ```
+
+  La suite pour le projet reste le raccordement futur des routes `argocd`,
+  `grafana` et `gitea` quand les origins locales existeront reellement.
 - `metrics-server` et le job `helm-install-traefik` restent en erreur, mais
   pour des raisons independantes de Cilium (TLS kubelet k3s, Traefik non
   utilise au profit de Gateway API) ; hors perimetre `S0-T6`.

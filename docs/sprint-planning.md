@@ -15,7 +15,7 @@
 
 - Role `k3s-install` — k3s sans CNI par défaut, kubeconfig configuré
 - Role `cilium-setup` — Cilium via Helm, Hubble activé (mode replacement sur k3s)
-- Role `ministack-setup` — Docker + MiniStack + profil AWS CLI `ministack`
+- Role `ministack-setup` — MiniStack + profil AWS CLI `ministack` (Docker prerequis)
 - Role `cloudflare-tunnel` — cloudflared installé, sous-domaines `argocd.`, `grafana.`, `gitea.` — exposition sans port entrant
 - Role `gitlab-runner` — runner enregistré en mode Docker executor
 - Role `node-hardening` — baseline CIS via `dev-sec.os-hardening` (Ubuntu)

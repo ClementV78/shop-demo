@@ -24,7 +24,7 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 ## Ce que montre le dépôt
 
-- **Déjà en place** : bootstrap local `Ansible + k3s + Cilium`, avec idempotence et tests Molecule.
+- **Déjà en place** : bootstrap local `Ansible + k3s + Cilium + MiniStack`, avec idempotence et tests ciblés.
 - **Architecture cible** : AWS multi-comptes, EKS, Gateway API, Cognito, RDS, SNS/SQS, Argo CD et GitOps.
 - **Documentation de travail** : roadmap, arbitrages, preuves et deep dives versionnés dans le dépôt.
 
@@ -46,7 +46,7 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 ## Quick start
 
-Ce qui existe aujourd'hui (Sprint 0) : un bootstrap local reproductible autour d'Ansible, avec un role `k3s-install` idempotent et un role `cilium-setup` déjà implémenté. C'est aujourd'hui le seul chemin exécutable de bout en bout dans le dépôt ; le reste de la plateforme AWS/EKS/CI-CD arrive sprint par sprint.
+Ce qui existe aujourd'hui (Sprint 0) : un bootstrap local reproductible autour d'Ansible, avec les roles `k3s-install`, `cilium-setup` et `ministack-setup`. `S0-T7` est termine : MiniStack est valide localement avec `health` et `sts get-caller-identity`, plus un second passage idempotent. C'est aujourd'hui le seul chemin exécutable de bout en bout dans le dépôt ; le reste de la plateforme AWS/EKS/CI-CD arrive sprint par sprint.
 
 ```bash
 git clone https://github.com/ClementV78/shop-demo.git
@@ -58,6 +58,7 @@ ansible-galaxy collection install -r requirements.yml
 # Installer k3s puis Cilium sur l'hôte local (sudo requis)
 ansible-playbook playbooks/k3s-install.yml --ask-become-pass
 ansible-playbook playbooks/cilium-setup.yml --ask-become-pass
+ansible-playbook playbooks/ministack-setup.yml --ask-become-pass
 
 # Rejouer les roles en isolation, avec tests d'idempotence (Molecule + Docker)
 cd roles/k3s-install
@@ -92,7 +93,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Prochain jalon** : clôturer `S0-T6` avec la validation runtime complète de Cilium sur l'hôte réel (`cilium status --wait`, `cilium connectivity test`, vérification Hubble, rerun idempotent), puis ouvrir le sprint suivant orienté Argo CD / GitOps local.
+**Focus courant du sprint** : `S0-T8` est termine. La suite logique du Sprint 0 est `S0-T9` puis `S0-T10`, avant la composition finale de `bootstrap.yml` / `teardown.yml`.
 
 ## Démarrer ici
 

@@ -131,9 +131,9 @@ flowchart TD
         SVC --> WAIT_CFG["wait_for: /etc/rancher/k3s/k3s.yaml\ntimeout: 120s\n💡 k3s écrit ce fichier\nasynchronément après le start"]
         WAIT_CFG --> WAIT_API["wait_for: 127.0.0.1:6443\ntimeout: 120s\n💡 l'API server met\nquelques secondes à écouter"]
         WAIT_API --> SYMLINK["file: /usr/local/bin/kubectl → k3s\n💡 k3s embarque kubectl :\nun lien suffit, pas besoin\nd'installer kubectl séparément"]
-        SYMLINK --> MKDIR["file: ~/.kube/\nowner=xclem, mode=0700\n💡 le répertoire doit\nexister avant la copie"]
+        SYMLINK --> MKDIR["file: ~/.kube/\nowner=local_user, mode=0700\n💡 le répertoire doit\nexister avant la copie"]
         MKDIR --> SLURP["slurp: /etc/rancher/k3s/k3s.yaml\n💡 slurp lit le fichier\nen base64 via SSH sans\nbesoin de fetch temporaire"]
-        SLURP --> COPY["copy: contenu décodé\n→ ~/.kube/config\nowner=xclem, mode=0600\n💡 0600 = lecture seule\npour le propriétaire,\nkubectl refuse les fichiers\ntrop permissifs"]
+        SLURP --> COPY["copy: contenu décodé\n→ ~/.kube/config\nowner=local_user, mode=0600\n💡 0600 = lecture seule\npour le propriétaire,\nkubectl refuse les fichiers\ntrop permissifs"]
         COPY --> VERIFY["command: kubectl get nodes\nchanged_when: false\n💡 vérification finale :\nsi l'API répond, le rôle\nest fonctionnel"]
     end
 ```
@@ -291,7 +291,7 @@ Point de conception retenu :
 - le kubeconfig source de verite reste
   [`/etc/rancher/k3s/k3s.yaml`](/etc/rancher/k3s/k3s.yaml:1) ;
 - une copie utilisateur est synchronisee vers
-  [`/home/xclem/.kube/config`](/home/xclem/.kube/config:1) pour l'usage courant
+  `~/.kube/config` pour l'usage courant
   sans `sudo`.
 
 ### `ansible/playbooks/`
@@ -356,7 +356,7 @@ sequenceDiagram
     Note over DOCKER: Boot du conteneur Ubuntu 24.04<br/>geerlingguy/docker-ubuntu2404-ansible<br/>─────────────────────────────────────<br/>privileged=true        → k3s a besoin de CAP_SYS_ADMIN<br/>cgroupns_mode=host     → systemd peut gérer les services<br/>command=/lib/systemd/systemd → PID 1 = systemd (pas bash)<br/>tmpfs /run /tmp        → systemd attend des répertoires writable<br/>volumes /sys/fs/cgroup → systemd inspecte les cgroups host
 
     MOL->>ANSIBLE: 5. converge (joue le rôle)
-    Note over ANSIBLE: Exécute converge.yml sur le conteneur :<br/>① apt update (image minimale)<br/>② créer user "molecule" (évite la dépendance à "xclem")<br/>③ rôle k3s-install avec surcharges :<br/>   --snapshotter=native  (overlayfs bloqué dans Docker)<br/>   kubeconfig_user=molecule
+    Note over ANSIBLE: Exécute converge.yml sur le conteneur :<br/>① apt update (image minimale)<br/>② créer user "molecule" (évite la dépendance au compte local réel)<br/>③ rôle k3s-install avec surcharges :<br/>   --snapshotter=native  (overlayfs bloqué dans Docker)<br/>   kubeconfig_user=molecule
 
     MOL->>ANSIBLE: 6. idempotence (rejoue converge)
     Note over ANSIBLE: Même playbook, deuxième passage.<br/>Résultat attendu : changed=0 sur toutes les tâches.<br/>Si une tâche est encore "changed" → bug d'idempotence<br/>→ le rôle modifie l'état à chaque exécution,<br/>  ce qui casse la promesse "sûr à rejouer".
@@ -404,7 +404,7 @@ par rapport à la configuration de production :
 | Contrainte | Production (bare-metal) | Molecule (Docker) |
 |---|---|---|
 | Snapshotter containerd | `overlayfs` (défaut) | `--snapshotter=native` (overlayfs bloqué dans Docker) |
-| Utilisateur kubeconfig | `xclem` | `molecule` (isolé, évite la dépendance au compte réel) |
+| Utilisateur kubeconfig | `local_user` | `molecule` (isolé, évite la dépendance au compte réel) |
 | Flannel + NetworkPolicy | désactivés | désactivés (identique) |
 
 Ces différences sont confinées dans `converge.yml` via des surcharges de
