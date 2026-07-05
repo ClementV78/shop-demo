@@ -1,0 +1,15 @@
+[Unit]
+Description=Cloudflare Tunnel for ShopDemo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile={{ cloudflare_tunnel_shopdemo_env_file }}
+ExecStart={{ cloudflare_tunnel_shopdemo_resolved_binary_path }}{% if cloudflare_tunnel_shopdemo_no_autoupdate %} --no-autoupdate{% endif %}{% if cloudflare_tunnel_shopdemo_metrics_address | length > 0 %} --metrics {{ cloudflare_tunnel_shopdemo_metrics_address }}{% endif %} tunnel run --token ${{ '{' }}{{ cloudflare_tunnel_shopdemo_token_env_var_name }}{{ '}' }}
+Restart={{ cloudflare_tunnel_shopdemo_restart_policy }}
+RestartSec={{ cloudflare_tunnel_shopdemo_restart_sec }}
+User=root
+
+[Install]
+WantedBy=multi-user.target

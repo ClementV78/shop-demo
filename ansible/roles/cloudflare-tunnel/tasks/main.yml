@@ -1,0 +1,135 @@
+---
+- name: Assert supported host for ShopDemo Cloudflare Tunnel
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["system"] == "Linux"
+    fail_msg: The cloudflare-tunnel role currently targets a local Linux host.
+
+- name: Assert ShopDemo tunnel configuration inputs
+  ansible.builtin.assert:
+    that:
+      - cloudflare_tunnel_shopdemo_name | length > 0
+      - cloudflare_tunnel_shopdemo_service_name | length > 0
+      - cloudflare_tunnel_shopdemo_env_dir.startswith("/etc/")
+      - cloudflare_tunnel_shopdemo_env_file.startswith(cloudflare_tunnel_shopdemo_env_dir + "/")
+      - cloudflare_tunnel_shopdemo_token_env_var_name | length > 0
+      - cloudflare_tunnel_shopdemo_token | length > 0
+    fail_msg: >-
+      ShopDemo Cloudflare Tunnel requires a non-empty name, service name, env
+      file path, token env var name, and tunnel token.
+
+- name: Resolve cloudflared binary from PATH
+  ansible.builtin.shell: command -v cloudflared
+  args:
+    executable: /bin/sh
+  register: cloudflare_tunnel_cloudflared_path
+  changed_when: false
+  when: cloudflare_tunnel_shopdemo_binary_path | length == 0
+
+- name: Set cloudflared binary path fact
+  ansible.builtin.set_fact:
+    cloudflare_tunnel_shopdemo_resolved_binary_path: >-
+      {{
+        cloudflare_tunnel_shopdemo_binary_path
+        if cloudflare_tunnel_shopdemo_binary_path | length > 0
+        else cloudflare_tunnel_cloudflared_path.stdout
+      }}
+
+- name: Assert cloudflared binary exists
+  ansible.builtin.stat:
+    path: "{{ cloudflare_tunnel_shopdemo_resolved_binary_path }}"
+  register: cloudflare_tunnel_cloudflared_binary
+
+- name: Fail when cloudflared binary is missing
+  ansible.builtin.assert:
+    that:
+      - cloudflare_tunnel_cloudflared_binary.stat.exists
+      - cloudflare_tunnel_cloudflared_binary.stat.executable
+    fail_msg: >-
+      cloudflared is not installed or not executable on this host. S0-T8 assumes
+      an existing cloudflared installation and only automates the dedicated
+      ShopDemo integration layer.
+
+- name: Show ShopDemo tunnel configuration summary
+  ansible.builtin.debug:
+    msg:
+      tunnel_name: "{{ cloudflare_tunnel_shopdemo_name }}"
+      service_name: "{{ cloudflare_tunnel_shopdemo_service_name }}"
+      env_file: "{{ cloudflare_tunnel_shopdemo_env_file }}"
+      binary_path: "{{ cloudflare_tunnel_shopdemo_resolved_binary_path }}"
+      metrics_address: "{{ cloudflare_tunnel_shopdemo_metrics_address }}"
+      manage_systemd: "{{ cloudflare_tunnel_shopdemo_manage_systemd }}"
+      enabled: "{{ cloudflare_tunnel_shopdemo_enabled }}"
+      state: "{{ cloudflare_tunnel_shopdemo_state }}"
+
+- name: Ensure ShopDemo tunnel environment directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ cloudflare_tunnel_shopdemo_env_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Write ShopDemo tunnel token environment file
+  become: true
+  ansible.builtin.template:
+    src: cloudflared-shopdemo.env.j2
+    dest: "{{ cloudflare_tunnel_shopdemo_env_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Restart ShopDemo Cloudflare Tunnel
+
+- name: Render ShopDemo systemd unit
+  become: true
+  ansible.builtin.template:
+    src: cloudflared-shopdemo.service.j2
+    dest: "{{ cloudflare_tunnel_shopdemo_systemd_unit_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd daemon
+    - Restart ShopDemo Cloudflare Tunnel
+
+- name: Flush handlers before service management
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start ShopDemo Cloudflare Tunnel service
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ cloudflare_tunnel_shopdemo_service_name }}"
+    enabled: "{{ cloudflare_tunnel_shopdemo_enabled }}"
+    state: "{{ cloudflare_tunnel_shopdemo_state }}"
+    daemon_reload: true
+  when:
+    - cloudflare_tunnel_shopdemo_manage_systemd | bool
+    - ansible_facts["service_mgr"] == "systemd"
+
+- name: Wait for ShopDemo Cloudflare Tunnel to report active
+  become: true
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - is-active
+      - "{{ cloudflare_tunnel_shopdemo_service_name }}"
+  register: cloudflare_tunnel_shopdemo_service_active
+  changed_when: false
+  retries: "{{ cloudflare_tunnel_shopdemo_runtime_validation_retries }}"
+  delay: "{{ cloudflare_tunnel_shopdemo_runtime_validation_delay }}"
+  until: cloudflare_tunnel_shopdemo_service_active.stdout == "active"
+  when:
+    - cloudflare_tunnel_shopdemo_runtime_validation_enabled | bool
+    - cloudflare_tunnel_shopdemo_manage_systemd | bool
+    - ansible_facts["service_mgr"] == "systemd"
+    - cloudflare_tunnel_shopdemo_state == "started"
+
+- name: Show ShopDemo Cloudflare Tunnel result
+  ansible.builtin.debug:
+    msg:
+      env_file: "{{ cloudflare_tunnel_shopdemo_env_file }}"
+      systemd_unit: "{{ cloudflare_tunnel_shopdemo_systemd_unit_path }}"
+      service_active: "{{ cloudflare_tunnel_shopdemo_service_active.stdout | default('skipped') }}"
+      future_routes: "{{ cloudflare_tunnel_shopdemo_future_routes }}"

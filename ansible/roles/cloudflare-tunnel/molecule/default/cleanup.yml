@@ -1,0 +1,5 @@
+---
+- name: Cleanup Molecule scenario
+  hosts: localhost
+  gather_facts: false
+  tasks: []

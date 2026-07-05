@@ -1,0 +1,16 @@
+---
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when: ansible_facts["service_mgr"] == "systemd"
+
+- name: Restart ShopDemo Cloudflare Tunnel
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ cloudflare_tunnel_shopdemo_service_name }}"
+    state: restarted
+  when:
+    - cloudflare_tunnel_shopdemo_manage_systemd | bool
+    - ansible_facts["service_mgr"] == "systemd"
+    - cloudflare_tunnel_shopdemo_state == "started"

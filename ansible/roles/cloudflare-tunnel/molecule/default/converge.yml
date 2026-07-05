@@ -1,0 +1,32 @@
+---
+- name: Converge cloudflare-tunnel
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Refresh apt cache for Ubuntu Molecule image
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create fake cloudflared binary for Molecule
+      ansible.builtin.copy:
+        dest: /usr/local/bin/cloudflared
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          if [ "$1" = "--version" ]; then
+            echo "cloudflared version molecule"
+            exit 0
+          fi
+          echo "molecule cloudflared stub"
+          exit 0
+
+  roles:
+    - role: cloudflare-tunnel
+      vars:
+        cloudflare_tunnel_shopdemo_token: molecule-token
+        cloudflare_tunnel_shopdemo_manage_systemd: false
+        cloudflare_tunnel_shopdemo_enabled: false
+        cloudflare_tunnel_shopdemo_state: stopped
+        cloudflare_tunnel_shopdemo_runtime_validation_enabled: false

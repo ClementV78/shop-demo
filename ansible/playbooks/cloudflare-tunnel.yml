@@ -1,0 +1,6 @@
+---
+- name: Configure the dedicated ShopDemo Cloudflare Tunnel service
+  hosts: local
+  gather_facts: true
+  roles:
+    - role: cloudflare-tunnel

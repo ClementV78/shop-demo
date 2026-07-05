@@ -1,0 +1,49 @@
+---
+- name: Verify cloudflare-tunnel
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Assert ShopDemo env file exists with secure permissions
+      ansible.builtin.stat:
+        path: /etc/cloudflared/shopdemo.env
+      register: cloudflare_tunnel_env_file
+
+    - name: Assert ShopDemo systemd unit exists
+      ansible.builtin.stat:
+        path: /etc/systemd/system/cloudflared-shopdemo.service
+      register: cloudflare_tunnel_unit_file
+
+    - name: Assert tunnel integration files are present and private
+      ansible.builtin.assert:
+        that:
+          - cloudflare_tunnel_env_file.stat.exists
+          - cloudflare_tunnel_env_file.stat.mode == "0600"
+          - cloudflare_tunnel_unit_file.stat.exists
+          - cloudflare_tunnel_unit_file.stat.mode == "0644"
+        fail_msg: ShopDemo Cloudflare Tunnel files are missing or use unexpected permissions.
+
+    - name: Read ShopDemo env file
+      ansible.builtin.command:
+        argv:
+          - cat
+          - /etc/cloudflared/shopdemo.env
+      register: cloudflare_tunnel_env_content
+      changed_when: false
+
+    - name: Read ShopDemo systemd unit
+      ansible.builtin.command:
+        argv:
+          - cat
+          - /etc/systemd/system/cloudflared-shopdemo.service
+      register: cloudflare_tunnel_unit_content
+      changed_when: false
+
+    - name: Assert ShopDemo env and service contents are correct
+      ansible.builtin.assert:
+        that:
+          - "'TUNNEL_TOKEN=molecule-token' in cloudflare_tunnel_env_content.stdout"
+          - "'Description=Cloudflare Tunnel for ShopDemo' in cloudflare_tunnel_unit_content.stdout"
+          - "'EnvironmentFile=/etc/cloudflared/shopdemo.env' in cloudflare_tunnel_unit_content.stdout"
+          - "'--metrics 127.0.0.1:20245 tunnel run --token ${TUNNEL_TOKEN}' in cloudflare_tunnel_unit_content.stdout"
+        fail_msg: ShopDemo Cloudflare Tunnel rendered files do not match the expected configuration.

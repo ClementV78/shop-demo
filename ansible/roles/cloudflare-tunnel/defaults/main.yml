@@ -1,0 +1,32 @@
+---
+cloudflare_tunnel_shopdemo_name: shopdemo
+cloudflare_tunnel_shopdemo_service_name: cloudflared-shopdemo
+cloudflare_tunnel_shopdemo_token: ""
+cloudflare_tunnel_shopdemo_token_env_var_name: TUNNEL_TOKEN
+cloudflare_tunnel_shopdemo_env_dir: /etc/cloudflared
+cloudflare_tunnel_shopdemo_env_file: "{{ cloudflare_tunnel_shopdemo_env_dir }}/shopdemo.env"
+cloudflare_tunnel_shopdemo_systemd_unit_path: "/etc/systemd/system/{{ cloudflare_tunnel_shopdemo_service_name }}.service"
+cloudflare_tunnel_shopdemo_binary_path: ""
+cloudflare_tunnel_shopdemo_manage_systemd: true
+cloudflare_tunnel_shopdemo_enabled: true
+cloudflare_tunnel_shopdemo_state: started
+cloudflare_tunnel_shopdemo_restart_policy: on-failure
+cloudflare_tunnel_shopdemo_restart_sec: 5s
+cloudflare_tunnel_shopdemo_metrics_address: 127.0.0.1:20245
+cloudflare_tunnel_shopdemo_no_autoupdate: true
+cloudflare_tunnel_shopdemo_runtime_validation_enabled: true
+cloudflare_tunnel_shopdemo_runtime_validation_retries: 10
+cloudflare_tunnel_shopdemo_runtime_validation_delay: 3
+cloudflare_tunnel_shopdemo_future_routes:
+  - hostname: argocd.shopdemo.example.com
+    service: https://127.0.0.1:8443
+    state: planned
+    owner: argocd
+  - hostname: grafana.shopdemo.example.com
+    service: http://127.0.0.1:3000
+    state: planned
+    owner: grafana
+  - hostname: gitea.shopdemo.example.com
+    service: http://127.0.0.1:3001
+    state: planned
+    owner: gitea
