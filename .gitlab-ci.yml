@@ -8,4 +8,4 @@ smoke-runner:
   script:
     - echo "runner OK"
     - uname -a
-    - docker version
+    - cat /etc/os-release
