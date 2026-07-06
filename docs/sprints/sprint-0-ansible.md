@@ -20,7 +20,7 @@ Conception cible :
 | S0-T6 | Implementer `cilium-setup` | Termine | S0-T5 |
 | S0-T7 | Implementer `ministack-setup` | Termine | S0-T3 |
 | S0-T8 | Implementer `cloudflare-tunnel` | Termine | S0-T3 |
-| S0-T9 | Implementer `gitlab-runner` | En cours | S0-T3 |
+| S0-T9 | Implementer `gitlab-runner` | Termine | S0-T3 |
 | S0-T10 | Implementer `node-hardening` | Planifie | S0-T3 |
 | S0-T11 | Composer `bootstrap.yml` et `teardown.yml` | Planifie | S0-T6 a S0-T10 |
 | S0-T12 | Preparer les playbooks AWS futurs | Planifie | S0-T3 |
@@ -483,13 +483,13 @@ Depend de : `S0-T3`
 
 ### S0-T9 - Implementer `gitlab-runner`
 
-Etat : `En cours`  
+Etat : `Termine`  
 Depend de : `S0-T3`
 
-- [ ] Installer GitLab Runner.
-- [ ] Configurer le Docker executor.
-- [ ] Externaliser le token d'enregistrement ou d'authentification runner.
-- [ ] Preparer la reutilisation sur l'EC2 bootstrap.
+- [x] Installer GitLab Runner.
+- [x] Configurer le Docker executor.
+- [x] Externaliser le token d'enregistrement ou d'authentification runner.
+- [x] Preparer la reutilisation sur l'EC2 bootstrap.
 
 Hypotheses de cadrage :
 
@@ -503,11 +503,11 @@ Decision structurante :
 
 #### Criteres d'acceptation
 
-- [ ] Le runner peut etre configure pour `GitLab.com` sans secret versionne.
-- [ ] Le service GitLab Runner est actif et le role reste idempotent.
-- [ ] Une preuve de validation realiste est definie : enregistrement du runner
+- [x] Le runner peut etre configure pour `GitLab.com` sans secret versionne.
+- [x] Le service GitLab Runner est actif et le role reste idempotent.
+- [x] Une preuve de validation realiste est definie : enregistrement du runner
   puis job de smoke test GitLab une fois le token fourni.
-- [ ] Le role est idempotent.
+- [x] Le role est idempotent.
 
 #### Notes de progression
 
@@ -529,9 +529,13 @@ Decision structurante :
 - Verifie : `ansible-playbook --check playbooks/gitlab-runner.yml -e
   gitlab_runner_manage_registration=false -e
   gitlab_runner_runtime_validation_enabled=false` reussit sur `localhost`.
-- Non verifie : installation reelle du package `gitlab-runner`, service actif
-  sur l'hote, enregistrement vers `GitLab.com` avec un vrai token, et smoke
-  test CI de bout en bout.
+- Verifie : installation reelle du package `gitlab-runner` et service actif
+  sur l'hote local.
+- Verifie : enregistrement vers `GitLab.com` avec un token runner moderne
+  `glrt-...`, apres adaptation du role au workflow GitLab actuel.
+- Verifie : pipeline GitLab `#2656759588` au statut `Passed` sur la branche
+  `test/gitlab-runner-smoke`, avec job de smoke execute par le runner
+  `shopdemo-localhost-docker`.
 
 ### S0-T10 - Implementer `node-hardening`
 

@@ -11,9 +11,9 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S0-T9 | Implementer `gitlab-runner` | En cours | Executer le role hors check mode, avec ou sans token selon la phase voulue, puis valider le service et un enregistrement GitLab reel |
+| S0-T10 | Implementer `node-hardening` | Planifie | Cadrer l'integration `dev-sec.os-hardening`, les exceptions k3s/Docker et la strategie de validation sans casser le lab local |
 
-`S0-T1`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7` et `S0-T8` sont termines ; voir
+`S0-T1`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8` et `S0-T9` sont termines ; voir
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) pour le
 detail et les preuves.
 
@@ -235,7 +235,7 @@ detail et les preuves.
 - Derive documentaire corrigee : `S0-T8` reste termine et le prochain focus
   du Sprint 0 est desormais `S0-T9` (`gitlab-runner`), avant `S0-T10` puis la
   composition de `bootstrap.yml` / `teardown.yml`.
-- Premier jet `S0-T9` implemente :
+- `S0-T9` est maintenant termine et valide :
   - role `ansible/roles/gitlab-runner/` ajoute avec `defaults`, `tasks` et
     `handlers` ;
   - playbook `ansible/playbooks/gitlab-runner.yml` ajoute ;
@@ -243,11 +243,13 @@ detail et les preuves.
     `packages.gitlab.com` pour Ubuntu, avec keyring APT dedie ;
   - separation explicite installation / enregistrement via
     `gitlab_runner_manage_registration` et `gitlab_runner_token_type` ;
-  - validation locale executee : `ansible-playbook --syntax-check` OK puis
-    `ansible-playbook --check ... -e gitlab_runner_manage_registration=false`
-    OK dans le contexte du projet ;
-  - non verifie a ce stade : installation reelle du package, activation du
-    service sur l'hote et enregistrement GitLab avec un vrai token.
+  - verifie : `ansible-playbook --syntax-check` OK puis `ansible-playbook
+    --check ... -e gitlab_runner_manage_registration=false` OK dans le
+    contexte du projet ;
+  - verifie : installation reelle du package, service `gitlab-runner` actif
+    sur l'hote local et enregistrement avec un token moderne `glrt-...` ;
+  - verifie : pipeline GitLab de smoke passe sur le projet sandbox
+    `shopdemo`, branche `test/gitlab-runner-smoke`.
 - Corrections apres revue du proprietaire :
   - Le chemin webhook paiement async (API Gateway AWS + Lambda
     webhook-paiement, publication `paiement-confirmé`, fan-out stock/notif)

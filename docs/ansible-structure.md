@@ -11,16 +11,20 @@ Source de verite architecture :
 
 ## Etat actuel
 
-Verifie le 2026-06-12 :
+Verifie le 2026-07-06 :
 
 - Le repertoire [`ansible/`](../ansible) existe.
 - Les sous-repertoires `inventory/`, `group_vars/`, `roles/`, `playbooks/` et
   `molecule/` existent.
 - Les fichiers de configuration Ansible du projet existent.
-- Un premier role
-  [`roles/k3s-install/`](../ansible/roles/k3s-install) a ete initialise.
-- Un playbook de validation
-  [`playbooks/k3s-install.yml`](../ansible/playbooks/k3s-install.yml) existe.
+- Les roles
+  [`roles/k3s-install/`](../ansible/roles/k3s-install),
+  [`roles/cilium-setup/`](../ansible/roles/cilium-setup),
+  [`roles/ministack-setup/`](../ansible/roles/ministack-setup),
+  [`roles/cloudflare-tunnel/`](../ansible/roles/cloudflare-tunnel) et
+  [`roles/gitlab-runner/`](../ansible/roles/gitlab-runner) existent.
+- Les playbooks de validation correspondants existent dans
+  [`ansible/playbooks/`](../ansible/playbooks).
 - L'ancien cluster `k3s` local a ete desinstalle pour repartir d'une base
   saine avant l'implementation reelle du role.
 - `k3s` est de nouveau installe et gere par le role.
@@ -49,15 +53,16 @@ flowchart TB
 
     %% ── Groupe 3 : le chef d'orchestre ──
     subgraph Orchestration["🎼 Ce qu'on joue et dans quel ordre"]
-        PB["playbooks/\n─────────────\nk3s-install.yml  → installe k3s\nbootstrap.yml    → setup complet\nrunner-setup.yml → runner GitLab\nteardown.yml     → nettoyage"]
+        PB["playbooks/\n─────────────\nk3s-install.yml     → installe k3s\ncilium-setup.yml    → installe Cilium\nministack-setup.yml → lance MiniStack\ngitlab-runner.yml   → installe/enregistre le runner\nbootstrap.yml       → setup complet\nteardown.yml        → nettoyage"]
     end
 
     %% ── Groupe 4 : la logique réutilisable, une brique = une responsabilité ──
     subgraph Roles["🧩 Comment faire chaque tâche (rôles)"]
         R_K3S["roles/k3s-install\n✅ implémenté"]
-        R_CIL["roles/cilium-setup\n🔜 S0-T6"]
-        R_GIT["roles/gitlab-runner\n📌 planifié"]
-        R_ETC["roles/node-hardening\nroles/gitea-setup\n..."]
+        R_CIL["roles/cilium-setup\n✅ implémenté"]
+        R_MINI["roles/ministack-setup\n✅ implémenté"]
+        R_GIT["roles/gitlab-runner\n✅ implémenté"]
+        R_ETC["roles/cloudflare-tunnel\nroles/node-hardening\nroles/gitea-setup\n..."]
     end
 
     %% ── Groupe 5 : tests hors production ──
@@ -73,6 +78,7 @@ flowchart TB
     VARS -->|"injecte les variables\ndans chaque tâche"| PB
     PB -->|"applique le rôle\nsur les hôtes ciblés"| R_K3S
     PB -->|appelle| R_CIL
+    PB -->|appelle| R_MINI
     PB -->|appelle| R_GIT
     MOL -->|"teste le rôle seul\n(idempotence, assertions)"| R_K3S
 ```
@@ -275,9 +281,10 @@ roles/<role>/
   handlers/main.yml
 ```
 
-Premier exemple present dans le projet :
+Exemples presents dans le projet :
 
 - [`ansible/roles/k3s-install/defaults/main.yml`](../ansible/roles/k3s-install/defaults/main.yml)
+- [`ansible/roles/gitlab-runner/tasks/main.yml`](../ansible/roles/gitlab-runner/tasks/main.yml)
   : variables par defaut du role
 - [`ansible/roles/k3s-install/tasks/main.yml`](../ansible/roles/k3s-install/tasks/main.yml)
   : logique principale du role
