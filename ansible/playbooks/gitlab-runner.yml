@@ -1,0 +1,6 @@
+---
+- name: Install and optionally register GitLab Runner
+  hosts: all
+  gather_facts: true
+  roles:
+    - role: gitlab-runner

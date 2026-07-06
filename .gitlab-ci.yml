@@ -1,0 +1,11 @@
+stages:
+  - smoke
+
+smoke-runner:
+  stage: smoke
+  tags:
+    - docker
+  script:
+    - echo "runner OK"
+    - uname -a
+    - cat /etc/os-release

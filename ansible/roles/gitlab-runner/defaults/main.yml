@@ -1,0 +1,27 @@
+---
+gitlab_runner_url: https://gitlab.com
+gitlab_runner_executor: docker
+gitlab_runner_name: "{{ (project_name | default('shopdemo')) ~ '-' ~ inventory_hostname ~ '-docker' }}"
+gitlab_runner_tags:
+  - docker
+gitlab_runner_token: ""
+gitlab_runner_token_type: authentication
+gitlab_runner_manage_registration: "{{ gitlab_runner_token | length > 0 }}"
+gitlab_runner_description: "{{ gitlab_runner_name }}"
+gitlab_runner_service_name: gitlab-runner
+gitlab_runner_package_name: gitlab-runner
+gitlab_runner_system_user: gitlab-runner
+gitlab_runner_system_group: gitlab-runner
+gitlab_runner_working_directory: /home/gitlab-runner
+gitlab_runner_repo_list_path: /etc/apt/sources.list.d/runner_gitlab-runner.list
+gitlab_runner_repo_key_url: https://packages.gitlab.com/gpgkey/gpg.key
+gitlab_runner_repo_key_asc_path: /tmp/runner_gitlab-runner-archive-keyring.asc
+gitlab_runner_repo_key_path: /etc/apt/keyrings/runner_gitlab-runner-archive-keyring.gpg
+gitlab_runner_repo_distribution: "{{ ansible_facts['distribution_release'] | lower }}"
+gitlab_runner_repo_content: |-
+  deb [signed-by={{ gitlab_runner_repo_key_path }}] https://packages.gitlab.com/runner/gitlab-runner/ubuntu {{ gitlab_runner_repo_distribution }} main
+  deb-src [signed-by={{ gitlab_runner_repo_key_path }}] https://packages.gitlab.com/runner/gitlab-runner/ubuntu {{ gitlab_runner_repo_distribution }} main
+gitlab_runner_docker_image: alpine:latest
+gitlab_runner_runtime_validation_enabled: true
+gitlab_runner_runtime_validation_retries: 10
+gitlab_runner_runtime_validation_delay: 3

@@ -46,7 +46,7 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 ## Quick start
 
-Ce qui existe aujourd'hui (Sprint 0) : un bootstrap local reproductible autour d'Ansible, avec les roles `k3s-install`, `cilium-setup` et `ministack-setup`. `S0-T7` est termine : MiniStack est valide localement avec `health` et `sts get-caller-identity`, plus un second passage idempotent. C'est aujourd'hui le seul chemin exécutable de bout en bout dans le dépôt ; le reste de la plateforme AWS/EKS/CI-CD arrive sprint par sprint.
+Ce qui existe aujourd'hui (Sprint 0) : un bootstrap local reproductible autour d'Ansible, avec les roles `k3s-install`, `cilium-setup`, `ministack-setup`, `cloudflare-tunnel` et `gitlab-runner`. Les validations reelles vont jusqu'au service `gitlab-runner` actif sur l'hote local, a son enregistrement sur `GitLab.com`, puis a un pipeline de smoke passe sur la branche `test/gitlab-runner-smoke`. Le reste de la plateforme AWS/EKS applicative arrive sprint par sprint.
 
 ```bash
 git clone https://github.com/ClementV78/shop-demo.git
@@ -68,7 +68,7 @@ cd ../cilium-setup
 molecule test
 ```
 
-Le reste de la plateforme (Terraform, EKS, CI/CD) arrive sprint après sprint, voir [Où en est le projet](#où-en-est-le-projet).
+Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent des secrets externes non versionnes (`TUNNEL_TOKEN`, token runner GitLab) et ne font donc pas partie du chemin "copier-coller" ci-dessus. Le reste de la plateforme (Terraform, EKS, CI/CD complet) arrive sprint après sprint, voir [Où en est le projet](#où-en-est-le-projet).
 
 ## Où en est le projet
 
@@ -93,7 +93,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Focus courant du sprint** : `S0-T8` est termine. La suite logique du Sprint 0 est `S0-T9` puis `S0-T10`, avant la composition finale de `bootstrap.yml` / `teardown.yml`.
+**Focus courant du sprint** : `S0-T9` (`gitlab-runner`) est termine. Le prochain chantier du Sprint 0 est `S0-T10`, avant la composition finale de `bootstrap.yml` / `teardown.yml`.
 
 ## Démarrer ici
 

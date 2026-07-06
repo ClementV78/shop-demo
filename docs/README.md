@@ -18,5 +18,5 @@
 
 ## Repertoires annexes
 
-- [`adr/`](adr)
+- [`adr/`](adr) — decisions structurantes, dont [`ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
 - [`evidence/`](evidence)
