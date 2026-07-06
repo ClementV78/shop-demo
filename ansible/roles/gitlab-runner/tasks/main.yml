@@ -1,0 +1,275 @@
+---
+- name: Assert supported host for GitLab Runner bootstrap
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["system"] == "Linux"
+      - ansible_facts["service_mgr"] == "systemd"
+      - ansible_facts["os_family"] == "Debian"
+    fail_msg: >-
+      The gitlab-runner role currently targets Debian-family Linux hosts
+      managed by systemd, which matches the local Ubuntu host and the future
+      Ubuntu EC2 bootstrap runner.
+
+- name: Assert GitLab Runner configuration inputs
+  ansible.builtin.assert:
+    that:
+      - gitlab_runner_url is match("^https://.+")
+      - gitlab_runner_executor == "docker"
+      - gitlab_runner_name | length > 0
+      - gitlab_runner_description | length > 0
+      - gitlab_runner_docker_image | length > 0
+      - gitlab_runner_token_type in ["authentication", "registration"]
+      - gitlab_runner_repo_list_path.startswith("/etc/apt/sources.list.d/")
+      - gitlab_runner_repo_key_path.startswith("/etc/apt/keyrings/")
+      - gitlab_runner_working_directory.startswith("/home/")
+    fail_msg: >-
+      GitLab Runner requires an HTTPS GitLab URL, the docker executor, a
+      runner name/description, a default Docker image, a supported token type,
+      stable APT repository paths, and a working directory under /home.
+
+- name: Assert token is present when registration is enabled
+  ansible.builtin.assert:
+    that:
+      - gitlab_runner_token | length > 0
+    fail_msg: >-
+      gitlab_runner_manage_registration=true requires a non-empty token provided
+      from an external secret source.
+  when: gitlab_runner_manage_registration | bool
+
+- name: Show current GitLab Runner parameters
+  ansible.builtin.debug:
+    msg:
+      gitlab_url: "{{ gitlab_runner_url }}"
+      runner_name: "{{ gitlab_runner_name }}"
+      description: "{{ gitlab_runner_description }}"
+      executor: "{{ gitlab_runner_executor }}"
+      docker_image: "{{ gitlab_runner_docker_image }}"
+      tags: "{{ gitlab_runner_tags }}"
+      token_type: "{{ gitlab_runner_token_type }}"
+      manage_registration: "{{ gitlab_runner_manage_registration }}"
+      system_user: "{{ gitlab_runner_system_user }}"
+      working_directory: "{{ gitlab_runner_working_directory }}"
+
+- name: Check Docker CLI is available
+  ansible.builtin.command: docker version --format '{{"{{"}}.Server.Version{{"}}"}}'
+  register: gitlab_runner_docker_version
+  check_mode: false
+  changed_when: false
+
+- name: Ensure GitLab Runner APT prerequisites are present
+  become: true
+  ansible.builtin.package:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - apt-transport-https
+    state: present
+
+- name: Ensure GitLab Runner keyring directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download GitLab Runner repository signing key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ gitlab_runner_repo_key_url }}"
+    dest: "{{ gitlab_runner_repo_key_asc_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  register: gitlab_runner_repo_key_download
+
+- name: Convert GitLab Runner repository signing key to keyring format
+  become: true
+  ansible.builtin.command:
+    argv:
+      - gpg
+      - --dearmor
+      - --yes
+      - --output
+      - "{{ gitlab_runner_repo_key_path }}"
+      - "{{ gitlab_runner_repo_key_asc_path }}"
+  when: gitlab_runner_repo_key_download.changed
+
+- name: Check whether the GitLab Runner repository keyring exists
+  become: true
+  ansible.builtin.stat:
+    path: "{{ gitlab_runner_repo_key_path }}"
+  register: gitlab_runner_repo_key_file
+
+- name: Ensure GitLab Runner repository key has stable permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ gitlab_runner_repo_key_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    state: file
+  when: gitlab_runner_repo_key_file.stat.exists
+
+- name: Configure GitLab Runner APT repository
+  become: true
+  ansible.builtin.copy:
+    content: "{{ gitlab_runner_repo_content }}"
+    dest: "{{ gitlab_runner_repo_list_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  register: gitlab_runner_repo_config
+
+- name: Check whether GitLab Runner package is already installed
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - --show
+      - --showformat=${Status}
+      - "{{ gitlab_runner_package_name }}"
+  register: gitlab_runner_package_status
+  check_mode: false
+  changed_when: false
+  failed_when: false
+
+- name: Explain skipped package install in check mode on a fresh host
+  ansible.builtin.debug:
+    msg: >-
+      Check mode detected a host where the GitLab Runner package is not yet
+      installed. The APT repository and key are evaluated, but the package
+      installation itself is skipped because the new repository is not really
+      applied during dry-run.
+  when:
+    - ansible_check_mode
+    - gitlab_runner_package_status.rc != 0
+
+- name: Install GitLab Runner package
+  become: true
+  ansible.builtin.apt:
+    name: "{{ gitlab_runner_package_name }}"
+    state: present
+    update_cache: true
+  register: gitlab_runner_package
+  when: not ansible_check_mode or gitlab_runner_package_status.rc == 0
+
+- name: Ensure GitLab Runner working directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ gitlab_runner_working_directory }}"
+    state: directory
+    owner: "{{ gitlab_runner_system_user }}"
+    group: "{{ gitlab_runner_system_group }}"
+    mode: "0755"
+  notify: Restart GitLab Runner
+  when: not ansible_check_mode or gitlab_runner_package_status.rc == 0
+
+- name: Ensure GitLab Runner service is enabled and started
+  become: true
+  ansible.builtin.service:
+    name: "{{ gitlab_runner_service_name }}"
+    enabled: true
+    state: started
+  when: not ansible_check_mode or gitlab_runner_package_status.rc == 0
+
+- name: Check whether GitLab Runner configuration file already exists
+  become: true
+  ansible.builtin.stat:
+    path: /etc/gitlab-runner/config.toml
+  register: gitlab_runner_config_file
+
+- name: Read existing GitLab Runner configuration
+  become: true
+  ansible.builtin.slurp:
+    src: /etc/gitlab-runner/config.toml
+  register: gitlab_runner_existing_config
+  when: gitlab_runner_config_file.stat.exists
+
+- name: Detect whether the requested runner is already registered
+  ansible.builtin.set_fact:
+    gitlab_runner_already_registered: >-
+      {{
+        gitlab_runner_config_file.stat.exists
+        and ('url = "' ~ gitlab_runner_url ~ '"') in (gitlab_runner_existing_config.content | b64decode)
+        and ('name = "' ~ gitlab_runner_description ~ '"') in (gitlab_runner_existing_config.content | b64decode)
+      }}
+
+- name: Build GitLab Runner register command
+  ansible.builtin.set_fact:
+    gitlab_runner_register_argv: >-
+      {{
+        [
+          'gitlab-runner',
+          'register',
+          '--non-interactive',
+          '--url',
+          gitlab_runner_url,
+          '--executor',
+          gitlab_runner_executor,
+          '--docker-image',
+          gitlab_runner_docker_image,
+          '--description',
+          gitlab_runner_description,
+          '--token' if gitlab_runner_token_type == 'authentication' else '--registration-token',
+          gitlab_runner_token
+        ]
+        +
+        (
+          []
+          if gitlab_runner_token_type == 'authentication'
+          else ['--tag-list', gitlab_runner_tags | join(',')]
+        )
+      }}
+
+- name: Register GitLab Runner non-interactively
+  become: true
+  ansible.builtin.command:
+    argv: "{{ gitlab_runner_register_argv }}"
+  no_log: true
+  register: gitlab_runner_register_result
+  changed_when: true
+  when:
+    - gitlab_runner_manage_registration | bool
+    - not gitlab_runner_already_registered | bool
+  notify: Restart GitLab Runner
+
+- name: Flush handlers after GitLab Runner registration
+  ansible.builtin.meta: flush_handlers
+
+- name: Verify GitLab Runner service is active
+  become: true
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - is-active
+      - "{{ gitlab_runner_service_name }}"
+  register: gitlab_runner_service_active
+  changed_when: false
+  retries: "{{ gitlab_runner_runtime_validation_retries }}"
+  delay: "{{ gitlab_runner_runtime_validation_delay }}"
+  until: gitlab_runner_service_active.stdout == "active"
+  when: gitlab_runner_runtime_validation_enabled | bool
+
+- name: List configured GitLab runners
+  become: true
+  ansible.builtin.command:
+    argv:
+      - gitlab-runner
+      - list
+      - --config
+      - /etc/gitlab-runner/config.toml
+  register: gitlab_runner_list
+  changed_when: false
+  when: gitlab_runner_runtime_validation_enabled | bool
+
+- name: Show GitLab Runner result summary
+  ansible.builtin.debug:
+    msg:
+      docker_version: "{{ gitlab_runner_docker_version.stdout }}"
+      package_changed: "{{ gitlab_runner_package.changed | default(false) }}"
+      repo_changed: "{{ gitlab_runner_repo_config.changed or gitlab_runner_repo_key_download.changed }}"
+      already_registered: "{{ gitlab_runner_already_registered }}"
+      registered_now: "{{ gitlab_runner_register_result.changed | default(false) }}"
+      service_active: "{{ gitlab_runner_service_active.stdout | default('skipped') }}"

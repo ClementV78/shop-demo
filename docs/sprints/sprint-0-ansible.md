@@ -20,7 +20,7 @@ Conception cible :
 | S0-T6 | Implementer `cilium-setup` | Termine | S0-T5 |
 | S0-T7 | Implementer `ministack-setup` | Termine | S0-T3 |
 | S0-T8 | Implementer `cloudflare-tunnel` | Termine | S0-T3 |
-| S0-T9 | Implementer `gitlab-runner` | Planifie | S0-T3 |
+| S0-T9 | Implementer `gitlab-runner` | En cours | S0-T3 |
 | S0-T10 | Implementer `node-hardening` | Planifie | S0-T3 |
 | S0-T11 | Composer `bootstrap.yml` et `teardown.yml` | Planifie | S0-T6 a S0-T10 |
 | S0-T12 | Preparer les playbooks AWS futurs | Planifie | S0-T3 |
@@ -483,19 +483,55 @@ Depend de : `S0-T3`
 
 ### S0-T9 - Implementer `gitlab-runner`
 
-Etat : `Planifie`  
+Etat : `En cours`  
 Depend de : `S0-T3`
 
 - [ ] Installer GitLab Runner.
 - [ ] Configurer le Docker executor.
-- [ ] Externaliser le token d'enregistrement.
+- [ ] Externaliser le token d'enregistrement ou d'authentification runner.
 - [ ] Preparer la reutilisation sur l'EC2 bootstrap.
+
+Hypotheses de cadrage :
+
+- `GitLab.com` est la cible CI par defaut du projet.
+- Le role reste parametrable pour une autre URL GitLab sans fork.
+- La logique commune doit rester reutilisable entre serveur local et EC2
+  bootstrap.
+
+Decision structurante :
+[`docs/adr/ADR-001-gitlab-com-for-ci.md`](../adr/ADR-001-gitlab-com-for-ci.md).
 
 #### Criteres d'acceptation
 
-- [ ] Le runner est enregistre sans secret versionne.
-- [ ] Un job de validation local peut etre execute.
+- [ ] Le runner peut etre configure pour `GitLab.com` sans secret versionne.
+- [ ] Le service GitLab Runner est actif et le role reste idempotent.
+- [ ] Une preuve de validation realiste est definie : enregistrement du runner
+  puis job de smoke test GitLab une fois le token fourni.
 - [ ] Le role est idempotent.
+
+#### Notes de progression
+
+- Implemente : role [`ansible/roles/gitlab-runner/`](../../ansible/roles/gitlab-runner)
+  avec `defaults/main.yml`, `tasks/main.yml` et `handlers/main.yml`.
+- Implemente : playbook
+  [`ansible/playbooks/gitlab-runner.yml`](../../ansible/playbooks/gitlab-runner.yml).
+- Implemente : installation du package via le depot officiel
+  `packages.gitlab.com` pour Ubuntu, avec keyring APT dedie sous
+  `/etc/apt/keyrings/runner_gitlab-runner-archive-keyring.gpg`.
+- Implemente : separation installation / enregistrement via
+  `gitlab_runner_manage_registration`, afin de pouvoir valider le role sans
+  token puis activer l'enregistrement plus tard avec un secret externe.
+- Implemente : prise en charge du workflow recommande (`--token`) et du legacy
+  (`--registration-token`) via `gitlab_runner_token_type`, tout en gardant
+  `authentication` comme valeur par defaut.
+- Verifie : `ansible-playbook --syntax-check playbooks/gitlab-runner.yml`
+  reussit depuis le repertoire `ansible/`.
+- Verifie : `ansible-playbook --check playbooks/gitlab-runner.yml -e
+  gitlab_runner_manage_registration=false -e
+  gitlab_runner_runtime_validation_enabled=false` reussit sur `localhost`.
+- Non verifie : installation reelle du package `gitlab-runner`, service actif
+  sur l'hote, enregistrement vers `GitLab.com` avec un vrai token, et smoke
+  test CI de bout en bout.
 
 ### S0-T10 - Implementer `node-hardening`
 
