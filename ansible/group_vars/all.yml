@@ -4,3 +4,12 @@ project_root: "{{ playbook_dir | dirname }}"
 local_kubernetes_distribution: k3s
 use_local_ministack: true
 local_host_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+
+bootstrap_enable_cloudflare_tunnel: false
+bootstrap_enable_gitlab_runner: false
+
+teardown_confirm: false
+teardown_remove_k3s: false
+teardown_remove_ministack: false
+teardown_remove_cloudflare_tunnel: true
+teardown_remove_gitlab_runner: false

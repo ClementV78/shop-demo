@@ -93,7 +93,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Focus courant du sprint** : `S0-T9` (`gitlab-runner`) est termine. Le prochain chantier du Sprint 0 est `S0-T10`, avant la composition finale de `bootstrap.yml` / `teardown.yml`.
+**Focus courant du sprint** : `S0-T11` (`bootstrap.yml` / `teardown.yml`) est termine. Le chantier courant du Sprint 0 passe a `S0-T12`, avec la preparation des playbooks AWS futurs.
 
 ## Démarrer ici
 

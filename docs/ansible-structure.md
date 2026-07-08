@@ -93,6 +93,28 @@ Lecture simple :
 - `molecule/` teste les rôles de manière isolée, sans toucher au vrai hôte.
 - `requirements.yml` apporte les dépendances Galaxy externes.
 
+## Playbooks d'orchestration locale
+
+Le document de reference pour `bootstrap.yml`, `harden.yml` et `teardown.yml`
+vit ici plutot que dans le suivi de sprint, car il decrit la structure durable
+de l'automatisation locale.
+
+<p align="center"><img src="diagrams/ansible-bootstrap-teardown.svg" alt="Bootstrap, harden et teardown du lab Ansible local" width="1180"></p>
+
+> ✏️ **Source editable** : [`diagrams/ansible-bootstrap-teardown.drawio`](diagrams/ansible-bootstrap-teardown.drawio).
+>
+> **Lecture** :
+> - `bootstrap.yml` orchestre le socle local dans un ordre explicite :
+>   `k3s-install -> cilium-setup -> ministack-setup -> node-hardening` ;
+> - `cloudflare-tunnel` et `gitlab-runner` restent **optionnels** et
+>   desactives par defaut via `bootstrap_enable_*` ;
+> - `harden.yml` rejoue uniquement `node-hardening` ;
+> - `teardown.yml` reste **conservateur** :
+>   `cloudflared-shopdemo` seul est supprimable par defaut,
+>   `MiniStack` et `k3s` demandent un opt-in explicite,
+>   et `gitlab-runner`, `~/.kube/config`, `/usr/local/bin/kubectl`
+>   restent hors teardown automatique.
+
 ## Flux interne d'un rôle : k3s-install
 
 Ce schéma montre comment les tâches s'enchaînent à l'intérieur du rôle,

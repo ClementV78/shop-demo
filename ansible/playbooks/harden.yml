@@ -1,0 +1,9 @@
+---
+- name: Re-run only the local node-hardening baseline
+  hosts: local
+  gather_facts: true
+  become: false
+  vars_files:
+    - ../group_vars/all.yml
+  roles:
+    - role: node-hardening

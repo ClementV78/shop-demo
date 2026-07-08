@@ -11,10 +11,10 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S0-T10 | Implementer `node-hardening` | Planifie | Cadrer l'integration `dev-sec.os-hardening`, les exceptions `k3s`/Docker et la strategie de validation sans casser le lab local |
+| S0-T12 | Preparer les playbooks AWS futurs | En cours | Cadrer `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml` sans appel AWS, puis definir leurs interfaces d'entree |
 
 Taches deja terminees dans le sprint :
-`S0-T1`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`, `S0-T9`.
+`S0-T1`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`, `S0-T9`, `S0-T10`, `S0-T11`.
 
 ## Blocages
 
@@ -44,6 +44,11 @@ Points de vigilance non bloquants :
   - installation reelle du package et service actif sur l'hote local ;
   - enregistrement GitLab avec token moderne `glrt-...` ;
   - pipeline GitLab de smoke passe sur le projet sandbox `shopdemo`.
+- `node-hardening` implemente et valide pour le lab local :
+  - role minimaliste volontairement non intrusif ;
+  - `unattended-upgrades`, permissions sensibles (`~/.kube`, `~/.aws`) et
+    verification `journald` ;
+  - compromis local vs cloud documente dans l'architecture securite.
 
 ## Documents de reference immediats
 
@@ -62,6 +67,12 @@ Points de vigilance non bloquants :
   avec un token moderne `--token`, il ne faut pas pousser des options
   reservees cote serveur comme `--tag-list`. Si un futur rerun casse a
   l'enregistrement, verifier d'abord ce point.
+- `S0-T10` est clos avec un hardening local minimal, assume comme compromis de
+  lab pour ne pas fragiliser `k3s`, Docker et l'acces d'administration ; le
+  hardening fort reste reporte aux futures cibles cloud.
+- `S0-T11` est clos avec des playbooks `bootstrap.yml`, `harden.yml` et
+  `teardown.yml` verifies en `--syntax-check` et `--check`, avec un teardown
+  volontairement conservateur limite par defaut a `cloudflared-shopdemo`.
 - La branche GitHub `test/gitlab-runner-smoke` a ete mergee dans `master`
   via la PR `#1`. En reprise de session, repartir de `master` a jour avant
   tout nouveau travail.
@@ -70,11 +81,12 @@ Points de vigilance non bloquants :
 
 1. `git switch master`
 2. `git pull origin master`
-3. Relire `S0-T10` dans [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
-4. Cadrer le hardening avant code :
-   - perimetre exact de `dev-sec.os-hardening`
-   - exceptions necessaires pour `k3s`, Docker, `ufw`, Cilium et le lab local
-   - strategie de validation sans casser l'hote personnel
+3. Relire `S0-T12` dans [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
+4. Cadrer les playbooks AWS futurs :
+   - `ansible/playbooks/runner-setup.yml`
+   - `ansible/playbooks/rds-setup.yml`
+   - `ansible/playbooks/gitea-setup.yml`
+   - leurs variables d'entree sans appel AWS direct
 
 ## Rappel de maintenance
 

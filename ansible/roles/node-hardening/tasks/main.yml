@@ -1,0 +1,97 @@
+---
+- name: Assert supported host for minimal node hardening
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["system"] == "Linux"
+      - ansible_facts["os_family"] == "Debian"
+      - node_hardening_target_user | length > 0
+    fail_msg: The node-hardening role currently targets a Debian-family Linux host with a resolved node_hardening_target_user.
+
+- name: Show minimal node hardening scope
+  ansible.builtin.debug:
+    msg:
+      unattended_upgrades_enabled: "{{ node_hardening_unattended_upgrades_enabled }}"
+      auto_reboot: "{{ node_hardening_unattended_upgrades_auto_reboot }}"
+      sensitive_paths: "{{ node_hardening_sensitive_paths | map(attribute='path') | list }}"
+      journald_services: "{{ node_hardening_expected_journald_services }}"
+
+- name: Ensure minimal patching packages are installed
+  become: true
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+    state: present
+    update_cache: true
+  when: node_hardening_unattended_upgrades_enabled | bool
+
+- name: Configure periodic APT updates for security patching
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::Verbose "2";
+  when: node_hardening_unattended_upgrades_enabled | bool
+
+- name: Configure unattended-upgrades for a low-risk local lab baseline
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/52shopdemo-unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Unattended-Upgrade::Origins-Pattern {
+              "origin=${distro_id},codename=${distro_codename},label=${distro_id}-Security";
+      };
+      Unattended-Upgrade::Automatic-Reboot "{{ 'true' if node_hardening_unattended_upgrades_auto_reboot else 'false' }}";
+      Unattended-Upgrade::Remove-Unused-Dependencies "{{ 'true' if node_hardening_unattended_upgrades_remove_unused_dependencies else 'false' }}";
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "{{ 'true' if node_hardening_unattended_upgrades_remove_unused_kernel_packages else 'false' }}";
+      Unattended-Upgrade::Mail "";
+      Unattended-Upgrade::MailOnlyOnError "false";
+      Unattended-Upgrade::RandomSleep "0";
+  when: node_hardening_unattended_upgrades_enabled | bool
+
+- name: Ensure unattended-upgrades timer is enabled
+  become: true
+  ansible.builtin.systemd_service:
+    name: apt-daily-upgrade.timer
+    enabled: true
+    state: started
+  when:
+    - node_hardening_unattended_upgrades_enabled | bool
+    - ansible_facts["service_mgr"] == "systemd"
+
+- name: Check sensitive paths
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ node_hardening_sensitive_paths }}"
+  register: node_hardening_sensitive_path_stats
+
+- name: Enforce secure permissions on existing sensitive paths
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.item.path }}"
+    state: "{{ item.item.state }}"
+    owner: "{{ item.item.owner }}"
+    group: "{{ item.item.group }}"
+    mode: "{{ item.item.mode }}"
+  loop: "{{ node_hardening_sensitive_path_stats.results }}"
+  when: item.stat.exists
+
+- name: Gather service facts for journald checks
+  ansible.builtin.service_facts:
+
+- name: Report journald-backed services currently present
+  ansible.builtin.debug:
+    msg: >-
+      Service {{ item }} is {{ ansible_facts.services[item + '.service'].state }}
+      and can be inspected with journalctl.
+  loop: "{{ node_hardening_expected_journald_services }}"
+  when: (item + '.service') in ansible_facts.services

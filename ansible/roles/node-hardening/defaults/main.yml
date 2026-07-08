@@ -1,0 +1,38 @@
+---
+node_hardening_unattended_upgrades_enabled: true
+node_hardening_unattended_upgrades_auto_reboot: false
+node_hardening_unattended_upgrades_remove_unused_dependencies: true
+node_hardening_unattended_upgrades_remove_unused_kernel_packages: true
+node_hardening_target_user: "{{ local_host_user | default(lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true), true) }}"
+node_hardening_sensitive_paths:
+  - path: "/home/{{ node_hardening_target_user }}/.kube"
+    state: directory
+    owner: "{{ node_hardening_target_user }}"
+    group: "{{ node_hardening_target_user }}"
+    mode: "0700"
+  - path: "/home/{{ node_hardening_target_user }}/.kube/config"
+    state: file
+    owner: "{{ node_hardening_target_user }}"
+    group: "{{ node_hardening_target_user }}"
+    mode: "0600"
+  - path: "/home/{{ node_hardening_target_user }}/.aws"
+    state: directory
+    owner: "{{ node_hardening_target_user }}"
+    group: "{{ node_hardening_target_user }}"
+    mode: "0700"
+  - path: "/home/{{ node_hardening_target_user }}/.aws/credentials"
+    state: file
+    owner: "{{ node_hardening_target_user }}"
+    group: "{{ node_hardening_target_user }}"
+    mode: "0600"
+  - path: "/home/{{ node_hardening_target_user }}/.aws/config"
+    state: file
+    owner: "{{ node_hardening_target_user }}"
+    group: "{{ node_hardening_target_user }}"
+    mode: "0600"
+
+node_hardening_expected_journald_services:
+  - k3s
+  - docker
+  - gitlab-runner
+  - cloudflared-shopdemo

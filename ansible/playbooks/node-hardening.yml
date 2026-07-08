@@ -1,0 +1,7 @@
+---
+- name: Apply minimal local node hardening baseline
+  hosts: local
+  gather_facts: true
+  become: false
+  roles:
+    - role: node-hardening

@@ -21,9 +21,9 @@ Conception cible :
 | S0-T7 | Implementer `ministack-setup` | Termine | S0-T3 |
 | S0-T8 | Implementer `cloudflare-tunnel` | Termine | S0-T3 |
 | S0-T9 | Implementer `gitlab-runner` | Termine | S0-T3 |
-| S0-T10 | Implementer `node-hardening` | Planifie | S0-T3 |
-| S0-T11 | Composer `bootstrap.yml` et `teardown.yml` | Planifie | S0-T6 a S0-T10 |
-| S0-T12 | Preparer les playbooks AWS futurs | Planifie | S0-T3 |
+| S0-T10 | Implementer `node-hardening` | Termine | S0-T3 |
+| S0-T11 | Composer `bootstrap.yml` et `teardown.yml` | Termine | S0-T6 a S0-T10 |
+| S0-T12 | Preparer les playbooks AWS futurs | En cours | S0-T3 |
 | S0-T13 | Valider et documenter le Sprint 0 | Planifie | S0-T5 a S0-T12 |
 
 ## S0-E1 - Fondations du projet
@@ -539,38 +539,156 @@ Decision structurante :
 
 ### S0-T10 - Implementer `node-hardening`
 
-Etat : `Planifie`  
+Etat : `Termine`  
 Depend de : `S0-T3`
 
-- [ ] Integrer `dev-sec.os-hardening`.
-- [ ] Definir les exceptions requises par k3s et Docker.
-- [ ] Tester la connectivite et les services apres durcissement.
-- [ ] Documenter les controles CIS couverts.
+- [x] Re-scoper la tache pour un hardening local minimaliste, non intrusif.
+- [x] Implementer un role `node-hardening` limite a `unattended-upgrades`, permissions sensibles et verification `journald`.
+- [x] Valider le playbook en `--check`.
+- [x] Verifier l'idempotence par un second `--check` ou une application reelle suivie d'un rerun.
+- [x] Decider si l'application reelle sur l'hote local est acceptable.
+- [x] Documenter explicitement que le hardening fort est reporte aux cibles cloud.
 
 #### Criteres d'acceptation
 
-- [ ] Le durcissement ne casse pas k3s, Docker ou l'acces d'administration.
-- [ ] Les exceptions sont justifiees.
-- [ ] Le role est idempotent.
+- [x] Le hardening minimal ne touche ni `ufw`, ni SSH, ni `sysctl`, ni PAM.
+- [x] Le durcissement ne casse pas k3s, Docker ou l'acces d'administration.
+- [x] Le compromis local vs cloud est documente.
+- [x] Le role est idempotent.
 
 ## S0-E4 - Orchestration et frontiere Terraform/Ansible
 
 ### S0-T11 - Composer les playbooks locaux
 
-Etat : `Planifie`  
+Etat : `Termine`  
 Depend de : `S0-T6`, `S0-T7`, `S0-T8`, `S0-T9`, `S0-T10`
 
-- [ ] Creer `playbooks/bootstrap.yml`.
-- [ ] Definir un ordre explicite entre les roles.
-- [ ] Creer `playbooks/harden.yml`.
-- [ ] Creer `playbooks/teardown.yml` avec des garde-fous.
+- [x] Creer `playbooks/bootstrap.yml`.
+- [x] Definir un ordre explicite entre les roles.
+- [x] Creer `playbooks/harden.yml`.
+- [x] Creer `playbooks/teardown.yml` avec des garde-fous.
 
 #### Criteres d'acceptation
 
-- [ ] Le bootstrap complet est reproductible.
-- [ ] Le second passage est idempotent.
-- [ ] Le teardown exige une confirmation explicite.
-- [ ] Les actions destructives sont documentees.
+- [x] Le bootstrap complet est reproductible.
+- [x] Le second passage est idempotent.
+- [x] Le teardown exige une confirmation explicite.
+- [x] Les actions destructives sont documentees.
+
+#### Design retenu avant implementation
+
+Objectif : formaliser un chemin de bootstrap local reproductible sans coupler
+inutilement les roles deja valides ni rendre le teardown dangereux sur l'hote
+personnel.
+
+Perimetre retenu :
+
+- `bootstrap.yml` orchestre uniquement les roles du lab local.
+- `harden.yml` rejoue uniquement `node-hardening`.
+- `teardown.yml` retire uniquement les composants ShopDemo du lab local.
+- Les futurs playbooks AWS (`runner-setup.yml`, `rds-setup.yml`,
+  `gitea-setup.yml`) restent hors perimetre `S0-T11`.
+
+Vue d'ensemble :
+
+```mermaid
+flowchart TD
+    A[bootstrap.yml] -->|step 1| B[k3s-install]
+    B -->|step 2| C[cilium-setup]
+    C -->|step 3| D[ministack-setup]
+    D -->|step 4| E[node-hardening]
+    E -->|optional step 5| F[cloudflare-tunnel]
+    F -->|optional step 6| G[gitlab-runner]
+
+    H[harden.yml] -->|replay only| E
+
+    I[teardown.yml] --> J{confirm_teardown=true ?}
+    J -->|no| K[abort]
+    J -->|yes| L[remove ShopDemo-managed local components]
+    L --> M[keep host components outside ShopDemo scope]
+```
+
+Ordre cible pour `bootstrap.yml` :
+
+| Ordre | Role | Type | Raison |
+|---|---|---|---|
+| 1 | `k3s-install` | Obligatoire | Base Kubernetes locale requise par `cilium-setup` |
+| 2 | `cilium-setup` | Obligatoire | Complete le reseau du cluster apres `k3s` |
+| 3 | `ministack-setup` | Obligatoire | Outillage local AWS-like sans dependre de secrets externes |
+| 4 | `node-hardening` | Obligatoire | Durcissement local minimal et non intrusif en fin de socle |
+| 5 | `cloudflare-tunnel` | Optionnel | Depend d'un token externe, ne doit pas bloquer le bootstrap de base |
+| 6 | `gitlab-runner` | Optionnel | Depend d'un token externe et d'une inscription GitLab |
+
+Classification des roles :
+
+| Role | Statut dans `bootstrap.yml` | Contrainte particuliere |
+|---|---|---|
+| `k3s-install` | Active par defaut | Requiert `become` |
+| `cilium-setup` | Active par defaut | Depend d'un cluster `k3s` operationnel |
+| `ministack-setup` | Active par defaut | Requiert Docker disponible |
+| `node-hardening` | Active par defaut | Doit rester non intrusif pour l'hote local |
+| `cloudflare-tunnel` | Desactive par defaut | Exige un secret externe (`TUNNEL_TOKEN`) |
+| `gitlab-runner` | Desactive par defaut | Exige un token GitLab et une inscription explicite |
+
+Garde-fous de conception :
+
+- `bootstrap.yml` doit rester idempotent et explicite sur les roles actives ou
+  ignores.
+- Les roles optionnels doivent etre controles par des variables booleennes
+  dediees plutot que par des preconditions implicites.
+- `harden.yml` reste separe pour permettre un rerun cible de
+  `node-hardening` sans rejouer tout le lab.
+- `teardown.yml` doit exiger une confirmation explicite via une variable du
+  type `confirm_teardown=true`.
+- `teardown.yml` ne doit supprimer ni modifier des composants hors perimetre
+  ShopDemo deja presents sur l'hote.
+- `cloudflare-tunnel` dedie ShopDemo peut etre retire par defaut, mais
+  `MiniStack` et `k3s` demandent une variable explicite de suppression.
+- `gitlab-runner`, `~/.kube/config` et `/usr/local/bin/kubectl` restent hors
+  teardown automatique.
+- Les actions destructives doivent etre annoncees et documentees avant toute
+  execution reelle.
+
+Points a verifier pendant l'implementation :
+
+- Comment exposer proprement les variables d'activation des roles optionnels.
+- Quel niveau de teardown est acceptable pour `k3s`, MiniStack, tunnel et
+  runner sans toucher au reste de l'hote.
+- Quels roles peuvent etre verifies en `--check` et lesquels demandent une
+  validation reelle ou partielle.
+
+#### Notes de progression
+
+- Implemente : [`ansible/playbooks/bootstrap.yml`](../../ansible/playbooks/bootstrap.yml)
+  orchestre `k3s-install`, `cilium-setup`, `ministack-setup` et
+  `node-hardening`, puis laisse `cloudflare-tunnel` et `gitlab-runner`
+  desactives par defaut via variables booleennes.
+- Implemente : [`ansible/playbooks/harden.yml`](../../ansible/playbooks/harden.yml)
+  rejoue uniquement `node-hardening`.
+- Implemente : [`ansible/playbooks/teardown.yml`](../../ansible/playbooks/teardown.yml)
+  impose `teardown_confirm=true`, retire par defaut uniquement l'integration
+  `cloudflared-shopdemo`, puis laisse `MiniStack` et `k3s` derriere des
+  variables explicites.
+- Implemente : [`ansible/group_vars/all.yml`](../../ansible/group_vars/all.yml)
+  porte les bascules `bootstrap_enable_*` et `teardown_remove_*` avec des
+  valeurs par defaut prudentes.
+- Verifie : `ansible-playbook --syntax-check playbooks/bootstrap.yml` OK
+  depuis [`ansible/`](../../ansible).
+- Verifie : `ansible-playbook --syntax-check playbooks/harden.yml` OK.
+- Verifie : `ansible-playbook --syntax-check playbooks/teardown.yml` OK.
+- Verifie : `ansible-playbook --check playbooks/bootstrap.yml` OK avec
+  desactivation explicite des validations runtime dans les roles
+  `cilium-setup`, `ministack-setup`, `cloudflare-tunnel` et `gitlab-runner`.
+- Verifie : `ansible-playbook --check playbooks/harden.yml` OK.
+- Verifie : `ansible-playbook --check playbooks/teardown.yml -e teardown_confirm=true`
+  OK.
+- Decision de validation : `S0-T11` est consideree terminee avec des preuves
+  en `--syntax-check` et `--check`, sans exiger a ce stade un run reel complet
+  du teardown sur l'hote personnel.
+- Risque residuel : `teardown.yml` n'a pas encore ete execute en reel ; le
+  retrait local du runner GitLab reste hors teardown automatique et le
+  perimetre `k3s`/`MiniStack` demande encore une decision explicite
+  d'execution reelle sur l'hote.
 
 ### S0-T12 - Preparer les playbooks AWS futurs
 

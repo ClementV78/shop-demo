@@ -1,0 +1,133 @@
+<mxfile host="drawio" version="26.0.0">
+    <diagram name="ansible-bootstrap-teardown" id="0">
+        <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Orchestration locale Ansible&#xa;Playbooks de reference du lab ShopDemo" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontStyle=1;fontSize=18;fontColor=#5f3d00;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="30" width="700" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="bootstrap.yml&#xa;Setup local complet" style="swimlane;html=1;rounded=1;whiteSpace=wrap;startSize=36;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="150" width="1200" height="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="step 1&#xa;k3s-install" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;" parent="3" vertex="1">
+                    <mxGeometry x="50" y="120" width="150" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="step 2&#xa;cilium-setup" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;" parent="3" vertex="1">
+                    <mxGeometry x="250" y="120" width="150" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="step 3&#xa;ministack-setup" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;" parent="3" vertex="1">
+                    <mxGeometry x="450" y="120" width="170" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="step 4&#xa;node-hardening" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8fbff;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;" parent="3" vertex="1">
+                    <mxGeometry x="670" y="120" width="180" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="optional step 5&#xa;cloudflare-tunnel" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontStyle=1;dashed=1;" parent="3" vertex="1">
+                    <mxGeometry x="930" y="70" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="optional step 6&#xa;gitlab-runner" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontStyle=1;dashed=1;" parent="3" vertex="1">
+                    <mxGeometry x="930" y="190" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Roles actifs par defaut&#xa;k3s-install, cilium-setup, ministack-setup, node-hardening" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" parent="3" vertex="1">
+                    <mxGeometry x="170" y="260" width="500" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Roles optionnels&#xa;desactives par defaut, actives via variables bootstrap_enable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=13;" parent="3" vertex="1">
+                    <mxGeometry x="760" y="300" width="350" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="harden.yml&#xa;Rerun cible" style="swimlane;html=1;rounded=1;whiteSpace=wrap;startSize=36;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+                    <mxGeometry x="1290" y="170" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="node-hardening uniquement&#xa;rejoue sans relancer tout le lab" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;" parent="12" vertex="1">
+                    <mxGeometry x="50" y="80" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="teardown.yml&#xa;Cleanup conservateur" style="swimlane;html=1;rounded=1;whiteSpace=wrap;startSize=36;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="560" width="1550" height="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="Pre-check&#xa;confirmation explicite requise" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontStyle=1;" parent="14" vertex="1">
+                    <mxGeometry x="40" y="150" width="220" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="Safe by default&#xa;cloudflared-shopdemo" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontStyle=1;" parent="14" vertex="1">
+                    <mxGeometry x="340" y="160" width="240" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Explicit opt-in" style="swimlane;html=1;rounded=1;whiteSpace=wrap;startSize=32;fillColor=#fff8ef;strokeColor=#d79b00;fontStyle=1;fontSize=15;dashed=1;" parent="14" vertex="1">
+                    <mxGeometry x="680" y="90" width="360" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="MiniStack&#xa;variable teardown_remove_ministack = true" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontStyle=1;dashed=1;" parent="17" vertex="1">
+                    <mxGeometry x="40" y="60" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="k3s&#xa;variable teardown_remove_k3s = true" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontStyle=1;dashed=1;" parent="17" vertex="1">
+                    <mxGeometry x="40" y="140" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="Manual only" style="swimlane;html=1;rounded=1;whiteSpace=wrap;startSize=32;fillColor=#fff2f2;strokeColor=#b85450;fontStyle=1;fontSize=15;" parent="14" vertex="1">
+                    <mxGeometry x="1130" y="70" width="360" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="gitlab-runner&#xa;etat externe GitLab non gere" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;" parent="20" vertex="1">
+                    <mxGeometry x="40" y="50" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="~/.kube/config&#xa;etat potentiellement partage" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;" parent="20" vertex="1">
+                    <mxGeometry x="40" y="120" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="/usr/local/bin/kubectl&#xa;etat potentiellement partage" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;" parent="20" vertex="1">
+                    <mxGeometry x="40" y="190" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="But : nettoyer uniquement ce qui est raisonnablement attribuable a ShopDemo, sans casser un etat local partage du poste." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=13;" parent="14" vertex="1">
+                    <mxGeometry x="340" y="20" width="1030" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;endFill=1;" parent="3" source="4" target="5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;endFill=1;" parent="3" source="5" target="6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;endFill=1;" parent="3" source="6" target="7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=block;endFill=1;exitX=1;exitY=0.35;entryX=0;entryY=0.5;" parent="3" source="7" target="8" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="900" y="165"/>
+                            <mxPoint x="900" y="110"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="34" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=block;endFill=1;exitX=1;exitY=0.65;entryX=0;entryY=0.5;" parent="3" source="7" target="9" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="900" y="195"/>
+                            <mxPoint x="900" y="230"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="35" value="replay only" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;endArrow=block;endFill=1;exitX=0;exitY=0.5;entryX=1;entryY=0.2;" parent="1" source="13" target="7" edge="1">
+                    <mxGeometry x="-0.25" y="-10" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1260" y="260"/>
+                            <mxPoint x="1260" y="205"/>
+                            <mxPoint x="880" y="205"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;" parent="14" source="15" target="16" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=block;endFill=1;" parent="14" source="15" target="17" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="300" y="120"/>
+                            <mxPoint x="650" y="120"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=2;endArrow=block;endFill=1;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" parent="14" source="15" target="20" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="300" y="245"/>
+                            <mxPoint x="300" y="315"/>
+                            <mxPoint x="1090" y="315"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,118 @@
+---
+- name: Safely tear down ShopDemo-managed local components
+  hosts: local
+  gather_facts: true
+  become: false
+  vars_files:
+    - ../group_vars/all.yml
+    - ../roles/cloudflare-tunnel/defaults/main.yml
+    - ../roles/gitlab-runner/defaults/main.yml
+    - ../roles/k3s-install/defaults/main.yml
+    - ../roles/ministack-setup/defaults/main.yml
+
+  pre_tasks:
+    - name: Require explicit teardown confirmation
+      ansible.builtin.assert:
+        that:
+          - teardown_confirm | bool
+        fail_msg: >-
+          Refusing to run teardown without explicit confirmation.
+          Re-run with -e teardown_confirm=true after reviewing the scope.
+
+    - name: Show teardown execution plan
+      ansible.builtin.debug:
+        msg:
+          remove_k3s: "{{ teardown_remove_k3s }}"
+          remove_ministack: "{{ teardown_remove_ministack }}"
+          remove_cloudflare_tunnel: "{{ teardown_remove_cloudflare_tunnel }}"
+          remove_gitlab_runner: "{{ teardown_remove_gitlab_runner }}"
+          safe_by_default:
+            - cloudflare_tunnel_shopdemo
+          explicit_opt_in:
+            - ministack
+            - k3s
+          manual_only:
+            - gitlab_runner
+            - ~/.kube/config
+            - /usr/local/bin/kubectl
+          note: GitLab Runner remains outside automatic teardown.
+
+  tasks:
+    - name: Stop and remove the ShopDemo Cloudflare Tunnel integration
+      when:
+        - teardown_remove_cloudflare_tunnel | bool
+        - ansible_facts["service_mgr"] == "systemd"
+      block:
+        - name: Stop and disable ShopDemo Cloudflare Tunnel service
+          become: true
+          ansible.builtin.systemd_service:
+            name: "{{ cloudflare_tunnel_shopdemo_service_name }}"
+            enabled: false
+            state: stopped
+          failed_when: false
+
+        - name: Remove ShopDemo Cloudflare Tunnel systemd unit
+          become: true
+          ansible.builtin.file:
+            path: "{{ cloudflare_tunnel_shopdemo_systemd_unit_path }}"
+            state: absent
+
+        - name: Remove ShopDemo Cloudflare Tunnel env file
+          become: true
+          ansible.builtin.file:
+            path: "{{ cloudflare_tunnel_shopdemo_env_file }}"
+            state: absent
+
+        - name: Reload systemd after tunnel cleanup
+          become: true
+          ansible.builtin.systemd_service:
+            daemon_reload: true
+
+    - name: Remove the local MiniStack container and AWS CLI profile
+      when: teardown_remove_ministack | bool
+      block:
+        - name: Remove MiniStack container
+          become: true
+          community.docker.docker_container:
+            name: "{{ ministack_container_name }}"
+            state: absent
+            keep_volumes: false
+
+        - name: Remove MiniStack AWS credentials profile
+          community.general.ini_file:
+            path: "{{ ministack_aws_credentials_file }}"
+            section: "{{ ministack_aws_profile_name }}"
+            state: absent
+            mode: "0600"
+            no_extra_spaces: true
+
+        - name: Remove MiniStack AWS config profile
+          community.general.ini_file:
+            path: "{{ ministack_aws_config_file }}"
+            section: "profile {{ ministack_aws_profile_name }}"
+            state: absent
+            mode: "0600"
+            no_extra_spaces: true
+
+    - name: Explain why GitLab Runner is skipped by design
+      ansible.builtin.debug:
+        msg: >-
+          GitLab Runner teardown is intentionally excluded from automatic
+          cleanup because local removal would not unregister the runner from
+          GitLab and could leave a dead external registration behind.
+      when: teardown_remove_gitlab_runner | bool
+
+    - name: Remove the local k3s-based lab
+      when: teardown_remove_k3s | bool
+      block:
+        - name: Check whether the k3s uninstall script exists
+          ansible.builtin.stat:
+            path: /usr/local/bin/k3s-uninstall.sh
+          register: teardown_k3s_uninstall_script
+
+        - name: Run the k3s uninstall script
+          become: true
+          ansible.builtin.command:
+            argv:
+              - /usr/local/bin/k3s-uninstall.sh
+          when: teardown_k3s_uninstall_script.stat.exists

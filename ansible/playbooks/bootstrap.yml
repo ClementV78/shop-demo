@@ -1,0 +1,34 @@
+---
+- name: Bootstrap the local ShopDemo lab
+  hosts: local
+  gather_facts: true
+  become: false
+  vars_files:
+    - ../group_vars/all.yml
+
+  pre_tasks:
+    - name: Show bootstrap execution plan
+      ansible.builtin.debug:
+        msg:
+          mandatory_roles:
+            - k3s-install
+            - cilium-setup
+            - ministack-setup
+            - node-hardening
+          optional_roles:
+            cloudflare_tunnel: "{{ bootstrap_enable_cloudflare_tunnel }}"
+            gitlab_runner: "{{ bootstrap_enable_gitlab_runner }}"
+
+  roles:
+    - role: k3s-install
+    - role: cilium-setup
+      cilium_runtime_validation_enabled: "{{ not ansible_check_mode }}"
+    - role: ministack-setup
+      ministack_runtime_validation_enabled: "{{ not ansible_check_mode }}"
+    - role: node-hardening
+    - role: cloudflare-tunnel
+      cloudflare_tunnel_shopdemo_runtime_validation_enabled: "{{ not ansible_check_mode }}"
+      when: bootstrap_enable_cloudflare_tunnel | bool
+    - role: gitlab-runner
+      gitlab_runner_runtime_validation_enabled: "{{ not ansible_check_mode }}"
+      when: bootstrap_enable_gitlab_runner | bool
