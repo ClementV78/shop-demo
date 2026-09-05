@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Sprint 0 - k3s Cilium kubeconfig">
+    <mxGraphModel dx="1640" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1580" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="Installation cluster" style="swimlane;startSize=32;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f7faff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="340" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="k3s-install" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="55" y="58" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="server&#xa;--flannel-backend=none&#xa;--disable-network-policy" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="55" y="135" width="220" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="/etc/rancher/k3s/k3s.yaml&#xa;kubeconfig systeme" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="55" y="238" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="~/.kube/config&#xa;copie utilisateur 0600" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="55" y="326" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="Etat intermediaire" style="swimlane;startSize=32;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="470" y="70" width="280" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="API Kubernetes&#xa;ecoute sur 127.0.0.1:6443" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#ff7e98;strokeWidth=2;" vertex="1" parent="7">
+          <mxGeometry x="40" y="75" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Noeud souvent NotReady&#xa;tant que le CNI manque" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#ff7e98;strokeWidth=2;" vertex="1" parent="7">
+          <mxGeometry x="40" y="175" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="kubectl peut joindre l'API&#xa;mais le reseau pods n'est pas pret" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="7">
+          <mxGeometry x="35" y="285" width="210" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Reseau Kubernetes" style="swimlane;startSize=32;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="840" y="70" width="320" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="cilium-setup" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="50" y="58" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Helm release cilium&#xa;kube-proxy replacement&#xa;devices = interface par defaut" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="50" y="135" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="CoreDNS&#xa;DNS interne du cluster" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="50" y="245" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Hubble&#xa;visibilite reseau Cilium" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="170" y="245" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="Etat valide" style="swimlane;startSize=32;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="70" width="290" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="Noeud Ready&#xa;Cilium OK" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="16">
+          <mxGeometry x="45" y="75" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="Pods systeme&#xa;Running ou Completed" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="16">
+          <mxGeometry x="45" y="175" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="Rerun Ansible&#xa;changed=0 attendu" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="16">
+          <mxGeometry x="45" y="275" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="cree" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8fb8ff;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="synchronise" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8fb8ff;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="API demarree" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#ff7e98;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="4" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="sans CNI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#ff7e98;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="8" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="utilise kubeconfig" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="6" target="12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="25" value="installe CNI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="12" target="13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="26" value="rend le cluster utilisable" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8ee3a3;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="13" target="17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" value="verifie" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8ee3a3;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="18" target="19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

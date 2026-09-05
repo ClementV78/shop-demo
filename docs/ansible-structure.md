@@ -36,52 +36,10 @@ maintenant avec une configuration de projet versionnee.
 
 ## Vue d'ensemble
 
-```mermaid
-flowchart TB
-    %% ── Groupe 1 : tout ce qui fixe comment Ansible doit se comporter ──
-    subgraph Config["⚙️ Configuration du projet"]
-        CFG["ansible.cfg\n─────────────\nchemins des rôles, SSH,\nescalade de privilèges,\nformat de sortie"]
-        REQ["requirements.yml\n─────────────\nliste les collections/rôles\nGalaxy à installer avant\nde jouer un playbook"]
-    end
+<p align="center"><img src="diagrams/ansible-overview-drawio.svg" alt="Vue d'ensemble Ansible du projet en version Draw.io" width="1180"></p>
 
-    %% ── Groupe 2 : qui cibler et avec quelles valeurs ──
-    subgraph Sources["📋 Qui cibler / avec quoi"]
-        INV_LOCAL["inventory/local.yml\n─────────────\nfichier statique YAML\ndécrit le serveur Ubuntu\nlocal (groupe 'local')"]
-        INV_AWS["inventory/aws_ec2.yml\n─────────────\nplugin dynamique aws_ec2\ninterroge l'API AWS\npour découvrir les EC2"]
-        VARS["group_vars/all.yml\n─────────────\nvariables partagées\npar tous les hôtes\n(pas de secrets en clair)"]
-    end
-
-    %% ── Groupe 3 : le chef d'orchestre ──
-    subgraph Orchestration["🎼 Ce qu'on joue et dans quel ordre"]
-        PB["playbooks/\n─────────────\nk3s-install.yml     → installe k3s\ncilium-setup.yml    → installe Cilium\nministack-setup.yml → lance MiniStack\ngitlab-runner.yml   → installe/enregistre le runner\nbootstrap.yml       → setup complet\nteardown.yml        → nettoyage"]
-    end
-
-    %% ── Groupe 4 : la logique réutilisable, une brique = une responsabilité ──
-    subgraph Roles["🧩 Comment faire chaque tâche (rôles)"]
-        R_K3S["roles/k3s-install\n✅ implémenté"]
-        R_CIL["roles/cilium-setup\n✅ implémenté"]
-        R_MINI["roles/ministack-setup\n✅ implémenté"]
-        R_GIT["roles/gitlab-runner\n✅ implémenté"]
-        R_ETC["roles/cloudflare-tunnel\nroles/node-hardening\nroles/gitea-setup\n..."]
-    end
-
-    %% ── Groupe 5 : tests hors production ──
-    subgraph Tests["🧪 Tests isolés (jamais sur le vrai hôte)"]
-        MOL["molecule/default/\n─────────────\nconteneur Docker éphémère\njoue le rôle, vérifie l'état\nsans toucher à la machine réelle"]
-    end
-
-    %% ── Flux ──
-    CFG -->|"fixe le comportement\nd'Ansible au lancement"| PB
-    REQ -->|"ansible-galaxy install -r\navant le premier playbook"| Roles
-    INV_LOCAL -->|"résout le groupe 'local'\n→ connexion localhost"| PB
-    INV_AWS -->|"résout les groupes AWS\n→ connexion SSH ou SSM"| PB
-    VARS -->|"injecte les variables\ndans chaque tâche"| PB
-    PB -->|"applique le rôle\nsur les hôtes ciblés"| R_K3S
-    PB -->|appelle| R_CIL
-    PB -->|appelle| R_MINI
-    PB -->|appelle| R_GIT
-    MOL -->|"teste le rôle seul\n(idempotence, assertions)"| R_K3S
-```
+> Source editable :
+> [`diagrams/ansible-overview-drawio.drawio`](diagrams/ansible-overview-drawio.drawio).
 
 Lecture simple :
 
@@ -165,6 +123,26 @@ flowchart TD
         COPY --> VERIFY["command: kubectl get nodes\nchanged_when: false\n💡 vérification finale :\nsi l'API répond, le rôle\nest fonctionnel"]
     end
 ```
+
+Version Draw.io comparative :
+
+<p align="center"><img src="diagrams/k3s-install-role-flow-drawio.svg" alt="Flux interne du role k3s-install en version Draw.io" width="1180"></p>
+
+> Source editable :
+> [`diagrams/k3s-install-role-flow-drawio.drawio`](diagrams/k3s-install-role-flow-drawio.drawio).
+
+Lecture détaillée :
+
+| Phase | Ce que fait le rôle | Pourquoi c'est important | Garde-fou / idempotence |
+|---|---|---|---|
+| Preflight | Valide l'OS, `systemd`, la famille Debian, le format `k3s_version` et `k3s_kubeconfig_user`. | Le rôle échoue tôt avec une erreur lisible au lieu de casser plus loin pendant l'installation. | Aucune modification système avant que les préconditions soient validées. |
+| Détection | Lit `/usr/local/bin/k3s`, récupère la version installée si le binaire existe et calcule `k3s_needs_install`. | La décision d'installation est centralisée dans un booléen clair. | `stat` est en lecture seule et les commandes de lecture utilisent `changed_when: false`. |
+| Convergence | Installe `curl`, télécharge `get-k3s.sh`, puis lance l'installation seulement si `k3s_needs_install` vaut `true`. | Le rôle peut installer, mettre à jour ou ne rien faire selon l'état réel de l'hôte. | Les tâches d'installation sont conditionnées, ce qui évite les changements inutiles lors d'un rejeu. |
+| Configuration k3s | Passe `--flannel-backend=none` et `--disable-network-policy` dans `INSTALL_K3S_EXEC`. | `k3s` démarre sans CNI intégré, car Cilium prend ensuite la responsabilité réseau. | Le choix réseau est explicite et visible dans les variables d'installation. |
+| Handler | Notifie `restart k3s` uniquement quand l'installation ou la configuration change. | Le service est redémarré seulement quand c'est utile. | Un handler Ansible s'exécute une seule fois en fin de play, même si plusieurs tâches le notifient. |
+| Post-install | Active le service, attend le kubeconfig système, attend l'API `:6443`, crée le lien `kubectl`, puis copie le kubeconfig utilisateur. | Après le rôle, l'utilisateur peut utiliser le cluster directement avec `kubectl`. | Permissions explicites : `~/.kube` en `0700`, kubeconfig en `0600`. |
+| Validation runtime | Lance `kubectl get nodes`. | C'est la preuve simple que l'API Kubernetes répond. | `changed_when: false`, donc la vérification ne marque jamais le rôle comme modifié. |
+| Check mode | Ignore les vérifications runtime sur un hôte vierge quand les fichiers et l'API n'existent pas encore. | Le rôle reste testable en `--check` avant installation réelle. | Condition `not ansible_check_mode or not k3s_needs_install` sur les tâches qui exigent un runtime existant. |
 
 Points clés de conception :
 
@@ -351,6 +329,50 @@ Premier exemple present dans le projet :
 - ce playbook sert a la fois a valider le role en lecture seule et a executer
   l'installation reelle sur le poste local
 
+## Playbooks AWS futurs : frontiere Terraform / Ansible
+
+`S0-T12` prepare les playbooks qui seront utilises apres creation des
+ressources AWS par Terraform. Le but n'est pas de faire provisionner AWS par
+Ansible, mais de rendre explicite le contrat de post-provisioning.
+
+<p align="center"><img src="diagrams/terraform-ansible-boundary.svg" alt="Frontiere Terraform Ansible pour les playbooks AWS futurs" width="1180"></p>
+
+> Source editable : [`diagrams/terraform-ansible-boundary.drawio`](diagrams/terraform-ansible-boundary.drawio).
+
+Lecture :
+
+- Terraform cree les ressources et expose les outputs utiles ;
+- l'inventaire dynamique, les variables et les secrets externes alimentent les
+  playbooks Ansible ;
+- Ansible configure uniquement ce qui existe deja ;
+- les playbooks restent proteges par defaut avec `*_apply=false`.
+
+| Playbook | Ressource deja creee | Inputs principaux | Secrets attendus | Configure | Ne fait pas |
+|---|---|---|---|---|---|
+| `runner-setup.yml` | EC2 runner bootstrap | host cible, URL GitLab, tags runner, executor | token runner GitLab | Docker executor via le role `gitlab-runner` | Creation EC2, IAM, Security Groups |
+| `rds-setup.yml` | Instance RDS PostgreSQL | endpoint, port, admin user, liste databases/users | mot de passe admin RDS, mots de passe applicatifs | databases et users least-privilege | Creation RDS, rotation Secrets Manager, migrations schema |
+| `gitea-setup.yml` | Gitea expose par Helm | URL Gitea, organisation, repositories | token admin Gitea, futur token bot GitOps | organisation et repositories | Deploiement Helm, creation infra, token bot tant que l'API/version n'est pas pinnee |
+
+Les trois playbooks affichent leur plan en mode par defaut et n'appellent pas
+de service externe tant que la variable d'activation correspondante reste a
+`false`.
+
+Commandes de validation initiales :
+
+```bash
+cd ansible
+ansible-playbook --syntax-check playbooks/runner-setup.yml
+ansible-playbook --syntax-check playbooks/rds-setup.yml
+ansible-playbook --syntax-check playbooks/gitea-setup.yml
+
+ansible-playbook --check playbooks/rds-setup.yml
+ansible-playbook --check playbooks/gitea-setup.yml
+```
+
+Pour `runner-setup.yml`, le check mode dependra de l'inventaire AWS futur ou
+d'un host cible explicite. Sans EC2 creee par Terraform, sa validation initiale
+reste limitee au `--syntax-check`.
+
 ### `ansible/molecule/`
 
 But :
@@ -482,22 +504,52 @@ Elle est donc volontairement plus structuree qu'un simple playbook unique :
 le projet cherche a demontrer une pratique d'ingenierie reproductible, pas
 juste a faire "tourner quelque chose".
 
+## Reference rapide
+
+Cette section sert de catalogue de reprise. Elle reste volontairement en bas du
+document pour garder la lecture principale du general vers le particulier.
+
+### Roles Ansible
+
+| Role | Responsabilite | Appele par | Activation | Validation principale |
+|---|---|---|---|---|
+| `k3s-install` | Installer `k3s` local sans CNI integre et synchroniser le kubeconfig utilisateur | `bootstrap.yml`, `k3s-install.yml` | Obligatoire en bootstrap local | Molecule, `--syntax-check`, validation runtime locale |
+| `cilium-setup` | Installer Cilium/Hubble comme CNI du cluster `k3s` local | `bootstrap.yml`, `cilium-setup.yml` | Obligatoire en bootstrap local | Molecule partiel, validation runtime locale |
+| `ministack-setup` | Lancer MiniStack et configurer le profil AWS CLI local | `bootstrap.yml`, `ministack-setup.yml` | Obligatoire en bootstrap local | Molecule partiel, healthcheck local, idempotence |
+| `node-hardening` | Appliquer un hardening local minimal et non intrusif | `bootstrap.yml`, `harden.yml`, `node-hardening.yml` | Obligatoire en bootstrap local | `--syntax-check`, `--check`, validation locale ciblee |
+| `cloudflare-tunnel` | Gerer uniquement le tunnel Cloudflare dedie ShopDemo | `bootstrap.yml`, `cloudflare-tunnel.yml` | Optionnel, secret requis | Molecule, validation service/tunnel locale |
+| `gitlab-runner` | Installer et enregistrer GitLab Runner avec Docker executor | `bootstrap.yml`, `gitlab-runner.yml`, `runner-setup.yml` | Optionnel, token requis | `--syntax-check`, `--check`, service actif, pipeline smoke |
+
+### Playbooks Ansible
+
+| Playbook | Cible | Roles / logique principale | Usage | Garde-fous |
+|---|---|---|---|---|
+| `bootstrap.yml` | `local` | `k3s-install`, `cilium-setup`, `ministack-setup`, `node-hardening`, roles optionnels | Bootstrap complet du lab local | Roles a secrets desactives par defaut |
+| `k3s-install.yml` | `local` | `k3s-install` | Installation ou validation ciblee de `k3s` | Assertions OS/version/kubeconfig |
+| `cilium-setup.yml` | `local` | `cilium-setup` | Installation ou validation ciblee de Cilium | Depend d'un cluster `k3s` operationnel |
+| `ministack-setup.yml` | `local` | `ministack-setup` | Installation ou validation ciblee de MiniStack | Healthcheck local, pas de compte AWS |
+| `node-hardening.yml` | `local` | `node-hardening` | Validation ciblee du hardening local | Hardening volontairement non intrusif |
+| `harden.yml` | `local` | `node-hardening` | Rejouer le hardening sans bootstrap complet | Scope limite au hardening |
+| `cloudflare-tunnel.yml` | `local` | `cloudflare-tunnel` | Configurer le tunnel ShopDemo dedie | Token externe, pas de takeover global |
+| `gitlab-runner.yml` | `all` | `gitlab-runner` | Installer/enregistrer un runner cible | Token externe si registration active |
+| `runner-setup.yml` | EC2 runner bootstrap futur | `gitlab-runner` via `include_role` | Post-provisioning EC2 apres Terraform | `runner_setup_apply=false` par defaut |
+| `rds-setup.yml` | `localhost` | Modules `community.postgresql` | Post-provisioning databases/users RDS | `rds_setup_apply=false`, secrets externes |
+| `gitea-setup.yml` | `localhost` | Appels API Gitea idempotents | Post-provisioning org/repos Gitea | `gitea_setup_apply=false`, token externe |
+| `teardown.yml` | `local` | Tasks de nettoyage ShopDemo local | Nettoyage conservateur du lab | `teardown_confirm=true` obligatoire |
+
 ## Ce qui reste a faire
-
-Non verifie a ce stade :
-
-- installation reelle de k3s ;
-- premier test Molecule.
 
 Prochaine etape logique :
 
-- enrichir le role `k3s-install` avec les premieres taches d'installation
-  reelles, puis valider son comportement en syntax check et en mode `--check`.
+- clore le Sprint 0 avec `S0-T13` ;
+- rejouer les validations finales utiles ;
+- documenter les validations non executees et les risques residuels ;
+- preparer le fichier de suivi du Sprint 1.
 
 Point d'attention actuel :
 
-- le poste local a ete nettoye de son ancien cluster `k3s` ;
-- la prochaine iteration du role pourra viser une installation initiale
-  propre, sans heritage de pods ou de certificats anciens.
-- apres installation de `k3s` sans Flannel, le noeud peut rester `NotReady`
-  tant que `cilium-setup` n'a pas ete applique.
+- les playbooks `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml`
+  sont prepares, mais leurs chemins `*_apply=true` attendent les ressources
+  reelles creees par Terraform ou Helm ;
+- la creation du token bot GitOps Gitea reste a confirmer lorsque la version
+  Gitea et le contrat de l'API token seront pinnees.

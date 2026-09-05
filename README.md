@@ -8,7 +8,7 @@
 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
 
-[Pourquoi ce projet](#pourquoi-ce-projet) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Quick start](#quick-start) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
+[Pourquoi ce projet](#pourquoi-ce-projet) · [Comprendre](docs/comprendre-le-projet.md) · [Glossaire](docs/glossaire.md) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Quick start](#quick-start) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
 
 </div>
 
@@ -26,6 +26,7 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 - **Déjà en place** : bootstrap local `Ansible + k3s + Cilium + MiniStack`, avec idempotence et tests ciblés.
 - **Architecture cible** : AWS multi-comptes, EKS, Gateway API, Cognito, RDS, SNS/SQS, Argo CD et GitOps.
+- **Cadrage agentique** : un MVP centre sur une requete `prompt/agentic`, avec scenarios reserves aux tests et sans mode `live`.
 - **Documentation de travail** : roadmap, arbitrages, preuves et deep dives versionnés dans le dépôt.
 
 ## Aperçu du flux applicatif
@@ -74,17 +75,17 @@ Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent 
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
-![Sprint 0](https://img.shields.io/badge/S0_Ansible-En_cours-yellow?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Planifié-lightgrey?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
+![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Planifié-lightgrey?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 0` : Ansible et fondations bootstrap |
+| Sprint actif | Aucun sprint en cours ; `Sprint 1` est pret a demarrer |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
 |---|---|---|---|
-| 0 | Ansible et fondations bootstrap | En cours | [`sprint-0-ansible.md`](docs/sprints/sprint-0-ansible.md) |
-| 1 | Argo CD et base GitOps locale | Planifié | À créer avant démarrage |
+| 0 | Ansible et fondations bootstrap | Terminé | [`sprint-0-ansible.md`](docs/sprints/sprint-0-ansible.md) |
+| 1 | Argo CD et base GitOps locale | Planifié | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
 | 2 | Landing Zone AWS | Planifié | À créer avant démarrage |
 | 3 | Plateforme AWS et EKS | Planifié | À créer avant démarrage |
 | 4 | Observabilité | Planifié | À créer avant démarrage |
@@ -93,13 +94,18 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Focus courant du sprint** : `S0-T11` (`bootstrap.yml` / `teardown.yml`) est termine. Le chantier courant du Sprint 0 passe a `S0-T12`, avec la preparation des playbooks AWS futurs.
+**Focus courant** : `Sprint 0` est clos. Le rerun reel de `bootstrap.yml`
+valide l'idempotence globale du lab local avec `changed=0` au deuxieme passage.
+La prochaine action est de demarrer `Sprint 1` par le cadrage GitOps local.
 
 ## Démarrer ici
 
 | Lien | Contenu |
 |---|---|
+| [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) | Vision globale, etat actuel, chemin cible et pitch entretien |
+| [`docs/glossaire.md`](docs/glossaire.md) | Definitions courtes : Cilium, Hubble, CoreDNS, Terraform, GitOps, AWS, etc. |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Conception cible, stack, arbitrages |
+| [`docs/architecture/08-agentic-mvp.md`](docs/architecture/08-agentic-mvp.md) | MVP agentique, separation produit/tests |
 | [`docs/sprint-planning.md`](docs/sprint-planning.md) | Détail des objectifs et livrables par sprint |
 | [`AGENTS.md`](AGENTS.md) | Règles de travail pour les agents IA du dépôt |
 | [`docs/CURRENT.md`](docs/CURRENT.md) | Sprint actif et tâches en cours |

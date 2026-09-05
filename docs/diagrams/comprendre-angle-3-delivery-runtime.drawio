@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Delivery runtime">
+    <mxGraphModel dx="1434" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="840" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="Du commit au comportement runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=22;" vertex="1" parent="1">
+          <mxGeometry x="455" y="30" width="590" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Developpeur" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="60" y="185" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="GitLab CI&#xa;tests, scans, build" style="swimlane;startSize=30;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="310" y="135" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="Runner&#xa;local puis EC2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="4">
+          <mxGeometry x="35" y="55" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="OIDC vers AWS&#xa;sans cle statique" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="4">
+          <mxGeometry x="35" y="115" width="190" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="Artefacts" style="swimlane;startSize=30;rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="650" y="135" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Image conteneur&#xa;pinned by digest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="35" y="55" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Repo GitOps&#xa;etat Kubernetes desire" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="35" y="115" width="190" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Argo CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="990" y="185" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Runtime Kubernetes" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="430" width="940" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Gateway API&#xa;routage + auth boundary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="40" y="80" width="180" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Services Go&#xa;catalogue, panier, commande, paiement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="280" y="70" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="RDS PostgreSQL&#xa;donnees metier" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="580" y="45" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="SNS/SQS&#xa;events, retries, DLQ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="590" y="160" width="170" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="Observabilite&#xa;Prometheus, Loki, Grafana, Hubble" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="515" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="Point cle :&#xa;la CI ne pousse pas directement dans le cluster ; elle produit des artefacts et met a jour Git. Argo CD reconcilie ensuite." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="345" y="735" width="810" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="commit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="produit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="4" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="observe Git" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d79b00;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="7" target="10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="applique" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d79b00;exitX=0.5;exitY=1;entryX=0.83;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="10" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="HTTP/JWT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="11" source="12" target="13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="25" value="SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=1;exitY=0.25;entryX=0;entryY=0.45;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="11" source="13" target="14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="26" value="events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d6b656;exitX=0.75;exitY=1;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="11" source="13" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" value="metriques / logs / flows" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#9673a6;exitX=1;exitY=0.7;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="11" target="16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="28" value="feedback" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;dashed=1;strokeColor=#9673a6;exitX=0.5;exitY=0;entryX=0.5;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="16" target="4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1370" y="100" />
+              <mxPoint x="440" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

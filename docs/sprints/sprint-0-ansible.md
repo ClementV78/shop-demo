@@ -23,8 +23,8 @@ Conception cible :
 | S0-T9 | Implementer `gitlab-runner` | Termine | S0-T3 |
 | S0-T10 | Implementer `node-hardening` | Termine | S0-T3 |
 | S0-T11 | Composer `bootstrap.yml` et `teardown.yml` | Termine | S0-T6 a S0-T10 |
-| S0-T12 | Preparer les playbooks AWS futurs | En cours | S0-T3 |
-| S0-T13 | Valider et documenter le Sprint 0 | Planifie | S0-T5 a S0-T12 |
+| S0-T12 | Preparer les playbooks AWS futurs | Termine | S0-T3 |
+| S0-T13 | Valider et documenter le Sprint 0 | Termine | S0-T5 a S0-T12 |
 
 ## S0-E1 - Fondations du projet
 
@@ -66,7 +66,7 @@ Etat : `Termine`
 
 ### S0-T2 - Verifier l'environnement de travail
 
-Etat : `Termine`  
+Etat : `Termine`
 Depend de : `S0-T1`
 
 - [x] Identifier l'OS cible et son mode d'acces.
@@ -94,7 +94,7 @@ Depend de : `S0-T1`
 
 ### S0-T3 - Creer le squelette Ansible
 
-Etat : `Termine`  
+Etat : `Termine`
 Depend de : `S0-T1`
 
 - [x] Creer `ansible.cfg`.
@@ -692,52 +692,227 @@ Points a verifier pendant l'implementation :
 
 ### S0-T12 - Preparer les playbooks AWS futurs
 
-Etat : `Planifie`  
+Etat : `Termine`
 Depend de : `S0-T3`
 
-- [ ] Creer `runner-setup.yml`.
-- [ ] Creer `rds-setup.yml`.
-- [ ] Creer `gitea-setup.yml`.
-- [ ] Definir les variables et interfaces sans appeler AWS.
+- [x] Creer `runner-setup.yml`.
+- [x] Creer `rds-setup.yml`.
+- [x] Creer `gitea-setup.yml`.
+- [x] Definir les variables et interfaces sans appeler AWS.
 
 #### Criteres d'acceptation
 
-- [ ] Terraform reste responsable du provisioning.
-- [ ] Ansible reste responsable de la configuration.
-- [ ] Les secrets sont lus depuis une source externe.
-- [ ] Aucun appel AWS payant n'est necessaire pour la validation initiale.
+- [x] Terraform reste responsable du provisioning.
+- [x] Ansible reste responsable de la configuration.
+- [x] Les secrets sont lus depuis une source externe.
+- [x] Aucun appel AWS payant n'est necessaire pour la validation initiale.
+
+#### Notes de progression
+
+- Implemente : [`ansible/playbooks/runner-setup.yml`](../../ansible/playbooks/runner-setup.yml)
+  configure le futur runner EC2 bootstrap en reutilisant le role
+  `gitlab-runner`, mais uniquement si `runner_setup_apply=true`.
+  Par defaut, il affiche son plan et ne fait aucune installation ni
+  inscription GitLab.
+- Implemente : [`ansible/playbooks/rds-setup.yml`](../../ansible/playbooks/rds-setup.yml)
+  prepare la creation des databases `catalogue`, `panier`, `commande` et
+  `stock`, ainsi que leurs users applicatifs `svc_*`. Les connexions
+  PostgreSQL sont desactivees par defaut via `rds_setup_apply=false`.
+- Implemente : [`ansible/playbooks/gitea-setup.yml`](../../ansible/playbooks/gitea-setup.yml)
+  prepare la configuration de l'organisation `shopdemo` et des repos
+  `shopdemo-app`, `shopdemo-gitops` et `shopdemo-platform`, avec appels API
+  Gitea idempotents seulement si `gitea_setup_apply=true`.
+- Decide : la creation du token bot GitOps Gitea reste differee tant que la
+  version Gitea et le contrat exact de l'API token ne sont pas pinnees. Pour
+  l'instant, ce token doit venir d'une source externe.
+- Ajoute : la collection `community.postgresql` est declaree dans
+  [`ansible/requirements.yml`](../../ansible/requirements.yml) pour supporter
+  les modules PostgreSQL du playbook RDS.
+- Corrige : le role [`ansible/roles/gitlab-runner/`](../../ansible/roles/gitlab-runner)
+  deplace la conversion de la cle de depot APT vers un handler et corrige les
+  points remontes par `ansible-lint`.
+- Documente : la frontiere Terraform/Ansible et les interfaces des trois
+  playbooks sont decrites dans
+  [`docs/ansible-structure.md`](../ansible-structure.md), avec le schema
+  [`docs/diagrams/terraform-ansible-boundary.drawio`](../diagrams/terraform-ansible-boundary.drawio)
+  et son export SVG.
+- Verifie :
+  - `ansible-galaxy collection install -r requirements.yml` installe
+    `community.postgresql:4.2.0` ;
+  - `ansible-playbook --syntax-check playbooks/runner-setup.yml` OK ;
+  - `ansible-playbook --syntax-check playbooks/rds-setup.yml` OK ;
+  - `ansible-playbook --syntax-check playbooks/gitea-setup.yml` OK ;
+  - `ansible-playbook --check playbooks/runner-setup.yml -e runner_setup_hosts=localhost`
+    OK, sans changement et sans charger le role GitLab Runner ;
+  - `ansible-playbook --check playbooks/rds-setup.yml` OK, sans connexion
+    PostgreSQL ;
+  - `ansible-playbook --check playbooks/gitea-setup.yml` OK, sans appel API
+    Gitea ;
+  - `ansible-lint playbooks/runner-setup.yml playbooks/rds-setup.yml playbooks/gitea-setup.yml`
+    OK, profil `production` ;
+  - `yamllint` OK sur les playbooks S0-T12 et le role `gitlab-runner` touche ;
+  - le fichier Draw.io passe `validate.py` et `xmllint`, puis l'export SVG
+    reussit via `xvfb-run drawio`.
+- Risque residuel : les chemins `*_apply=true` ne sont pas valides contre une
+  vraie EC2, un vrai RDS ou une vraie instance Gitea. Cette validation est
+  reportee aux sprints ou Terraform/Helm creeront effectivement ces
+  ressources.
 
 ## S0-E5 - Validation et cloture
 
 ### S0-T13 - Valider et documenter le Sprint 0
 
-Etat : `Planifie`  
+Etat : `Termine`
 Depend de : `S0-T5` a `S0-T12`
 
-- [ ] Executer les syntax checks.
-- [ ] Executer les tests Molecule.
-- [ ] Verifier l'idempotence du bootstrap.
-- [ ] Documenter installation, utilisation, rollback et nettoyage.
-- [ ] Renseigner les preuves importantes.
-- [ ] Preparer le fichier de suivi du Sprint 1.
+- [x] Executer les syntax checks.
+- [x] Executer les tests Molecule complets.
+- [x] Verifier l'idempotence du bootstrap.
+- [x] Documenter installation, utilisation, rollback et nettoyage.
+- [x] Renseigner les preuves importantes.
+- [x] Preparer le fichier de suivi du Sprint 1.
 
 #### Criteres d'acceptation
 
-- [ ] Tous les roles applicables passent leurs validations.
-- [ ] Les validations non executees sont justifiees.
-- [ ] Les risques residuels sont documentes.
-- [ ] La table de suivi de `README.md` et `CURRENT.md` refletent l'etat reel.
+- [x] Tous les roles applicables passent leurs validations.
+- [x] Les validations non executees sont justifiees.
+- [x] Les risques residuels sont documentes.
+- [x] La table de suivi de `README.md` et `CURRENT.md` refletent l'etat reel.
+
+#### Notes de progression
+
+- Verifie : tous les playbooks sous [`ansible/playbooks/`](../../ansible/playbooks)
+  passent `ansible-playbook --syntax-check`.
+- Verifie : `ansible-lint playbooks/*.yml roles/*/tasks/main.yml
+  roles/*/handlers/main.yml roles/*/defaults/main.yml` passe avec le profil
+  `production`.
+- Verifie : `yamllint` passe sur le perimetre touche par `S0-T12` et les
+  corrections de cloture (`runner-setup`, `rds-setup`, `gitea-setup`,
+  `teardown`, `gitlab-runner`, `k3s-install`, `ministack-setup`,
+  `cilium-setup/molecule/default/converge.yml`, `requirements.yml`).
+- Verifie : les schemas Draw.io ajoutes ou modifies pour le sprint
+  (`ansible-overview-drawio`, `k3s-install-role-flow-drawio`,
+  `terraform-ansible-boundary`) passent `validate.py` et `xmllint`, avec export
+  SVG disponible.
+- Verifie : les playbooks futurs `runner-setup.yml`, `rds-setup.yml` et
+  `gitea-setup.yml` passent `--check` sans appel externe et avec `changed=0`.
+- Verifie : `teardown.yml --check -e teardown_confirm=true` passe sans
+  execution reelle. Le dry-run predit des suppressions pour le tunnel
+  `cloudflared-shopdemo`, ce qui est attendu dans un teardown simule.
+- Verifie partiellement : `bootstrap.yml --check` passe avec les validations
+  runtime des roles desactivees. Le dry-run predit des changements de
+  configuration (`get-k3s.sh` et unattended-upgrades), donc ce n'est pas une
+  preuve d'idempotence reelle.
+- Verifie : `harden.yml --check` passe. Le dry-run predit deux changements sur
+  la configuration APT/unattended-upgrades ; a confirmer par un rerun reel
+  lorsque l'etat disque local sera sain.
+- Verifie : `molecule test` reussit completement pour
+  [`ansible/roles/k3s-install`](../../ansible/roles/k3s-install) :
+  convergence OK, idempotence `changed=0`, verify OK.
+- Verifie : apres liberation d'espace disque sur `/`, `molecule test` reussit
+  completement pour
+  [`ansible/roles/cilium-setup`](../../ansible/roles/cilium-setup) :
+  convergence OK, idempotence `changed=0`, verify OK.
+- Diagnostique pendant la cloture : le lab local gardait une ancienne IP
+  `192.168.31.200` dans l'etat embarque k3s, notamment dans les master leases.
+  Comme le cluster local est reproductible, l'etat Kubernetes a ete reconstruit
+  proprement au lieu d'editer la base k3s a la main. Le plan et le resultat
+  sont archives dans
+  [`docs/evidence/sprint-0/k3s-cilium-reset-plan.md`](../evidence/sprint-0/k3s-cilium-reset-plan.md).
+- Corrige pendant la cloture : les playbooks cibles `k3s-install.yml` et
+  `cilium-setup.yml` chargent maintenant `../group_vars/all.yml`, afin que les
+  variables communes soient disponibles hors `bootstrap.yml`.
+- Corrige pendant la cloture : `cilium-setup` configure explicitement
+  `devices` avec `ansible_facts['default_ipv4']['interface']`. Sur le mini-PC,
+  cela donne `br0`, ce qui evite le CrashLoop Cilium
+  `unable to determine direct routing device`.
+- Corrige pendant la cloture : `cilium-setup` applique Helm sans attente
+  globale, puis pilote les attentes runtime avec `kubectl rollout status` sur
+  Cilium, Hubble relay et Hubble UI. Cela evite qu'un ancien pod Cilium en
+  CrashLoop bloque l'upgrade avant redemarrage du DaemonSet.
+- Verifie sur l'hote reel apres reset : `ansible-playbook
+  playbooks/k3s-install.yml` passe avec `changed=0`, puis `ansible-playbook
+  playbooks/cilium-setup.yml` passe avec `changed=0`.
+- Verifie sur l'hote reel apres reset : le noeud `minipc-devops-1` est
+  `Ready` sur `192.168.31.106`, Cilium annonce `OK`, kube-proxy replacement est
+  actif sur `br0`, et les pods systeme sont `Running` ou `Completed`.
+- Verifie : `molecule test` reussit completement pour
+  [`ansible/roles/ministack-setup`](../../ansible/roles/ministack-setup) :
+  convergence OK, healthcheck MiniStack `200`, smoke STS `rc=0`, idempotence
+  `changed=0`, verify OK.
+- Verifie : `molecule test` reussit completement pour
+  [`ansible/roles/cloudflare-tunnel`](../../ansible/roles/cloudflare-tunnel) :
+  convergence OK, idempotence `changed=0`, verify OK.
+- Le blocage disque est leve : `/` dispose de nouveau d'un espace suffisant
+  pour les validations Molecule longues.
+- Corrige pendant la cloture : le scenario Molecule `cilium-setup` execute le
+  script Helm via `bash` et declare `bash` comme prerequis, ce qui evite les
+  erreurs sur `/tmp` non executable et sur les syntaxes Bash du script.
+- Corrige pendant la cloture : le role `cilium-setup` remplace
+  `ansible_default_ipv4.address` par `ansible_facts['default_ipv4']['address']`
+  pour eviter la deprecation Ansible `INJECT_FACTS_AS_VARS`.
+- Corrige pendant la cloture : le scenario Molecule `cilium-setup` remplace les
+  commandes `systemctl` du verify par `service_facts` et `slurp`, ce qui garde
+  les checks en lecture seule et compatibles `ansible-lint`.
+- Corrige pendant la cloture : le role `ministack-setup` verifie Docker via
+  `community.docker.docker_host_info` au lieu du binaire `docker`, afin de
+  fonctionner dans le scenario Molecule avec socket Docker monte.
+- Corrige pendant la cloture : le role `ministack-setup` introduit
+  `ministack_endpoint_host`, avec la valeur locale par defaut `127.0.0.1` et
+  une decouverte `auto` limitee a Molecule pour joindre le conteneur MiniStack
+  par son IP Docker interne.
+- Corrige pendant la cloture : le scenario Molecule `ministack-setup` installe
+  l'AWS CLI via `pip`, car le paquet Ubuntu `awscli` n'est pas disponible dans
+  l'image Molecule utilisee.
+- Corrige pendant la cloture : les handlers et commandes touches par
+  `ansible-lint` sont alignes (`Restart k3s`, `argv`, `changed_when`
+  explicite).
+- Prepare : le fichier de suivi
+  [`docs/sprints/sprint-1-gitops-local.md`](sprint-1-gitops-local.md) est cree
+  en etat `Planifie`.
+- Ajoute pendant la cloture : deux documents de comprehension transverses,
+  [`docs/comprendre-le-projet.md`](../comprendre-le-projet.md) et
+  [`docs/glossaire.md`](../glossaire.md), pour donner une entree plus lisible
+  que les journaux de sprint et faciliter la presentation orale du projet.
+  `comprendre-le-projet.md` integre trois schemas Draw.io dedies : modele
+  mental, local vs AWS, et delivery/runtime.
+- Complete pendant la cloture :
+  [`docs/concepts-sprint-0.md`](../concepts-sprint-0.md) est restructure en
+  synthese pedagogique du Sprint 0 et integre trois schemas Draw.io dedies aux
+  concepts Ansible, roles/handlers/idempotence, et k3s/Cilium.
+- Verifie : apres correction de la cle APT du depot GitHub CLI sur l'hote, le
+  premier rerun reel de `bootstrap.yml` passe avec `changed=2`, uniquement sur
+  les fichiers de configuration `node-hardening` attendus.
+- Verifie : le deuxieme rerun reel de `bootstrap.yml` passe avec `ok=59`,
+  `changed=0`, `failed=0` et `skipped=43`. Cette preuve clot l'idempotence
+  globale du lab local pour le chemin obligatoire.
+
+Validations Molecule relancees apres liberation d'espace :
+
+```bash
+cd ansible
+cd roles/cilium-setup && molecule test
+cd ../ministack-setup && molecule test
+cd ../cloudflare-tunnel && molecule test
+```
 
 ## Preuves
 
 | Controle | Etat | Preuve |
 |---|---|---|
 | Structure de suivi | Verifie | Documents sous `docs/` |
-| Syntaxe Ansible | Planifie | A renseigner |
-| Tests Molecule | Planifie | A renseigner |
-| Idempotence bootstrap | Planifie | A renseigner |
-| Connectivite k3s/Cilium | Planifie | A renseigner |
+| Syntaxe Ansible | Verifie | Tous les playbooks `ansible/playbooks/*.yml` passent `--syntax-check` |
+| Ansible lint | Verifie | `ansible-lint` profil `production` OK sur playbooks, tasks, handlers et defaults |
+| YAML lint | Verifie partiellement | OK sur le perimetre touche ; le lint global du repertoire garde des lignes longues historiques hors cloture |
+| Schemas Draw.io | Verifie | `validate.py`, `xmllint` et exports SVG OK pour les schemas ajoutes ou modifies |
+| Tests Molecule | Verifie | `k3s-install`, `cilium-setup`, `ministack-setup` et `cloudflare-tunnel` passent `molecule test` |
+| Idempotence bootstrap | Verifie | Deux reruns reels de `ansible-playbook playbooks/bootstrap.yml` ; premier passage `changed=2` attendu sur `node-hardening`, deuxieme passage `changed=0`, `failed=0` |
+| Connectivite k3s/Cilium | Verifie | Reset local puis rerun reels `k3s-install.yml` et `cilium-setup.yml` avec `changed=0`; noeud `Ready`, Cilium `OK`, pods systeme `Running` ou `Completed` |
 
 ## Decisions et ecarts
 
-Aucun ecart avec `ARCHITECTURE.md` identifie a ce stade.
+- Aucun ecart avec `ARCHITECTURE.md` identifie sur le perimetre Ansible.
+- Risque residuel accepte : les roles optionnels `cloudflare-tunnel` et
+  `gitlab-runner` restent desactives par defaut dans `bootstrap.yml` car ils
+  dependent de secrets externes non versionnes. Ils ont leurs validations
+  ciblees documentees dans ce sprint.

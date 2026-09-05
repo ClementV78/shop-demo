@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Modele mental">
+    <mxGraphModel dx="1434" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1420" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="Modele mental du projet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=22;" vertex="1" parent="1">
+          <mxGeometry x="430" y="30" width="560" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="1. Application metier" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="70" y="130" width="340" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="ShopDemo&#xa;e-commerce fictif" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="3">
+          <mxGeometry x="45" y="65" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="Catalogue&#xa;Panier&#xa;Commande&#xa;Paiement simule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="3">
+          <mxGeometry x="45" y="165" width="250" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Stock&#xa;Notification&#xa;Webhook paiement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="3">
+          <mxGeometry x="45" y="300" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="2. Plateforme" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="540" y="130" width="340" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Kubernetes&#xa;k3s local puis EKS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="7">
+          <mxGeometry x="45" y="60" width="250" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="GitOps + CI/CD&#xa;GitLab CI, Argo CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="45" y="160" width="250" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Securite + observabilite&#xa;Cilium, Hubble, policies, logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="45" y="260" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="3. Infrastructure" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="130" width="340" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Lab local&#xa;Ubuntu + Ansible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontStyle=1;fontSize=13;" vertex="1" parent="11">
+          <mxGeometry x="45" y="60" width="250" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="AWS cible&#xa;multi-comptes + EKS + RDS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="45" y="160" width="250" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Terraform&#xa;bootstrap permanent&#xa;workload ephemere" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="45" y="260" width="250" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Ce qu'il faut raconter :&#xa;une application simple justifie une plateforme,&#xa;la plateforme impose une infrastructure,&#xa;chaque choix reste prouvable et explicable." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="305" y="640" width="810" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="besoin metier" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="3" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="runtime et delivery" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="7" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="preuves" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#9673a6;exitX=0.5;exitY=1;entryX=0.25;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="3" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="preuves" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#9673a6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="7" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="preuves" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#9673a6;exitX=0.5;exitY=1;entryX=0.75;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="11" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

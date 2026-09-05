@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="k3s Install Role Flow">
+    <mxGraphModel dx="1700" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1750" pageHeight="930" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="ansible-playbook&#xa;k3s-install.yml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="355" width="165" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="1. Preflight : echouer tot" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="260" y="250" width="250" height="285" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="assert host&#xa;Linux + systemd&#xa;Debian family" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="3">
+          <mxGeometry x="35" y="55" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="assert inputs&#xa;k3s_version format&#xa;kubeconfig_user non empty" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="3">
+          <mxGeometry x="35" y="140" width="180" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="But&#xa;stopper avant modification si l'hote ou les variables sont incoherents" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff8e6;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="3">
+          <mxGeometry x="35" y="225" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="2. Detection : lire l'etat reel" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="570" y="200" width="300" height="395" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="stat /usr/local/bin/k3s&#xa;lecture seule, compatible --check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="40" y="55" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="si le binaire existe&#xa;command: k3s --version&#xa;changed_when: false" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="40" y="140" width="220" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="set_fact: k3s_needs_install&#xa;true si absent, version drift, flag drift ou force_reinstall" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="7">
+          <mxGeometry x="40" y="235" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Point cle&#xa;une seule decision booleenne pilote l'idempotence des taches suivantes" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f6f0fa;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="7">
+          <mxGeometry x="40" y="325" width="220" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="3. Convergence : changer si necessaire" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="940" y="160" width="325" height="465" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="k3s_needs_install&#xa;true ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="12">
+          <mxGeometry x="95" y="52" width="135" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="package: curl&#xa;get_url: get.k3s.io -> get-k3s.sh&#xa;mode 0755" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="12">
+          <mxGeometry x="50" y="155" width="225" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="command: get-k3s.sh&#xa;INSTALL_K3S_VERSION = k3s_version&#xa;INSTALL_K3S_SYMLINK = force" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="12">
+          <mxGeometry x="50" y="250" width="225" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="INSTALL_K3S_EXEC&#xa;server&#xa;--flannel-backend=none&#xa;--disable-network-policy&#xa;Cilium gere le reseau ensuite" style="shape=note;whiteSpace=wrap;html=1;fillColor=#eef8ee;strokeColor=#82b366;fontSize=11;" vertex="1" parent="12">
+          <mxGeometry x="50" y="345" width="225" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="handler&#xa;restart k3s&#xa;une fois en fin de play" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1025" y="50" width="155" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="4. Post-install : exposer kubeconfig" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1325" y="205" width="300" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="service: k3s&#xa;enabled=true, state=started&#xa;survit au reboot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="18">
+          <mxGeometry x="40" y="55" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="wait_for kubeconfig + API :6443&#xa;k3s demarre de facon asynchrone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="18">
+          <mxGeometry x="40" y="145" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="symlink kubectl -> k3s&#xa;mkdir ~/.kube mode 0700&#xa;copy config mode 0600" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="18">
+          <mxGeometry x="40" y="230" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="5. Verification runtime" style="swimlane;startSize=34;rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1325" y="595" width="300" height="205" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="kubectl get nodes&#xa;changed_when: false" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=12;" vertex="1" parent="22">
+          <mxGeometry x="40" y="60" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="Resultat attendu&#xa;l'API repond et le role peut etre rejoue sans changement inutile" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="22">
+          <mxGeometry x="40" y="130" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="25" value="Garde-fou --check&#xa;sur un hote vierge, les checks runtime sont skips car les fichiers/API n'existent pas encore" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff8e6;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="585" y="700" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" value="si preconditions OK" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#9673a6;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="3" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="28" value="decision d'installation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="7" target="12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="29" value="oui : installer / mettre a jour" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="12" source="13" target="14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="12" source="14" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" value="notify si changed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;exitX=0;exitY=0.5;entryX=0;entryY=1;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="15" target="17">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="450" />
+              <mxPoint x="910" y="120" />
+              <mxPoint x="1030" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" value="puis service et kubeconfig" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.35;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="12" target="18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="34" value="non : deja a jour&#xa;on garde la phase post-install utile" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;exitX=1;exitY=0.5;entryX=0;entryY=0.65;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="12" target="18">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1295" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="35" value="si execution reelle&#xa;ou hote deja installe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#666666;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="18" target="22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="36" value="conditionne les waits / kubectl" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;dashed=1;strokeColor=#d6b656;exitX=0.5;exitY=0;entryX=0.5;entryY=1;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="25" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
