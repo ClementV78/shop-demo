@@ -11,6 +11,7 @@
       - ministack_aws_cli_user | length > 0
       - ministack_aws_cli_group | length > 0
       - ministack_aws_home.startswith("/home/")
+      - ministack_endpoint_host | length > 0
       - ministack_host_port | int > 0
       - ministack_container_port | int > 0
     fail_msg: MiniStack user, home, group, and port settings must be configured.
@@ -20,15 +21,15 @@
     msg:
       container_name: "{{ ministack_container_name }}"
       image: "{{ ministack_image }}"
+      endpoint_host: "{{ ministack_endpoint_host }}"
       host_port: "{{ ministack_host_port }}"
       aws_profile: "{{ ministack_aws_profile_name }}"
       aws_region: "{{ ministack_aws_region }}"
       aws_cli_user: "{{ ministack_aws_cli_user }}"
 
-- name: Check Docker CLI is available
-  ansible.builtin.command: docker version --format '{{"{{"}}.Server.Version{{"}}"}}'
-  register: ministack_docker_version
-  changed_when: false
+- name: Check Docker API is available
+  community.docker.docker_host_info:
+  register: ministack_docker_info
 
 - name: Check AWS CLI is available
   ansible.builtin.command: aws --version
@@ -93,9 +94,40 @@
     state: started
   register: ministack_container_result
 
+- name: Inspect MiniStack container when endpoint discovery is automatic
+  community.docker.docker_container_info:
+    name: "{{ ministack_container_name }}"
+  register: ministack_container_info
+  when: ministack_endpoint_host == "auto"
+
+- name: Compute MiniStack effective endpoint host and port
+  ansible.builtin.set_fact:
+    ministack_effective_endpoint_host: >-
+      {{
+        (
+          ministack_container_info.container.NetworkSettings.Networks
+          | dict2items
+          | map(attribute='value.IPAddress')
+          | reject('equalto', '')
+          | first
+        )
+        if ministack_endpoint_host == "auto"
+        else ministack_endpoint_host
+      }}
+    ministack_effective_endpoint_port: >-
+      {{ ministack_host_port
+         if ministack_endpoint_host != "auto"
+         else ministack_container_port }}
+
+- name: Compute MiniStack effective endpoint URL
+  ansible.builtin.set_fact:
+    ministack_effective_endpoint_url: >-
+      http://{{ ministack_effective_endpoint_host
+      }}:{{ ministack_effective_endpoint_port }}
+
 - name: Wait for MiniStack health endpoint
   ansible.builtin.uri:
-    url: "http://127.0.0.1:{{ ministack_host_port }}/_ministack/health"
+    url: "{{ ministack_effective_endpoint_url }}/_ministack/health"
     method: GET
     status_code: 200
     return_content: true
@@ -113,7 +145,7 @@
       - --profile
       - "{{ ministack_aws_profile_name }}"
       - --endpoint-url
-      - "http://127.0.0.1:{{ ministack_host_port }}"
+      - "{{ ministack_effective_endpoint_url }}"
       - sts
       - get-caller-identity
   environment:
@@ -127,7 +159,7 @@
   ansible.builtin.debug:
     msg:
       container_changed: "{{ ministack_container_result.changed }}"
-      docker_version: "{{ ministack_docker_version.stdout }}"
+      docker_version: "{{ ministack_docker_info.host_info.ServerVersion }}"
       aws_cli_version: "{{ ministack_aws_cli_version.stdout }}"
       health_status: "{{ ministack_healthcheck.status | default('skipped') }}"
       sts_check_rc: "{{ ministack_sts_check.rc | default('skipped') }}"

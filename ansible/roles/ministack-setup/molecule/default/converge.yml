@@ -12,11 +12,17 @@
     - name: Install test prerequisites
       ansible.builtin.apt:
         name:
-          - awscli
           - ca-certificates
           - curl
+          - python3-pip
           - python3-docker
         state: present
+
+    - name: Install AWS CLI for MiniStack smoke tests
+      ansible.builtin.pip:
+        name: awscli
+        state: present
+        break_system_packages: true
 
     - name: Ensure Molecule AWS CLI user exists
       ansible.builtin.user:
@@ -29,6 +35,7 @@
       vars:
         ministack_container_name: ministack-molecule
         ministack_host_port: 14566
+        ministack_endpoint_host: auto
         ministack_aws_cli_user: molecule
         ministack_aws_cli_group: molecule
         ministack_aws_home: /home/molecule

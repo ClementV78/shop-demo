@@ -3,6 +3,8 @@
   hosts: all
   gather_facts: false
   become: true
+  vars:
+    ministack_expected_image: "ministackorg/ministack:1.3.70"
   tasks:
     - name: Inspect MiniStack Molecule container on host Docker
       community.docker.docker_container_info:
@@ -14,12 +16,27 @@
         that:
           - ministack_container_info.exists
           - ministack_container_info.container.State.Running
-          - ministack_container_info.container.Config.Image == "ministackorg/ministack:1.3.70"
-        fail_msg: MiniStack Molecule container is missing, stopped, or uses an unexpected image.
+          - >-
+            ministack_container_info.container.Config.Image ==
+            ministack_expected_image
+        fail_msg: >-
+          MiniStack Molecule container is missing, stopped, or uses an
+          unexpected image.
+
+    - name: Compute MiniStack Molecule endpoint URL
+      ansible.builtin.set_fact:
+        ministack_endpoint_url: >-
+          http://{{
+            ministack_container_info.container.NetworkSettings.Networks
+            | dict2items
+            | map(attribute='value.IPAddress')
+            | reject('equalto', '')
+            | first
+          }}:4566
 
     - name: Check MiniStack health endpoint
       ansible.builtin.uri:
-        url: http://127.0.0.1:14566/_ministack/health
+        url: "{{ ministack_endpoint_url }}/_ministack/health"
         method: GET
         status_code: 200
       register: ministack_health
@@ -46,33 +63,35 @@
           - ministack_config.stat.pw_name == "molecule"
           - ministack_config.stat.gr_name == "molecule"
           - ministack_config.stat.mode == "0600"
-        fail_msg: MiniStack AWS CLI profile files are missing or have insecure permissions.
+        fail_msg: >-
+          MiniStack AWS CLI profile files are missing or have insecure
+          permissions.
 
     - name: Read credentials file
-      ansible.builtin.command:
-        argv:
-          - cat
-          - /home/molecule/.aws/credentials
+      ansible.builtin.slurp:
+        src: /home/molecule/.aws/credentials
       register: ministack_credentials_content
-      changed_when: false
 
     - name: Read config file
-      ansible.builtin.command:
-        argv:
-          - cat
-          - /home/molecule/.aws/config
+      ansible.builtin.slurp:
+        src: /home/molecule/.aws/config
       register: ministack_config_content
-      changed_when: false
+
+    - name: Decode AWS CLI profile files
+      ansible.builtin.set_fact:
+        credentials_content: >-
+          {{ ministack_credentials_content.content | b64decode }}
+        config_content: "{{ ministack_config_content.content | b64decode }}"
 
     - name: Assert profile contents are correct
       ansible.builtin.assert:
         that:
-          - "'[ministack]' in ministack_credentials_content.stdout"
-          - "'aws_access_key_id=test' in ministack_credentials_content.stdout"
-          - "'aws_secret_access_key=test' in ministack_credentials_content.stdout"
-          - "'[profile ministack]' in ministack_config_content.stdout"
-          - "'region=us-east-1' in ministack_config_content.stdout"
-          - "'output=json' in ministack_config_content.stdout"
+          - "'[ministack]' in credentials_content"
+          - "'aws_access_key_id=test' in credentials_content"
+          - "'aws_secret_access_key=test' in credentials_content"
+          - "'[profile ministack]' in config_content"
+          - "'region=us-east-1' in config_content"
+          - "'output=json' in config_content"
         fail_msg: MiniStack AWS CLI profile contents are not as expected.
 
     - name: Verify STS smoke test with local MiniStack profile
@@ -82,7 +101,7 @@
           - --profile
           - ministack
           - --endpoint-url
-          - http://127.0.0.1:14566
+          - "{{ ministack_endpoint_url }}"
           - sts
           - get-caller-identity
       environment:

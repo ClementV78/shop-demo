@@ -17,8 +17,9 @@ cilium_cluster_pool_ipv4_mask_size: 24
 # plus de kube-proxy pour exposer l'API via sa ClusterIP, l'agent doit joindre
 # l'API directement par l'IP et le port du noeud au demarrage.
 cilium_kube_proxy_replacement: true
-cilium_k8s_service_host: "{{ ansible_default_ipv4.address }}"
+cilium_k8s_service_host: "{{ ansible_facts['default_ipv4']['address'] }}"
 cilium_k8s_service_port: 6443
+cilium_devices: "{{ ansible_facts['default_ipv4']['interface'] }}"
 
 # Cluster mono-noeud : un seul replica d'operator peut etre schedule (les deux
 # replicas par defaut se disputent les memes hostPorts). Sans cela, le second
@@ -35,6 +36,6 @@ cilium_pod_cidr: "{{ cilium_cluster_pool_ipv4_cidr }}"
 cilium_hubble_relay_enabled: true
 cilium_hubble_ui_enabled: true
 
-cilium_helm_wait: true
+cilium_helm_wait: false
 cilium_runtime_validation_enabled: true
 cilium_wait_timeout: "5m"

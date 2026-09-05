@@ -2,5 +2,7 @@
 - name: Install and validate Cilium as the k3s CNI
   hosts: local
   gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
   roles:
     - role: cilium-setup

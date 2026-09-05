@@ -1,0 +1,66 @@
+---
+- name: Configure the bootstrap EC2 GitLab Runner
+  hosts: >-
+    {{ runner_setup_hosts | default('tag_Role_shopdemo_bootstrap_runner') }}
+  gather_facts: true
+  become: false
+  vars_files:
+    - ../group_vars/all.yml
+
+  vars:
+    runner_setup_apply: false
+    runner_setup_expected_environment: bootstrap
+    runner_setup_expected_role: shopdemo-bootstrap-runner
+    runner_setup_gitlab_url: https://gitlab.com
+    runner_setup_executor: docker
+    runner_setup_tags:
+      - ec2-runner
+      - private-network
+    runner_setup_token: >-
+      {{ lookup('env', 'SHOPDEMO_GITLAB_RUNNER_TOKEN') | default('', true) }}
+
+  tasks:
+    - name: Show runner setup execution plan
+      ansible.builtin.debug:
+        msg:
+          purpose: Configure the Terraform-created bootstrap EC2 runner.
+          apply_enabled: "{{ runner_setup_apply }}"
+          expected_environment: "{{ runner_setup_expected_environment }}"
+          expected_role: "{{ runner_setup_expected_role }}"
+          token_source: >-
+            SHOPDEMO_GITLAB_RUNNER_TOKEN environment variable or explicit
+            runner_setup_token
+          note: >-
+            No runner installation or registration happens unless
+            runner_setup_apply=true.
+
+    - name: Assert runner setup inputs when apply is enabled
+      ansible.builtin.assert:
+        that:
+          - runner_setup_expected_environment | length > 0
+          - runner_setup_expected_role | length > 0
+          - runner_setup_gitlab_url | length > 0
+          - runner_setup_executor == "docker"
+          - runner_setup_tags | length > 0
+          - runner_setup_token | length > 0
+        fail_msg: >-
+          runner-setup.yml requires explicit host selection, GitLab settings,
+          runner tags, and a runner token before applying.
+      when: runner_setup_apply | bool
+      no_log: true
+
+    - name: Apply GitLab Runner role when explicitly enabled
+      ansible.builtin.include_role:
+        name: gitlab-runner
+      vars:
+        gitlab_runner_url: "{{ runner_setup_gitlab_url }}"
+        gitlab_runner_executor: "{{ runner_setup_executor }}"
+        gitlab_runner_name: >-
+          {{ project_name }}-{{ inventory_hostname }}-ec2-docker
+        gitlab_runner_description: >-
+          {{ project_name }} bootstrap EC2 runner on {{ inventory_hostname }}
+        gitlab_runner_tags: "{{ runner_setup_tags }}"
+        gitlab_runner_token: "{{ runner_setup_token }}"
+        gitlab_runner_manage_registration: true
+        gitlab_runner_runtime_validation_enabled: "{{ not ansible_check_mode }}"
+      when: runner_setup_apply | bool

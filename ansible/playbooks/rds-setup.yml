@@ -1,0 +1,122 @@
+---
+- name: Configure ShopDemo PostgreSQL databases and service users
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars_files:
+    - ../group_vars/all.yml
+
+  vars:
+    rds_setup_apply: false
+    rds_setup_host: >-
+      {{ lookup('env', 'SHOPDEMO_RDS_HOST') | default('', true) }}
+    rds_setup_port: 5432
+    rds_setup_admin_user: >-
+      {{ lookup('env', 'SHOPDEMO_RDS_ADMIN_USER') | default('', true) }}
+    rds_setup_admin_password: >-
+      {{ lookup('env', 'SHOPDEMO_RDS_ADMIN_PASSWORD') | default('', true) }}
+    rds_setup_ssl_mode: require
+    rds_setup_service_databases:
+      - service: catalogue
+        database: catalogue
+        username: svc_catalogue
+        password: >-
+          {{ lookup('env', 'SHOPDEMO_DB_PASSWORD_CATALOGUE') |
+          default('', true) }}
+      - service: panier
+        database: panier
+        username: svc_panier
+        password: >-
+          {{ lookup('env', 'SHOPDEMO_DB_PASSWORD_PANIER') |
+          default('', true) }}
+      - service: commande
+        database: commande
+        username: svc_commande
+        password: >-
+          {{ lookup('env', 'SHOPDEMO_DB_PASSWORD_COMMANDE') |
+          default('', true) }}
+      - service: stock
+        database: stock
+        username: svc_stock
+        password: >-
+          {{ lookup('env', 'SHOPDEMO_DB_PASSWORD_STOCK') |
+          default('', true) }}
+
+  tasks:
+    - name: Show RDS setup execution plan
+      ansible.builtin.debug:
+        msg:
+          purpose: >-
+            Configure databases and least-privilege users after Terraform
+            creates RDS.
+          apply_enabled: "{{ rds_setup_apply }}"
+          host_source: Terraform output or SHOPDEMO_RDS_HOST
+          admin_user_source: Secrets Manager, vault, or SHOPDEMO_RDS_ADMIN_USER
+          service_count: "{{ rds_setup_service_databases | length }}"
+          note: >-
+            No PostgreSQL connection happens unless rds_setup_apply=true.
+
+    - name: Assert RDS setup inputs when apply is enabled
+      ansible.builtin.assert:
+        that:
+          - rds_setup_host | length > 0
+          - rds_setup_port | int > 0
+          - rds_setup_admin_user | length > 0
+          - rds_setup_admin_password | length > 0
+          - rds_setup_service_databases | length > 0
+          - item.service | length > 0
+          - item.database | length > 0
+          - item.username | length > 0
+          - item.password | length > 0
+        fail_msg: >-
+          rds-setup.yml requires the RDS endpoint, admin credentials, and
+          per-service database credentials before applying.
+      loop: "{{ rds_setup_service_databases }}"
+      when: rds_setup_apply | bool
+      no_log: true
+
+    - name: Ensure ShopDemo service databases exist
+      community.postgresql.postgresql_db:
+        name: "{{ item.database }}"
+        login_host: "{{ rds_setup_host }}"
+        login_port: "{{ rds_setup_port }}"
+        login_user: "{{ rds_setup_admin_user }}"
+        login_password: "{{ rds_setup_admin_password }}"
+        ssl_mode: "{{ rds_setup_ssl_mode }}"
+        state: present
+      loop: "{{ rds_setup_service_databases }}"
+      when: rds_setup_apply | bool
+      no_log: true
+
+    - name: Ensure ShopDemo service database users exist
+      community.postgresql.postgresql_user:
+        name: "{{ item.username }}"
+        password: "{{ item.password }}"
+        login_db: "{{ item.database }}"
+        login_host: "{{ rds_setup_host }}"
+        login_port: "{{ rds_setup_port }}"
+        login_user: "{{ rds_setup_admin_user }}"
+        login_password: "{{ rds_setup_admin_password }}"
+        ssl_mode: "{{ rds_setup_ssl_mode }}"
+        state: present
+      loop: "{{ rds_setup_service_databases }}"
+      when: rds_setup_apply | bool
+      no_log: true
+
+    - name: Grant database-level privileges to each service user
+      community.postgresql.postgresql_privs:
+        login_db: "{{ item.database }}"
+        roles: "{{ item.username }}"
+        type: database
+        objs: "{{ item.database }}"
+        privs: CONNECT,TEMPORARY
+        login_host: "{{ rds_setup_host }}"
+        login_port: "{{ rds_setup_port }}"
+        login_user: "{{ rds_setup_admin_user }}"
+        login_password: "{{ rds_setup_admin_password }}"
+        ssl_mode: "{{ rds_setup_ssl_mode }}"
+        state: present
+      loop: "{{ rds_setup_service_databases }}"
+      when: rds_setup_apply | bool
+      no_log: true

@@ -52,6 +52,7 @@
       kubeProxyReplacement: "{{ cilium_kube_proxy_replacement }}"
       k8sServiceHost: "{{ cilium_k8s_service_host }}"
       k8sServicePort: "{{ cilium_k8s_service_port }}"
+      devices: "{{ cilium_devices }}"
       operator:
         replicas: "{{ cilium_operator_replicas }}"
       ipam:
@@ -67,16 +68,32 @@
           enabled: "{{ cilium_hubble_ui_enabled }}"
   register: cilium_helm_result
 
+- name: Restart Cilium agent after Helm changes
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    rollout restart daemonset/{{ cilium_release_name }}
+    -n {{ cilium_namespace }}
+  changed_when: true
+  when:
+    - cilium_runtime_validation_enabled | bool
+    - cilium_helm_result.changed
+
+- name: Wait for Cilium DaemonSet to become Ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    rollout status daemonset/{{ cilium_release_name }}
+    -n {{ cilium_namespace }}
+    --timeout={{ cilium_wait_timeout }}
+  changed_when: false
+  when: cilium_runtime_validation_enabled | bool
+
 - name: Verify the local node reports Ready
   ansible.builtin.command: >-
     kubectl --kubeconfig {{ cilium_kubeconfig_path }}
-    get nodes -o jsonpath="{.items[0].status.conditions[?(@.type=='Ready')].status}"
+    wait --for=condition=Ready nodes --all
+    --timeout={{ cilium_wait_timeout }}
   register: cilium_node_ready
   changed_when: false
-  failed_when: cilium_node_ready.stdout != "True"
-  retries: 10
-  delay: 15
-  until: cilium_node_ready.stdout == "True"
   when: cilium_runtime_validation_enabled | bool
 
 - name: Check whether CoreDNS is already Ready
@@ -112,6 +129,28 @@
   delay: 10
   until: "'True' in cilium_coredns_ready.stdout"
   when: cilium_runtime_validation_enabled | bool
+
+- name: Wait for Hubble relay to become Ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    rollout status deployment/hubble-relay
+    -n {{ cilium_namespace }}
+    --timeout={{ cilium_wait_timeout }}
+  changed_when: false
+  when:
+    - cilium_runtime_validation_enabled | bool
+    - cilium_hubble_relay_enabled | bool
+
+- name: Wait for Hubble UI to become Ready
+  ansible.builtin.command: >-
+    kubectl --kubeconfig {{ cilium_kubeconfig_path }}
+    rollout status deployment/hubble-ui
+    -n {{ cilium_namespace }}
+    --timeout={{ cilium_wait_timeout }}
+  changed_when: false
+  when:
+    - cilium_runtime_validation_enabled | bool
+    - cilium_hubble_ui_enabled | bool
 
 - name: Verify Hubble relay and UI pods are running
   ansible.builtin.command: >-

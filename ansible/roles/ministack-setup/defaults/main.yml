@@ -1,7 +1,10 @@
 ---
 ministack_container_name: ministack
 ministack_image: "ministackorg/ministack:1.3.70"
+ministack_endpoint_host: 127.0.0.1
 ministack_host_port: 4566
+ministack_endpoint_url: >-
+  http://{{ ministack_endpoint_host }}:{{ ministack_host_port }}
 ministack_container_port: 4566
 ministack_log_level: INFO
 ministack_restart_policy: unless-stopped

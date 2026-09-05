@@ -51,7 +51,12 @@
       working_directory: "{{ gitlab_runner_working_directory }}"
 
 - name: Check Docker CLI is available
-  ansible.builtin.command: docker version --format '{{"{{"}}.Server.Version{{"}}"}}'
+  ansible.builtin.command:
+    argv:
+      - docker
+      - version
+      - --format
+      - '{{ "{{" }}.Server.Version{{ "}}" }}'
   register: gitlab_runner_docker_version
   check_mode: false
   changed_when: false
@@ -84,18 +89,10 @@
     group: root
     mode: "0644"
   register: gitlab_runner_repo_key_download
+  notify: Convert GitLab Runner repository signing key to keyring format
 
-- name: Convert GitLab Runner repository signing key to keyring format
-  become: true
-  ansible.builtin.command:
-    argv:
-      - gpg
-      - --dearmor
-      - --yes
-      - --output
-      - "{{ gitlab_runner_repo_key_path }}"
-      - "{{ gitlab_runner_repo_key_asc_path }}"
-  when: gitlab_runner_repo_key_download.changed
+- name: Flush GitLab Runner keyring handler before repository setup
+  ansible.builtin.meta: flush_handlers
 
 - name: Check whether the GitLab Runner repository keyring exists
   become: true
@@ -192,8 +189,10 @@
     gitlab_runner_already_registered: >-
       {{
         gitlab_runner_config_file.stat.exists
-        and ('url = "' ~ gitlab_runner_url ~ '"') in (gitlab_runner_existing_config.content | b64decode)
-        and ('name = "' ~ gitlab_runner_description ~ '"') in (gitlab_runner_existing_config.content | b64decode)
+        and ('url = "' ~ gitlab_runner_url ~ '"')
+        in (gitlab_runner_existing_config.content | b64decode)
+        and ('name = "' ~ gitlab_runner_description ~ '"')
+        in (gitlab_runner_existing_config.content | b64decode)
       }}
 
 - name: Build GitLab Runner register command
@@ -212,7 +211,11 @@
           gitlab_runner_docker_image,
           '--description',
           gitlab_runner_description,
-          '--token' if gitlab_runner_token_type == 'authentication' else '--registration-token',
+          (
+            '--token'
+            if gitlab_runner_token_type == 'authentication'
+            else '--registration-token'
+          ),
           gitlab_runner_token
         ]
         +
@@ -269,7 +272,13 @@
     msg:
       docker_version: "{{ gitlab_runner_docker_version.stdout }}"
       package_changed: "{{ gitlab_runner_package.changed | default(false) }}"
-      repo_changed: "{{ gitlab_runner_repo_config.changed or gitlab_runner_repo_key_download.changed }}"
+      repo_changed: >-
+        {{
+          gitlab_runner_repo_config.changed
+          or gitlab_runner_repo_key_download.changed
+        }}
       already_registered: "{{ gitlab_runner_already_registered }}"
-      registered_now: "{{ gitlab_runner_register_result.changed | default(false) }}"
-      service_active: "{{ gitlab_runner_service_active.stdout | default('skipped') }}"
+      registered_now: >-
+        {{ gitlab_runner_register_result.changed | default(false) }}
+      service_active: >-
+        {{ gitlab_runner_service_active.stdout | default('skipped') }}

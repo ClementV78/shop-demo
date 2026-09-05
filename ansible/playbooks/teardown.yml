@@ -115,4 +115,5 @@
           ansible.builtin.command:
             argv:
               - /usr/local/bin/k3s-uninstall.sh
+          changed_when: true
           when: teardown_k3s_uninstall_script.stat.exists
