@@ -11,6 +11,7 @@
 - [Contraintes et exigences non fonctionnelles](#contraintes-et-exigences-non-fonctionnelles)
 - [Schema global](#schema-global)
 - [Architecture](#architecture)
+- [MVP agentique](#mvp-agentique)
 - [Arbitrages et limites](#arbitrages-et-limites)
 - [Documentation detaillee](#documentation-detaillee)
 
@@ -139,6 +140,34 @@ La CI valide, build et scanne. Le cluster consomme ensuite l'etat desire via Arg
 
 Detail : [`docs/architecture/05-delivery-gitops.md`](docs/architecture/05-delivery-gitops.md)
 
+## MVP agentique
+
+L'extension agentique du projet doit rester centree sur un MVP lisible :
+un utilisateur formule une demande en langage naturel, l'agent decide quels
+tools appeler, les signaux collectes sont normalises, puis un pipeline metier
+commun produit le scoring et la review.
+
+Le modele mental cible est volontairement simple :
+
+```text
+prompt utilisateur -> agent + tools -> signals -> CityContext -> scoring -> review
+```
+
+La distinction structurante est donc uniquement l'entree du systeme :
+
+| Surface | Role | Statut |
+|---|---|---|
+| `prompt` / `agentic` | Chemin produit principal : le LLM decide les tools a appeler | Produit |
+| `scenario_inline` | Injection de signaux controles pour tester le runtime deploye | Test |
+| `scenario_id` | Fixture locale/dev si un catalogue de scenarios existe | Dev local optionnel |
+
+Le mode `live` n'est pas un mode produit cible. Il ne doit pas etre documente
+comme voie d'utilisation, expose dans les schemas publics, ni conserve comme
+alternative a l'experience agentique. La reproductibilite reste une propriete
+du pipeline apres collecte des signaux, pas une fonctionnalite utilisateur.
+
+Detail : [`docs/architecture/08-agentic-mvp.md`](docs/architecture/08-agentic-mvp.md)
+
 ## Arbitrages et limites
 
 ### Lab local vs AWS reel
@@ -169,9 +198,12 @@ Le projet cherche un bon equilibre entre fidelite technique, cout et vitesse d'a
 - [`docs/architecture/05-delivery-gitops.md`](docs/architecture/05-delivery-gitops.md) - GitOps, CI/CD, OIDC, runners
 - [`docs/architecture/06-costs-risks-evidence.md`](docs/architecture/06-costs-risks-evidence.md) - couts, risques assumes, matrice de preuves
 - [`docs/architecture/07-repo-learning-path.md`](docs/architecture/07-repo-learning-path.md) - structure du repo, sprints, lacunes couvertes
+- [`docs/architecture/08-agentic-mvp.md`](docs/architecture/08-agentic-mvp.md) - cadrage MVP agentique, interfaces produit/test et suppression du mode live
 
 ### Autres documents lies
 
+- [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) - vision globale, etat actuel et discours de presentation
+- [`docs/glossaire.md`](docs/glossaire.md) - definitions courtes des composants et concepts
 - [`docs/decouverte-ministack.md`](docs/decouverte-ministack.md) - synthese de decouverte MiniStack
 - [`docs/deep-dive-cilium-k3s-ufw.md`](docs/deep-dive-cilium-k3s-ufw.md) - deep dive de diagnostic local
 - [`docs/sprint-planning.md`](docs/sprint-planning.md) - planification par sprint
