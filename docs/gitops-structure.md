@@ -23,7 +23,8 @@ ensuite le cluster.
 
 ## Vue d'ensemble
 
-Lecture simple du schema :
+Le schema se lit comme une histoire de deploiement, mais volontairement
+incomplete a ce stade du sprint.
 
 ```text
 Git contient l'intention
@@ -32,8 +33,11 @@ Argo CD comparera Git avec le cluster
 Kubernetes applique l'etat reel
 ```
 
-Dans `S1-T1`, seule la partie **Git + Kustomize** est vraiment en place. Argo
-CD et la synchronisation automatique arrivent ensuite.
+Pour l'instant, dans `S1-T1`, on pose surtout les deux premieres pieces :
+**Git** et **Kustomize**. Git contient les fichiers qui disent ce que l'on veut
+voir exister dans Kubernetes. Kustomize sert a prendre ces fichiers et a les
+assembler en manifests Kubernetes finaux. On peut donc verifier localement ce
+qui serait envoye au cluster, sans encore rien appliquer.
 
 <p align="center">
   <img src="diagrams/s1-gitops-local-overview.svg" alt="Vue d'ensemble GitOps locale Sprint 1" width="1050">
@@ -42,17 +46,31 @@ CD et la synchronisation automatique arrivent ensuite.
 > Source editable :
 > [`diagrams/s1-gitops-local-overview.drawio`](diagrams/s1-gitops-local-overview.drawio).
 
-### Comment lire ce flux
+Au debut du flux, le developpeur ne pousse pas une commande `kubectl apply`.
+Il modifie le repertoire [`../gitops/`](../gitops/) et committe ce changement.
+C'est important : l'intention devient relisible dans Git avant de toucher au
+cluster.
 
-| Etape | Ce que ca veut dire | Etat actuel |
-|---|---|---|
-| `Developpeur modifie Git` | On change des fichiers versionnes dans `gitops/` | En place |
-| `gitops/platform` | Decrit les ressources communes du cluster, par exemple `argocd` et `gateway-system` | En place |
-| `gitops/environments` | Decrit ce qui depend d'un environnement, par exemple `shopdemo-staging` ou `shopdemo-prod` | En place |
-| `kubectl kustomize` | Assemble les fichiers YAML pour verifier ce qui serait envoye a Kubernetes | En place |
-| `Argo CD observe Git` | Argo CD surveillera Git et detectera les changements | Prevu en `S1-T2` |
-| `sync plus tard` | Argo CD appliquera l'etat desire dans le cluster | Prevu apres installation |
-| `Kubernetes API` | API du cluster `k3s` qui recevra les manifests rendus | Deja disponible depuis Sprint 0 |
+Dans ce repertoire, `platform/` decrit ce qui appartient au cluster lui-meme.
+Aujourd'hui, c'est minimal : les namespaces techniques `argocd` et
+`gateway-system`. Plus tard, ce sera aussi l'endroit naturel pour Argo CD,
+Gateway API, Kyverno, External Secrets Operator ou l'observabilite.
+
+Les dossiers `environments/staging/` et `environments/prod/` racontent une
+autre histoire : ils representent ce que l'on veut pour un environnement
+applicatif donne. En `S1-T1`, ils ne creent encore que les namespaces
+`shopdemo-staging` et `shopdemo-prod`, mais ils preparent l'endroit ou l'on
+ajoutera les workloads, les routes, les replicas et les references d'images.
+
+La boite `kubectl kustomize` du schema est une etape de verification. Elle ne
+deploie rien. Elle permet juste de poser la question : "si Argo CD ou kubectl
+rendait ce dossier maintenant, quel YAML Kubernetes sortirait ?". C'est pour
+cela qu'on peut valider `S1-T1` sans modifier le cluster.
+
+La partie Argo CD est volontairement dessinee comme une etape suivante. A partir
+de `S1-T2`, Argo CD observera Git, rendra les manifests, comparera le resultat
+avec l'etat reel du cluster `k3s`, puis synchronisera si la politique choisie
+l'autorise.
 
 ### Kustomize en clair
 
@@ -96,6 +114,31 @@ La valeur de Kustomize ici est de garder une structure progressive :
 - `environments/` pour ce qui change entre staging et prod.
 
 ## Arborescence
+
+Le deuxieme schema zoome sur le contenu du repertoire `gitops/`.
+
+L'idee est d'eviter un grand dossier `k8s/` ou tout serait melange. Dans un vrai
+projet, ce melange devient vite difficile a relire : on ne sait plus si un YAML
+sert a installer la plateforme, deployer une application, configurer staging ou
+preparer prod. Ici, chaque zone a donc une responsabilite claire.
+
+`platform/` est le socle commun du cluster. Si une ressource doit exister une
+fois par cluster, elle a vocation a vivre la. C'est pour cela que les namespaces
+techniques `argocd` et `gateway-system` sont dans cette zone.
+
+`apps/` est encore vide fonctionnellement, mais son role est important : il
+accueillera les manifests reutilisables des workloads ShopDemo. Une base
+applicative ne doit pas savoir toute seule si elle part en staging ou en prod.
+Elle decrit plutot la forme generale d'un service.
+
+`environments/` assemble ensuite ces pieces pour un contexte donne. Staging et
+prod pourront reutiliser la meme base applicative, mais changer certains
+details : le namespace, le nombre de replicas, l'image exacte, les routes ou les
+parametres de securite.
+
+Enfin, `argocd/` prepare les objets qui piloteront cette lecture : `AppProject`,
+`Application` ou `ApplicationSet`. En `S1-T1`, on documente seulement ce futur
+emplacement ; on ne donne pas encore le controle du cluster a Argo CD.
 
 ```text
 gitops/
@@ -148,6 +191,9 @@ gitops/
 
 ## Convention de promotion
 
+Le troisieme schema raconte ce qui se passera quand il y aura de vrais
+workloads applicatifs.
+
 <p align="center">
   <img src="diagrams/s1-gitops-promotion-model.svg" alt="Modele de promotion GitOps Sprint 1" width="1050">
 </p>
@@ -155,13 +201,24 @@ gitops/
 > Source editable :
 > [`diagrams/s1-gitops-promotion-model.drawio`](diagrams/s1-gitops-promotion-model.drawio).
 
-Convention cible, pas encore implementee en `S1-T1` :
+Le point de depart est le code applicatif. Un developpeur merge un changement,
+puis la CI lance les tests, les scans et la construction d'image. Si tout passe,
+l'image est publiee dans une registry. Mais on ne veut pas deployer "un tag qui
+bouge" en production-like. On veut pointer vers un digest immuable, par exemple
+`sha256:...`, parce qu'il designe exactement un artefact.
 
-- `staging` suit une branche ou un chemin GitOps de validation ;
-- `prod` suit une promotion explicite, idealement via tag semver ;
-- les images production-like sont referencees par digest immuable ;
-- les commits automatiques GitOps utilisent `[skip ci]` pour eviter les boucles
-  CI.
+Le premier endroit ou ce digest arrive est staging. La CI mettra a jour le repo
+GitOps avec un commit du type "staging utilise maintenant ce digest". Argo CD
+staging verra ce changement et synchronisera l'environnement de validation.
+
+La prod ne doit pas suivre staging automatiquement par accident. Le schema met
+donc un gate de promotion entre les deux : tag semver, validation manuelle, ou
+autre decision explicite. Quand la promotion est acceptee, le chemin prod pointe
+a son tour vers le digest approuve, puis Argo CD prod synchronise.
+
+Cette convention n'est pas encore implementee en `S1-T1`. Elle est documentee
+maintenant pour que les prochains fichiers GitOps soient ranges dans le bon
+modele des le depart.
 
 ## Sync Waves
 
