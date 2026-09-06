@@ -76,10 +76,17 @@ Points de vigilance non bloquants :
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
+- Decision suppression Gitea : [`docs/adr/ADR-002-remove-gitea-from-mvp.md`](adr/ADR-002-remove-gitea-from-mvp.md)
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
 
+- [`ADR-002`](adr/ADR-002-remove-gitea-from-mvp.md) acte la suppression de
+  Gitea de la cible MVP GitOps. Gitea devient une extension optionnelle non
+  planifiee ; le chemin cible devient `GitLab.com` ou `GitHub` -> repo GitOps
+  -> Argo CD -> Kubernetes. Le nettoyage des references Gitea dans
+  l'architecture, les schemas, le sprint planning et le playbook
+  `gitea-setup.yml` reste a traiter dans un lot dedie.
 - [`docs/comment-ca-marche.md`](comment-ca-marche.md) et
   [`docs/gitops-structure.md`](gitops-structure.md) clarifient maintenant la
   difference entre Gitea, Argo CD, Kustomize et Kubernetes, ainsi que le chemin
