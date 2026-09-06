@@ -72,6 +72,7 @@ Points de vigilance non bloquants :
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
 - Sprint 0 detaille : [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
 - Sprint 1 detaille : [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md)
+- Comment ca marche techniquement : [`docs/comment-ca-marche.md`](comment-ca-marche.md)
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
@@ -83,6 +84,9 @@ Points de vigilance non bloquants :
   `gitops/platform`, `gitops/apps`, `gitops/environments` et `gitops/argocd`
   existent, les namespaces declaratifs sont separes, et la documentation
   explique le modele avant l'installation Argo CD.
+- Ajout de [`docs/comment-ca-marche.md`](comment-ca-marche.md), document vivant
+  pour expliquer techniquement comment les sprints sont construits dans le
+  code, avec Sprint 0 et `S1-T1` couverts.
 - `S0-T12` est termine : les playbooks futurs
   `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml` existent avec
   `*_apply=false` par defaut, assertions d'inputs, secrets externes et aucune

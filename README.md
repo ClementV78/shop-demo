@@ -8,7 +8,7 @@
 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat-square&logo=ansible&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
 
-[Pourquoi ce projet](#pourquoi-ce-projet) · [Comprendre](docs/comprendre-le-projet.md) · [Glossaire](docs/glossaire.md) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Quick start](#quick-start) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
+[Pourquoi ce projet](#pourquoi-ce-projet) · [Comprendre](docs/comprendre-le-projet.md) · [Comment ça marche](docs/comment-ca-marche.md) · [Glossaire](docs/glossaire.md) · [Architecture](#aperçu-du-flux-applicatif) · [Compétences démontrées](#compétences-démontrées) · [Quick start](#quick-start) · [Où en est le projet](#où-en-est-le-projet) · [Démarrer ici](#démarrer-ici)
 
 </div>
 
@@ -110,6 +110,7 @@ La prochaine action est `S1-T2` : installer Argo CD sur le lab local.
 | Lien | Contenu |
 |---|---|
 | [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) | Vision globale, etat actuel, chemin cible et pitch entretien |
+| [`docs/comment-ca-marche.md`](docs/comment-ca-marche.md) | Explication technique progressive : comment les sprints sont construits dans le code |
 | [`docs/glossaire.md`](docs/glossaire.md) | Definitions courtes : Cilium, Hubble, CoreDNS, Terraform, GitOps, AWS, etc. |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Conception cible, stack, arbitrages |
 | [`docs/architecture/08-agentic-mvp.md`](docs/architecture/08-agentic-mvp.md) | MVP agentique, separation produit/tests |

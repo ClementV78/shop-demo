@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Comment ca marche - Sprint 0 a S1">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1540" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="1. Intentions versionnees" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f7faff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="300" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="ansible/playbooks&#xa;ordre d'orchestration" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="45" y="70" width="210" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="ansible/roles&#xa;logique idempotente" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="45" y="165" width="210" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="gitops/&#xa;etat Kubernetes desire" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
+          <mxGeometry x="45" y="290" width="210" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="2. Sprint 0 configure l'hote" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="440" y="80" width="330" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="k3s-install&#xa;k3s sans CNI par defaut" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
+          <mxGeometry x="45" y="60" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="cilium-setup&#xa;CNI + Hubble + CoreDNS ready" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
+          <mxGeometry x="45" y="145" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="ministack / tunnel / runner&#xa;outils de lab et CI" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
+          <mxGeometry x="45" y="230" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Molecule + rerun&#xa;preuves d'idempotence" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="6">
+          <mxGeometry x="45" y="330" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="3. Lab local obtenu" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="870" y="80" width="280" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Ubuntu mini-PC&#xa;services systemd" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="40" y="70" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="k3s API&#xa;kubectl utilisable" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="40" y="165" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Cilium datapath&#xa;pods et services relies" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="11">
+          <mxGeometry x="40" y="260" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="4. S1-T1 prepare GitOps" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1230" y="80" width="270" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="platform/&#xa;argocd + gateway-system" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="15">
+          <mxGeometry x="35" y="70" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="environments/&#xa;shopdemo-staging/prod" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="15">
+          <mxGeometry x="35" y="165" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="kubectl kustomize&#xa;rend sans appliquer" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="15">
+          <mxGeometry x="35" y="260" width="200" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="S1-T2&#xa;Argo CD prendra le relais" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff7cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="15">
+          <mxGeometry x="45" y="345" width="180" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="orchestrent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8fb8ff;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="3" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="executent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#f0b44c;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="4" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="converge vers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8ee3a3;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="8" target="14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="16">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="650" />
+              <mxPoint x="1200" y="650" />
+              <mxPoint x="1200" y="181" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

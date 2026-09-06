@@ -52,6 +52,8 @@ Livrables :
   environnement ;
 - document de reference [`../gitops-structure.md`](../gitops-structure.md) ;
 - document pedagogique [`../concepts-sprint-1.md`](../concepts-sprint-1.md) ;
+- document transverse [`../comment-ca-marche.md`](../comment-ca-marche.md), mis
+  a jour avec Sprint 0 et `S1-T1` ;
 - trois schemas Draw.io ajoutes au catalogue.
 
 Ce qui n'a volontairement pas ete fait :

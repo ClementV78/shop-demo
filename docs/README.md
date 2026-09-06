@@ -13,6 +13,7 @@
 
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md) — page maitre architecture avec schema global et navigation
 - [`comprendre-le-projet.md`](comprendre-le-projet.md) — lecture rapide pour comprendre le projet et en parler
+- [`comment-ca-marche.md`](comment-ca-marche.md) — explication technique progressive des sprints avec liens vers le code
 - [`glossaire.md`](glossaire.md) — definitions courtes des composants et concepts
 - [`architecture/README.md`](architecture/README.md) — sous-pages detaillees d'architecture
 - [`architecture/08-agentic-mvp.md`](architecture/08-agentic-mvp.md) — cadrage du MVP agentique et separation produit/tests

@@ -16,6 +16,7 @@ Regle de lecture :
 | Schema | Rendu | Source | Utilise par |
 |---|---|---|---|
 | Vue README | [`readme-overview.svg`](readme-overview.svg) | [`readme-overview.drawio`](readme-overview.drawio) | `README.md` |
+| Comment ca marche S0-S1 | [`comment-ca-marche-s0-s1.svg`](comment-ca-marche-s0-s1.svg) | [`comment-ca-marche-s0-s1.drawio`](comment-ca-marche-s0-s1.drawio) | `docs/comment-ca-marche.md` |
 | Modele mental projet | [`comprendre-angle-1-modele-mental.svg`](comprendre-angle-1-modele-mental.svg) | [`comprendre-angle-1-modele-mental.drawio`](comprendre-angle-1-modele-mental.drawio) | `docs/comprendre-le-projet.md` |
 | Local vs AWS | [`comprendre-angle-2-local-vs-aws.svg`](comprendre-angle-2-local-vs-aws.svg) | [`comprendre-angle-2-local-vs-aws.drawio`](comprendre-angle-2-local-vs-aws.drawio) | `docs/comprendre-le-projet.md` |
 | Delivery et runtime | [`comprendre-angle-3-delivery-runtime.svg`](comprendre-angle-3-delivery-runtime.svg) | [`comprendre-angle-3-delivery-runtime.drawio`](comprendre-angle-3-delivery-runtime.drawio) | `docs/comprendre-le-projet.md` |
@@ -29,8 +30,8 @@ Regle de lecture :
 | Flux role k3s-install | [`k3s-install-role-flow-drawio.svg`](k3s-install-role-flow-drawio.svg) | [`k3s-install-role-flow-drawio.drawio`](k3s-install-role-flow-drawio.drawio) | `docs/ansible-structure.md` |
 | Frontiere Terraform / Ansible | [`terraform-ansible-boundary.svg`](terraform-ansible-boundary.svg) | [`terraform-ansible-boundary.drawio`](terraform-ansible-boundary.drawio) | `docs/ansible-structure.md` |
 | Execution Ansible Sprint 0 | [`concepts-s0-ansible-execution.svg`](concepts-s0-ansible-execution.svg) | [`concepts-s0-ansible-execution.drawio`](concepts-s0-ansible-execution.drawio) | `docs/concepts-sprint-0.md` |
-| Contrat d'un role | [`concepts-s0-role-contract.svg`](concepts-s0-role-contract.svg) | [`concepts-s0-role-contract.drawio`](concepts-s0-role-contract.drawio) | `docs/concepts-sprint-0.md` |
-| Cycle k3s / Cilium | [`concepts-s0-k3s-cilium-lifecycle.svg`](concepts-s0-k3s-cilium-lifecycle.svg) | [`concepts-s0-k3s-cilium-lifecycle.drawio`](concepts-s0-k3s-cilium-lifecycle.drawio) | `docs/concepts-sprint-0.md` |
+| Contrat d'un role | [`concepts-s0-role-contract.svg`](concepts-s0-role-contract.svg) | [`concepts-s0-role-contract.drawio`](concepts-s0-role-contract.drawio) | `docs/concepts-sprint-0.md`, `docs/comment-ca-marche.md` |
+| Cycle k3s / Cilium | [`concepts-s0-k3s-cilium-lifecycle.svg`](concepts-s0-k3s-cilium-lifecycle.svg) | [`concepts-s0-k3s-cilium-lifecycle.drawio`](concepts-s0-k3s-cilium-lifecycle.drawio) | `docs/concepts-sprint-0.md`, `docs/comment-ca-marche.md` |
 | Test connectivite Cilium | [`cilium-connectivity-test.svg`](cilium-connectivity-test.svg) | [`cilium-connectivity-test.drawio`](cilium-connectivity-test.drawio) | Deep dive Cilium |
 | MiniStack services emules | [`ministack-emulated-services.svg`](ministack-emulated-services.svg) | [`ministack-emulated-services.drawio`](ministack-emulated-services.drawio) | `docs/architecture/01-local-lab.md` |
 | MiniStack infra locale | [`ministack-local-infra.svg`](ministack-local-infra.svg) | [`ministack-local-infra.drawio`](ministack-local-infra.drawio) | `docs/sprints/sprint-0-ansible.md` |
@@ -41,7 +42,7 @@ Regle de lecture :
 | Schema | Rendu | Source | Utilise par |
 |---|---|---|---|
 | Vue GitOps locale | [`s1-gitops-local-overview.svg`](s1-gitops-local-overview.svg) | [`s1-gitops-local-overview.drawio`](s1-gitops-local-overview.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
-| Structure du repo GitOps | [`s1-gitops-repo-structure.svg`](s1-gitops-repo-structure.svg) | [`s1-gitops-repo-structure.drawio`](s1-gitops-repo-structure.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
+| Structure du repo GitOps | [`s1-gitops-repo-structure.svg`](s1-gitops-repo-structure.svg) | [`s1-gitops-repo-structure.drawio`](s1-gitops-repo-structure.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md`, `docs/comment-ca-marche.md` |
 | Modele de promotion GitOps | [`s1-gitops-promotion-model.svg`](s1-gitops-promotion-model.svg) | [`s1-gitops-promotion-model.drawio`](s1-gitops-promotion-model.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
 
 ## Architecture cible

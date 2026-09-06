@@ -203,6 +203,7 @@ Le projet cherche un bon equilibre entre fidelite technique, cout et vitesse d'a
 ### Autres documents lies
 
 - [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) - vision globale, etat actuel et discours de presentation
+- [`docs/comment-ca-marche.md`](docs/comment-ca-marche.md) - explication technique progressive des sprints avec liens vers le code
 - [`docs/glossaire.md`](docs/glossaire.md) - definitions courtes des composants et concepts
 - [`docs/gitops-structure.md`](docs/gitops-structure.md) - structure GitOps locale, conventions et validations
 - [`docs/concepts-sprint-1.md`](docs/concepts-sprint-1.md) - concepts GitOps et Argo CD du Sprint 1
