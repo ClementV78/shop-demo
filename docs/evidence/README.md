@@ -12,3 +12,8 @@ sensibles ne doivent pas etre versionnees.
 - [`sprint-0/k3s-cilium-reset-plan.md`](sprint-0/k3s-cilium-reset-plan.md) -
   plan et resultat du reset local k3s/Cilium realise pendant la cloture du
   Sprint 0.
+
+## Sprint 1
+
+- [`sprint-1/gitops-structure-validation.md`](sprint-1/gitops-structure-validation.md) -
+  validations locales du cadrage GitOps `S1-T1`.

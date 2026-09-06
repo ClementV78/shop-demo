@@ -13,7 +13,7 @@ Conception cible :
 
 | ID | Tache | Etat | Depend de |
 |---|---|---|---|
-| S1-T1 | Cadrer la structure GitOps locale | Planifie | S0 |
+| S1-T1 | Cadrer la structure GitOps locale | Termine | S0 |
 | S1-T2 | Installer Argo CD sur le lab local | Planifie | S1-T1 |
 | S1-T3 | Definir les namespaces et NetworkPolicies de base | Planifie | S1-T1 |
 | S1-T4 | Creer les manifests applicatifs minimaux | Planifie | S1-T1 |
@@ -23,8 +23,7 @@ Conception cible :
 
 ## Cadrage initial
 
-Sprint non demarre. Le Sprint 0 est clos ; le demarrage peut commencer par
-`S1-T1`, apres commit du lot de cloture.
+Sprint demarre le 2026-09-06.
 
 Hypotheses de depart :
 
@@ -36,16 +35,64 @@ Hypotheses de depart :
 - les manifests doivent rester simples au depart pour valider le flux GitOps
   avant d'ajouter des patterns avances.
 
+## S1-T1 - Cadrer la structure GitOps locale
+
+Etat : `Termine`.
+
+Objectif : creer une base GitOps lisible, validable localement, sans installer
+Argo CD ni appliquer de ressource sur le cluster.
+
+Livrables :
+
+- arborescence [`../../gitops/`](../../gitops/) creee ;
+- separation `platform/`, `apps/`, `environments/` et `argocd/` ;
+- namespaces transverses `argocd` et `gateway-system` dans
+  `gitops/platform/` ;
+- namespaces applicatifs `shopdemo-staging` et `shopdemo-prod` separes par
+  environnement ;
+- document de reference [`../gitops-structure.md`](../gitops-structure.md) ;
+- document pedagogique [`../concepts-sprint-1.md`](../concepts-sprint-1.md) ;
+- trois schemas Draw.io ajoutes au catalogue.
+
+Ce qui n'a volontairement pas ete fait :
+
+- pas d'installation Argo CD ;
+- pas de `kubectl apply` ;
+- pas de `ApplicationSet` ;
+- pas de NetworkPolicy ;
+- pas de secret ni token GitOps.
+
+Raison : `S1-T1` doit d'abord rendre le modele lisible et validable. Les
+objets qui modifient le cluster arrivent a partir de `S1-T2`.
+
 ## Preuves
 
 | Controle | Etat | Preuve |
 |---|---|---|
-| Plan de sprint | Planifie | Fichier de suivi cree |
+| Plan de sprint | Verifie | Fichier de suivi mis a jour |
+| Structure GitOps | Verifie | `gitops/` cree avec separation plateforme/app/environnements |
+| Render Kustomize plateforme | Verifie | `kubectl kustomize gitops/platform` |
+| Render Kustomize staging | Verifie | `kubectl kustomize gitops/environments/staging` |
+| Render Kustomize prod | Verifie | `kubectl kustomize gitops/environments/prod` |
+| Validation YAML GitOps | Verifie | `yamllint gitops` |
+| Validation schemas Kubernetes | Verifie | `kubeconform -strict -ignore-missing-schemas` sur les rendus Kustomize |
+| Schemas Draw.io | Verifie | `validate.py --score` OK et exports SVG generes |
 | Installation Argo CD | Planifie | A renseigner |
 | Sync GitOps staging | Planifie | A renseigner |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
 
-Aucun ecart identifie a ce stade. Les decisions structurantes seront ajoutees
-pendant le sprint si elles depassent le simple choix d'implementation locale.
+- Decision : `platform/` est synchronise separement des environnements
+  applicatifs. Cela evite qu'une app staging porte par accident des ressources
+  globales du cluster ou des objets prod.
+- Decision : `S1-T1` reste sans effet de bord runtime. Les validations sont
+  limitees au rendu local et aux schemas.
+- Ecart accepte : la convention cible parle d'`ApplicationSet`, mais aucun
+  objet Argo CD n'est encore cree. C'est reporte a `S1-T2` pour garder le
+  premier lot simple et explicable.
+
+## Prochaine etape
+
+`S1-T2` : installer Argo CD sur le lab local, documenter l'acces, puis valider
+que le control plane GitOps est sain avant de lui confier des applications.

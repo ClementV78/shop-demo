@@ -36,6 +36,14 @@ Regle de lecture :
 | MiniStack infra locale | [`ministack-local-infra.svg`](ministack-local-infra.svg) | [`ministack-local-infra.drawio`](ministack-local-infra.drawio) | `docs/sprints/sprint-0-ansible.md` |
 | Tunnels Cloudflare locaux | [`cloudflare-tunnels-local.svg`](cloudflare-tunnels-local.svg) | [`cloudflare-tunnels-local.drawio`](cloudflare-tunnels-local.drawio) | `docs/architecture/01-local-lab.md` |
 
+## Sprint 1 et GitOps
+
+| Schema | Rendu | Source | Utilise par |
+|---|---|---|---|
+| Vue GitOps locale | [`s1-gitops-local-overview.svg`](s1-gitops-local-overview.svg) | [`s1-gitops-local-overview.drawio`](s1-gitops-local-overview.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
+| Structure du repo GitOps | [`s1-gitops-repo-structure.svg`](s1-gitops-repo-structure.svg) | [`s1-gitops-repo-structure.drawio`](s1-gitops-repo-structure.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
+| Modele de promotion GitOps | [`s1-gitops-promotion-model.svg`](s1-gitops-promotion-model.svg) | [`s1-gitops-promotion-model.drawio`](s1-gitops-promotion-model.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
+
 ## Architecture cible
 
 | Schema | Rendu principal | Source | Rendu interactif |

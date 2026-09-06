@@ -29,13 +29,16 @@ sert un besoin visible du systeme, au lieu d'etre ajoutee pour cocher une case.
 
 ## Ce qui existe aujourd'hui
 
-Etat verifie : Sprint 0, centre sur Ansible et le bootstrap local.
+Etat verifie : Sprint 0 est clos ; Sprint 1 a demarre avec `S1-T1`, centre sur
+la structure GitOps locale.
 
 Le depot contient actuellement :
 
 - une documentation d'architecture cible dans [`../ARCHITECTURE.md`](../ARCHITECTURE.md) ;
 - un bootstrap Ansible local avec `k3s`, `Cilium`, `MiniStack`,
   `cloudflare-tunnel`, `gitlab-runner` et `node-hardening` ;
+- une premiere structure GitOps locale dans [`../gitops/`](../gitops/),
+  encore sans Argo CD installe ;
 - des tests Molecule pour les roles Ansible applicables ;
 - des playbooks futurs cadres pour `runner-setup`, `rds-setup` et
   `gitea-setup`, mais sans execution cloud par defaut ;
@@ -50,7 +53,7 @@ Ce qui n'existe pas encore comme implementation complete :
 - les microservices Go de ShopDemo ;
 - les modules Terraform AWS complets ;
 - le cluster EKS reel ;
-- Argo CD et le repo GitOps local ;
+- Argo CD installe et synchronisant le repo GitOps local ;
 - l'observabilite complete ;
 - le runtime agentique applicatif.
 
@@ -143,7 +146,7 @@ Lecture recommandee :
 4. [`../ARCHITECTURE.md`](../ARCHITECTURE.md) pour la cible complete.
 5. [`CURRENT.md`](CURRENT.md) pour savoir quoi faire maintenant.
 6. Le fichier du sprint actif, actuellement
-   [`sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md).
+   [`sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md).
 
 Regle pratique : si un document de sprint devient trop detaille, il sert de
 journal de preuves. Pour comprendre le projet, commencer par les documents

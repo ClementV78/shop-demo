@@ -204,6 +204,8 @@ Le projet cherche un bon equilibre entre fidelite technique, cout et vitesse d'a
 
 - [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) - vision globale, etat actuel et discours de presentation
 - [`docs/glossaire.md`](docs/glossaire.md) - definitions courtes des composants et concepts
+- [`docs/gitops-structure.md`](docs/gitops-structure.md) - structure GitOps locale, conventions et validations
+- [`docs/concepts-sprint-1.md`](docs/concepts-sprint-1.md) - concepts GitOps et Argo CD du Sprint 1
 - [`docs/decouverte-ministack.md`](docs/decouverte-ministack.md) - synthese de decouverte MiniStack
 - [`docs/deep-dive-cilium-k3s-ufw.md`](docs/deep-dive-cilium-k3s-ufw.md) - deep dive de diagnostic local
 - [`docs/sprint-planning.md`](docs/sprint-planning.md) - planification par sprint

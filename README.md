@@ -47,7 +47,14 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 ## Quick start
 
-Ce qui existe aujourd'hui (Sprint 0) : un bootstrap local reproductible autour d'Ansible, avec les roles `k3s-install`, `cilium-setup`, `ministack-setup`, `cloudflare-tunnel` et `gitlab-runner`. Les validations reelles vont jusqu'au service `gitlab-runner` actif sur l'hote local, a son enregistrement sur `GitLab.com`, puis a un pipeline de smoke passe sur la branche `test/gitlab-runner-smoke`. Le reste de la plateforme AWS/EKS applicative arrive sprint par sprint.
+Ce qui existe aujourd'hui : un bootstrap local reproductible autour d'Ansible,
+avec les roles `k3s-install`, `cilium-setup`, `ministack-setup`,
+`cloudflare-tunnel` et `gitlab-runner`, puis une premiere structure GitOps
+locale dans [`gitops/`](gitops/). Les validations reelles vont jusqu'au
+service `gitlab-runner` actif sur l'hote local, a son enregistrement sur
+`GitLab.com`, puis a un pipeline de smoke passe sur la branche
+`test/gitlab-runner-smoke`. Le reste de la plateforme AWS/EKS applicative
+arrive sprint par sprint.
 
 ```bash
 git clone https://github.com/ClementV78/shop-demo.git
@@ -75,17 +82,17 @@ Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent 
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
-![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Planifié-lightgrey?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
+![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-En_cours-yellow?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
 
 | | |
 |---|---|
-| Sprint actif | Aucun sprint en cours ; `Sprint 1` est pret a demarrer |
+| Sprint actif | `Sprint 1` - Argo CD et base GitOps locale |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
 |---|---|---|---|
 | 0 | Ansible et fondations bootstrap | Terminé | [`sprint-0-ansible.md`](docs/sprints/sprint-0-ansible.md) |
-| 1 | Argo CD et base GitOps locale | Planifié | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
+| 1 | Argo CD et base GitOps locale | En cours | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
 | 2 | Landing Zone AWS | Planifié | À créer avant démarrage |
 | 3 | Plateforme AWS et EKS | Planifié | À créer avant démarrage |
 | 4 | Observabilité | Planifié | À créer avant démarrage |
@@ -94,9 +101,9 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Focus courant** : `Sprint 0` est clos. Le rerun reel de `bootstrap.yml`
-valide l'idempotence globale du lab local avec `changed=0` au deuxieme passage.
-La prochaine action est de demarrer `Sprint 1` par le cadrage GitOps local.
+**Focus courant** : `Sprint 1` est demarre. `S1-T1` a pose la structure
+GitOps locale dans [`gitops/`](gitops/) et les schemas/documents de lecture.
+La prochaine action est `S1-T2` : installer Argo CD sur le lab local.
 
 ## Démarrer ici
 
@@ -106,6 +113,8 @@ La prochaine action est de demarrer `Sprint 1` par le cadrage GitOps local.
 | [`docs/glossaire.md`](docs/glossaire.md) | Definitions courtes : Cilium, Hubble, CoreDNS, Terraform, GitOps, AWS, etc. |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Conception cible, stack, arbitrages |
 | [`docs/architecture/08-agentic-mvp.md`](docs/architecture/08-agentic-mvp.md) | MVP agentique, separation produit/tests |
+| [`docs/gitops-structure.md`](docs/gitops-structure.md) | Structure GitOps locale, conventions et validations |
+| [`docs/concepts-sprint-1.md`](docs/concepts-sprint-1.md) | Concepts GitOps/Argo CD du Sprint 1 |
 | [`docs/sprint-planning.md`](docs/sprint-planning.md) | Détail des objectifs et livrables par sprint |
 | [`AGENTS.md`](AGENTS.md) | Règles de travail pour les agents IA du dépôt |
 | [`docs/CURRENT.md`](docs/CURRENT.md) | Sprint actif et tâches en cours |
@@ -119,6 +128,7 @@ La prochaine action est de demarrer `Sprint 1` par le cadrage GitOps local.
 .
 ├── ansible/   # Provisioning et configuration des hôtes (k3s, Cilium, runners, hardening)
 ├── docs/      # Suivi de projet : sprints, ADR, preuves
+├── gitops/    # Etat Kubernetes desire, synchronise plus tard par Argo CD
 ├── AGENTS.md
 ├── ARCHITECTURE.md
 └── LEARNING.md

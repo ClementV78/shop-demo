@@ -16,6 +16,22 @@ Le pipeline separe :
 
 `Trivy` ne met pas a jour le repo GitOps. Son role est de bloquer ou laisser passer l'artefact. Le commit GitOps est fait par l'etape dediee `update-gitops-tag`, typiquement avec `[skip ci]`.
 
+## Base GitOps locale
+
+Le Sprint 1 demarre par une structure GitOps locale, versionnee dans
+[`../../gitops/`](../../gitops/), avant l'installation effective d'Argo CD.
+
+Le cadrage detaille vit dans
+[`../gitops-structure.md`](../gitops-structure.md). Il separe :
+
+- `platform/` pour les ressources transverses du cluster ;
+- `apps/` pour les bases applicatives reutilisables ;
+- `environments/` pour les assemblages staging/prod ;
+- `argocd/` pour les objets Argo CD qui arriveront a partir de `S1-T2`.
+
+Etat actuel : seuls la structure, les namespaces et les validations locales
+sont en place. Aucun `ApplicationSet` n'est encore applique au cluster.
+
 ## Vue GitLab cible
 
 <p align="center"><img src="../diagrams/gitlab-architecture.svg" alt="Architecture GitLab cible du projet" width="980"></p>

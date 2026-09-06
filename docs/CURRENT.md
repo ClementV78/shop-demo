@@ -2,10 +2,8 @@
 
 ## Sprint actif
 
-Pas de sprint en cours.
-
 Sprint 0 - Ansible et fondations bootstrap : `Termine`.
-Sprint 1 - Argo CD et base GitOps locale : pret a demarrer.
+Sprint 1 - Argo CD et base GitOps locale : `En cours`.
 
 Suivi detaille :
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
@@ -15,21 +13,20 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T1 | Cadrer la structure GitOps locale | Planifie | Demarrer Sprint 1 apres commit du lot Sprint 0 |
+| S1-T2 | Installer Argo CD sur le lab local | Planifie | Preparer l'installation, les manifests Argo CD et les validations sans exposer de secret |
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
+
+Taches terminees du Sprint 1 :
+`S1-T1`.
 
 ## Blocages
 
 Aucun blocage actif.
 
 Points de vigilance non bloquants :
-- Des changements sont en cours dans le worktree : cadrage MVP agentique, cours
-  accelere Ansible, playbooks `S0-T12`, schema Draw.io, corrections de cloture
-  et docs associees. Ils doivent etre relus puis commites apres validation
-  finale.
 - `cloudflared` et d'autres tunnels preexistaient deja sur l'hote ; le role
   ShopDemo reste volontairement non intrusif.
 - Le reset k3s/Cilium du 2026-09-05 a supprime l'ancien etat Kubernetes local ;
@@ -63,16 +60,29 @@ Points de vigilance non bloquants :
   - premier rerun reel apres correction APT GitHub CLI : `changed=2`,
     uniquement sur les fichiers `node-hardening` attendus ;
   - deuxieme rerun reel : `ok=59`, `changed=0`, `failed=0`, `skipped=43`.
+- `S1-T1` est termine :
+  - structure GitOps locale creee dans [`gitops/`](../gitops/) ;
+  - namespaces plateforme et applicatifs separes ;
+  - rendus Kustomize, YAML et schemas Kubernetes valides localement ;
+  - trois schemas Draw.io ajoutes pour expliquer vue d'ensemble, structure repo
+    et promotion.
 
 ## Documents de reference immediats
 
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
 - Sprint 0 detaille : [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
+- Sprint 1 detaille : [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md)
+- Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
+- Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
 
+- `S1-T1` a demarre Sprint 1 avec une base GitOps sans effet de bord runtime :
+  `gitops/platform`, `gitops/apps`, `gitops/environments` et `gitops/argocd`
+  existent, les namespaces declaratifs sont separes, et la documentation
+  explique le modele avant l'installation Argo CD.
 - `S0-T12` est termine : les playbooks futurs
   `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml` existent avec
   `*_apply=false` par defaut, assertions d'inputs, secrets externes et aucune
@@ -135,10 +145,12 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Relire le diff Sprint 0 et verifier qu'aucun secret ou chemin local inutile
-   n'est versionne.
-2. Committer le lot de cloture Sprint 0.
-3. Demarrer `S1-T1` : cadrer la structure GitOps locale.
+1. Demarrer `S1-T2` : installer Argo CD sur le lab local avec une procedure
+   documentee et reversible.
+2. Verifier que le namespace `argocd` existe ou sera cree par le chemin GitOps
+   avant l'installation.
+3. Definir les premieres commandes de validation : pods Argo CD, service,
+   acces UI/API et absence de secret versionne.
 
 ## Rappel de maintenance
 
