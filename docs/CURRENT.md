@@ -80,6 +80,11 @@ Points de vigilance non bloquants :
 
 ## Dernieres actions utiles
 
+- [`docs/comment-ca-marche.md`](comment-ca-marche.md) et
+  [`docs/gitops-structure.md`](gitops-structure.md) clarifient maintenant la
+  difference entre Gitea, Argo CD, Kustomize et Kubernetes, ainsi que le chemin
+  exact par lequel les fichiers `kustomization.yaml` rendent les namespaces
+  `argocd`, `gateway-system`, `shopdemo-staging` et `shopdemo-prod`.
 - `S1-T1` a demarre Sprint 1 avec une base GitOps sans effet de bord runtime :
   `gitops/platform`, `gitops/apps`, `gitops/environments` et `gitops/argocd`
   existent, les namespaces declaratifs sont separes, et la documentation

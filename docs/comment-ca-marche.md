@@ -397,6 +397,43 @@ mais ils ne font rien tant que l'activation n'est pas explicite.
 
 ## S1-T1 - Comment la base GitOps commence
 
+### Vue globale : Git, Gitea, Argo CD, Kustomize et Kubernetes
+
+Avant de rentrer dans les fichiers, il faut separer les responsabilites. Dans
+un flux GitOps, plusieurs outils apparaissent cote a cote, mais ils ne font pas
+le meme travail.
+
+```mermaid
+flowchart LR
+  D[Developpeur ou CI] --> G[GitHub ou Gitea<br/>repo GitOps]
+  G --> A[Argo CD<br/>controleur GitOps]
+  A --> K[Kustomize<br/>rendu YAML]
+  K --> API[API Kubernetes]
+  API --> R[Namespaces et workloads]
+```
+
+Gitea et Argo CD ne sont donc pas deux manieres concurrentes de deployer.
+Gitea est un serveur Git self-hosted : il stocke des repositories, des commits
+et des branches. Argo CD est un controleur Kubernetes : il lit un repository
+Git, compare ce qu'il y trouve avec l'etat reel du cluster, puis synchronise le
+cluster quand c'est autorise.
+
+Le projet prevoit Gitea pour demontrer un GitOps plus autonome dans le lab :
+un repo GitOps prive, heberge dans l'environnement maitrise, pourra contenir
+l'etat souhaite du cluster. Mais Argo CD n'a pas besoin de Gitea en soi. Il
+peut lire GitHub, GitLab ou Gitea. La vraie relation est donc :
+
+```text
+Gitea ou GitHub = la source de verite Git
+Argo CD = le moteur qui reconcilie cette source avec Kubernetes
+Kustomize = l'outil qui transforme les dossiers YAML en manifests finaux
+Kubernetes = le systeme qui stocke et execute l'etat reel
+```
+
+Aujourd'hui, dans `S1-T1`, on ne deploie pas encore Argo CD et on ne s'appuie
+pas encore sur Gitea. On prepare seulement le contenu que GitOps devra lire :
+les dossiers, les namespaces et les points d'entree Kustomize.
+
 ### Le probleme qu'on resout
 
 Apres Sprint 0, on a un cluster local utilisable. La question devient :
@@ -454,9 +491,15 @@ ressources prod ou des ressources globales du cluster.
 
 ### Le role exact de Kustomize
 
-Dans chaque dossier deployable, il y a un `kustomization.yaml`.
+La vue globale de Kustomize est simple : il ne decide pas quoi deployer, il ne
+parle pas a Git, et il ne surveille pas le cluster. Il prend un dossier en
+entree et produit du YAML Kubernetes en sortie.
 
-Exemple dans [`gitops/platform/kustomization.yaml`](../gitops/platform/kustomization.yaml) :
+Dans chaque dossier deployable, il y a donc un `kustomization.yaml`. Ce fichier
+est la table des matieres du dossier.
+
+Exemple dans
+[`gitops/platform/kustomization.yaml`](../gitops/platform/kustomization.yaml) :
 
 ```yaml
 resources:
@@ -464,7 +507,44 @@ resources:
 ```
 
 Ce fichier ne cree rien par lui-meme. Il dit seulement a Kustomize :
-"pour rendre ce dossier, inclus cette ressource".
+"pour rendre ce dossier, inclus le dossier `namespaces/base`".
+
+Kustomize suit alors le chemin et lit
+[`gitops/platform/namespaces/base/kustomization.yaml`](../gitops/platform/namespaces/base/kustomization.yaml) :
+
+```yaml
+resources:
+  - namespaces.yaml
+```
+
+Ce deuxieme fichier pointe enfin vers
+[`gitops/platform/namespaces/base/namespaces.yaml`](../gitops/platform/namespaces/base/namespaces.yaml),
+qui contient les vrais objets Kubernetes :
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    app.kubernetes.io/part-of: shopdemo-platform
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway-system
+  labels:
+    app.kubernetes.io/part-of: shopdemo-platform
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: platform
+```
+
+La reponse concrete a "ou est-ce qu'on lui dit de creer les namespaces ?" est
+donc : on ne le dit pas a Kustomize sous forme d'ordre special. On met des
+objets Kubernetes `kind: Namespace` dans `namespaces.yaml`, puis on reference ce
+fichier dans la chaine des `resources`.
 
 Quand on lance :
 
@@ -481,10 +561,37 @@ La nuance importante :
 ```text
 kubectl kustomize = rendre le YAML
 kubectl apply -k = rendre puis appliquer
+Argo CD sync = rendre puis reconcilier depuis Git
 ```
 
 Pour `S1-T1`, on utilise seulement le rendu. C'est ce qui permet de valider la
 structure GitOps sans modifier le cluster.
+
+Le meme principe existe pour les environnements applicatifs :
+
+```text
+gitops/environments/staging/kustomization.yaml
+  -> namespace.yaml
+  -> Namespace shopdemo-staging
+
+gitops/environments/prod/kustomization.yaml
+  -> namespace.yaml
+  -> Namespace shopdemo-prod
+```
+
+Les labels donnent une information lisible et filtrable :
+
+```yaml
+app.kubernetes.io/part-of: shopdemo
+app.kubernetes.io/managed-by: gitops
+shopdemo.io/environment: staging
+```
+
+`argocd` existe parce que le prochain lot installera le control plane Argo CD
+dans ce namespace. `gateway-system` existe parce que Gateway API, NGINX Gateway
+Fabric et les composants d'entree/authentification doivent rester separes des
+applications metier. `shopdemo-staging` et `shopdemo-prod` existent pour que les
+workloads applicatifs aient des frontieres claires par environnement.
 
 ### Comment les validations prouvent le cadrage
 

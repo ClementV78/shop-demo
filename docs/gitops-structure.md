@@ -72,6 +72,40 @@ de `S1-T2`, Argo CD observera Git, rendra les manifests, comparera le resultat
 avec l'etat reel du cluster `k3s`, puis synchronisera si la politique choisie
 l'autorise.
 
+### Gitea, Argo CD et Kustomize : qui fait quoi
+
+La vue globale a retenir est celle-ci : Git garde l'intention, Argo CD verifie
+que le cluster respecte cette intention, Kustomize prepare le YAML final, puis
+Kubernetes applique l'etat reel.
+
+Gitea se place du cote Git. C'est l'equivalent self-hosted d'un service comme
+GitHub ou GitLab pour ce besoin precis : heberger un repository, recevoir des
+commits, exposer des branches et des tags. Il ne cree pas de pods et ne parle
+pas directement a l'API Kubernetes.
+
+Argo CD se place du cote Kubernetes. C'est un control plane qui tourne dans le
+cluster. Il lit un repository Git, detecte les ecarts entre Git et Kubernetes,
+puis synchronise les manifests si la politique du projet l'autorise.
+
+Kustomize est encore plus specialise : il assemble des fichiers YAML. Argo CD
+peut l'utiliser automatiquement, et `kubectl kustomize` peut l'utiliser
+localement pour verifier le rendu. Mais Kustomize seul ne surveille rien et ne
+deploie rien.
+
+Dans le projet, cela donne :
+
+```text
+GitHub aujourd'hui, Gitea plus tard -> repository GitOps
+Argo CD a partir de S1-T2          -> reconciliation Git vers Kubernetes
+Kustomize depuis S1-T1             -> rendu local des manifests
+Kubernetes                        -> namespaces, workloads et etat reel
+```
+
+Gitea et Argo CD sont donc complementaires, pas redondants. On garde les deux
+dans la cible parce qu'ils montrent deux competences differentes : heberger et
+organiser une source de verite GitOps d'un cote, faire tourner un reconciler
+Kubernetes de l'autre.
+
 ### Kustomize en clair
 
 Kustomize n'est ni un orchestrateur, ni un outil qui deploie tout seul.
@@ -112,6 +146,87 @@ La valeur de Kustomize ici est de garder une structure progressive :
 - `platform/` pour ce qui appartient au cluster ;
 - `apps/` pour les bases applicatives reutilisables ;
 - `environments/` pour ce qui change entre staging et prod.
+
+### Exemple concret : d'ou viennent les namespaces
+
+Quand on dit que `S1-T1` configure seulement des namespaces, il faut lire cela
+de facon tres concrete : les fichiers GitOps actuels ne contiennent presque que
+des objets Kubernetes `kind: Namespace`.
+
+Le point d'entree plateforme est
+[`../gitops/platform/kustomization.yaml`](../gitops/platform/kustomization.yaml) :
+
+```yaml
+resources:
+  - namespaces/base
+```
+
+Ce fichier ne nomme pas directement `argocd` ou `gateway-system`. Il dit a
+Kustomize d'inclure le dossier `namespaces/base`. Dans ce dossier,
+[`../gitops/platform/namespaces/base/kustomization.yaml`](../gitops/platform/namespaces/base/kustomization.yaml)
+pointe vers le fichier qui contient les objets reels :
+
+```yaml
+resources:
+  - namespaces.yaml
+```
+
+Le fichier
+[`../gitops/platform/namespaces/base/namespaces.yaml`](../gitops/platform/namespaces/base/namespaces.yaml)
+contient alors deux ressources :
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    app.kubernetes.io/part-of: shopdemo-platform
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway-system
+  labels:
+    app.kubernetes.io/part-of: shopdemo-platform
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: platform
+```
+
+Kustomize n'a pas une instruction speciale du type "create namespace". Il rend
+simplement ces deux objets Kubernetes parce qu'ils sont references dans les
+`resources`. La creation reelle arrivera seulement si on applique le rendu :
+
+```bash
+kubectl apply -k gitops/platform
+```
+
+ou, plus tard, si Argo CD synchronise ce chemin Git.
+
+Le meme mecanisme existe cote environnements. En staging,
+[`../gitops/environments/staging/kustomization.yaml`](../gitops/environments/staging/kustomization.yaml)
+inclut `namespace.yaml`, et ce fichier declare :
+
+```yaml
+metadata:
+  name: shopdemo-staging
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: staging
+```
+
+En prod, le meme modele declare `shopdemo-prod` avec
+`shopdemo.io/environment: prod`.
+
+Ces namespaces ont chacun une intention :
+
+- `argocd` recevra le control plane Argo CD ;
+- `gateway-system` isolera les composants Gateway API / NGINX Gateway Fabric ;
+- `shopdemo-staging` isolera les workloads de validation ;
+- `shopdemo-prod` isolera le chemin production-like.
 
 ## Arborescence
 
