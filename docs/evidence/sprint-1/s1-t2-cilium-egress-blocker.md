@@ -115,22 +115,68 @@ flowchart TB
    nftables), qui fait que le noyau ne les considere pas identiques malgre un
    texte `-S` identique.
 
-## Etat a la fin de la session
+## Resolution
 
-Non resolu. Diagnostic complet et cause racine identifiee, mais le correctif
-manuel n'a pas abouti. Options pour la suite, documentees dans
-[`../../CURRENT.md`](../../CURRENT.md) section "Blocages" :
+Resolution validee le 2026-09-07.
 
-1. Reprovisionner Cilium via le role Ansible idempotent `cilium-setup`
-   (recommande : repart d'un etat propre plutot que de corriger les regles
-   iptables a la main).
-2. Continuer le diagnostic manuel iptables/nftables avec le proprietaire.
-3. En dernier recours, redemarrage complet du noeud.
+Un ajout manuel temporaire de MASQUERADE dans la chaine active
+`CILIUM_POST_nat` a d'abord confirme la cause effective : des que le trafic
+pod `10.42.0.0/24` etait masque par l'IP de l'hote, un pod de test pouvait de
+nouveau resoudre et joindre `https://gitlab.com`.
+
+Ce workaround n'a pas ete conserve comme etat cible. Apres redemarrage complet
+du noeud local `minipc-devops-1`, le playbook reproductible a ete relance :
+
+```bash
+cd /home/xclem/projetsperso/shop-demo/ansible
+ansible-playbook playbooks/cilium-setup.yml
+```
+
+Resultat synthetique :
+
+```text
+localhost : ok=15 changed=0 unreachable=0 failed=0 skipped=2
+Cilium: OK
+Operator: OK
+Envoy DaemonSet: OK
+Hubble Relay: OK
+Cluster Pods: 14/14 managed by Cilium
+```
+
+La chaine active `CILIUM_POST_nat` a ete reconstruite par Cilium lui-meme :
+
+```text
+-A CILIUM_POST_nat -s 10.42.0.0/24 ! -d 10.42.0.0/24 ! -o cilium_+ \
+  -m comment --comment "cilium masquerade non-cluster" -j MASQUERADE
+```
+
+La regle temporaire ajoutee pendant le diagnostic n'etait plus presente :
+
+```bash
+sudo iptables -t nat -S CILIUM_POST_nat | grep temporary || echo "NO_TEMP_RULE"
+# NO_TEMP_RULE
+```
+
+Validation egress pod :
+
+```bash
+kubectl run net-test -n default --image=busybox:1.36 --restart=Never -- sleep 3600
+kubectl wait --for=condition=Ready pod/net-test -n default --timeout=60s
+kubectl exec net-test -n default -- nslookup gitlab.com
+kubectl exec net-test -n default -- wget -qO /dev/null https://gitlab.com && echo "HTTPS_OK"
+kubectl delete pod net-test -n default
+```
+
+Resultat :
+
+```text
+gitlab.com resolves through CoreDNS (10.43.0.10)
+HTTPS_OK
+```
 
 ## Non-impact sur l'installation Argo CD
 
-Ce blocage est independant de la configuration Argo CD, qui est correcte et
-n'aura besoin d'aucune modification une fois le reseau retabli :
+Ce blocage etait independant de la configuration Argo CD :
 
 - Argo CD `v3.5.2` installe via manifest officiel pinne, 7 pods `Running`.
 - Secret de credential Git prive cree dans le cluster (jamais commite), token
@@ -138,3 +184,29 @@ n'aura besoin d'aucune modification une fois le reseau retabli :
   `read_repository`).
 - `Application` `platform` creee, ciblant `gitops/platform` sur
   `https://gitlab.com/ClementV78/shopdemo.git` branche `main`.
+
+Apres resolution de l'egress Cilium, un refresh hard Argo CD a relance la
+comparaison Git :
+
+```bash
+kubectl annotate application platform -n argocd \
+  argocd.argoproj.io/refresh=hard \
+  --overwrite
+kubectl get applications -n argocd
+```
+
+Resultat :
+
+```text
+NAME       SYNC STATUS   HEALTH STATUS
+platform   Synced        Healthy
+```
+
+Revision synchronisee :
+
+```text
+57763f42f5eb4e6333d42bfbe5c6ba392dd0accc
+```
+
+Conclusion : `S1-T2` est valide de bout en bout. Argo CD lit GitLab, rend le
+chemin Kustomize `gitops/platform`, et synchronise les namespaces attendus.

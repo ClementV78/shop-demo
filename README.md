@@ -102,8 +102,9 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
 **Focus courant** : `Sprint 1` est demarre. `S1-T1` a pose la structure
-GitOps locale dans [`gitops/`](gitops/) et les schemas/documents de lecture.
-La prochaine action est `S1-T2` : installer Argo CD sur le lab local.
+GitOps locale, puis `S1-T2` a installe Argo CD et valide une premiere
+synchronisation depuis GitLab. La prochaine action est `S1-T3` : definir les
+namespaces et NetworkPolicies de base.
 
 ## Démarrer ici
 

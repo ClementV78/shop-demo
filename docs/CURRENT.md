@@ -47,46 +47,48 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T2 | Installer Argo CD sur le lab local | Bloque (reseau Cilium) | Reparer l'egress pod (voir "Blocages"), puis relancer la synchro de l'`Application` `platform` deja creee |
+| S1-T3 | Definir les namespaces et NetworkPolicies de base | Planifie | Cadrer les flux autorises sans casser l'egress pod valide pendant `S1-T2` |
 
 Objectif de reprise :
 
-- installer Argo CD sur le `k3s` local, sans exposition publique au depart ;
-- utiliser la structure GitOps deja posee par `S1-T1` ;
-- faire lire a Argo CD le repo GitOps `GitLab.com`, source de verite
+- demarrer `S1-T3` sans remettre en cause l'installation Argo CD validee ;
+- conserver GitLab.com comme source de verite GitOps
   ([`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)) ;
-- creer une premiere `Application` minimale ;
-- verifier que le chemin `repo GitOps -> Argo CD -> Kubernetes` fonctionne.
+- definir les namespaces et NetworkPolicies de base de maniere progressive ;
+- verifier que les futures policies ne cassent ni DNS interne, ni egress
+  GitLab, ni la reconciliation Argo CD.
 
-Validation attendue pour `S1-T2` :
+Validation de non-regression attendue pendant `S1-T3` :
 
-- `kubectl get pods -n argocd` montre les composants Argo CD en etat sain ;
-- `kubectl get applications -n argocd` montre au moins une application ;
-- la synchronisation applique un etat simple deja versionne, par exemple des
-  namespaces ou une app minimale ;
+- `kubectl get applications -n argocd` garde `platform` en `Synced` /
+  `Healthy` ;
+- un pod de test resout `gitlab.com` via CoreDNS ;
+- un pod de test atteint `https://gitlab.com` ;
 - aucun secret n'est versionne ;
 - Cloudflare reste hors scope tant que l'acces local suffit.
 
 Point de cadrage :
 
-Ne pas transformer `S1-T2` en plateforme GitOps complete. Le but MVP est :
-Argo CD tourne, lit le repo GitOps, applique un etat simple, et le projet sait
-l'expliquer proprement.
+Ne pas transformer `S1-T3` en modele reseau complet. Le but MVP est :
+des namespaces et policies de base comprehensibles, testables et compatibles
+avec le flux GitOps deja valide.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`.
+`S1-T1`, `S1-T2`.
 
 ## Blocages
 
-**Blocage actif (depuis 2026-09-07) : egress reseau casse sur tout le cluster
-k3s, regression Cilium independante d'Argo CD.**
+Pas de blocage actif.
+
+Incident resolu le 2026-09-07 : egress reseau casse sur tout le cluster
+`k3s`, regression Cilium independante d'Argo CD.
 
 Symptome : aucun pod ne peut sortir du cluster (DNS, ping passerelle LAN
-`192.168.31.1`, requetes HTTP externes echouent toutes en timeout). Bloque la
+`192.168.31.1`, requetes HTTP externes echouent toutes en timeout). Bloquait la
 synchronisation de l'`Application` Argo CD `platform` (`ComparisonError:
 failed to list refs ... dial tcp: lookup gitlab.com ... server misbehaving`),
 mais le probleme est plus large que GitOps : c'est une panne reseau
@@ -114,15 +116,31 @@ Deja tente, sans succes complet :
   divergence de representation interne iptables/nftables entre la regle
   recreee et celle que Cilium cherche a supprimer).
 
-Options pour la suite, a valider avec le proprietaire avant d'agir (risque
-reseau sur l'hote local, hors perimetre `S1-T2`) :
-1. Reprovisionner Cilium proprement via le role Ansible idempotent
-   `cilium-setup` (deja teste Molecule), qui devrait repartir d'un etat propre
-   plutot que de corriger les regles iptables a la main.
-2. Continuer le diagnostic manuel iptables/nftables (fastidieux, necessite des
-   commandes `sudo` repetees qui peuvent etre bloquees par le classifieur de
-   permission de l'environnement agent).
-3. En dernier recours, redemarrage complet du noeud `minipc-devops-1`.
+Resolution :
+- la premiere validation a separe le probleme DNS interne du probleme egress :
+  `kubernetes.default.svc.cluster.local` etait resolu par CoreDNS, mais
+  `gitlab.com`, `http://1.1.1.1` et la passerelle LAN restaient injoignables
+  depuis un pod. Le routage/service Kubernetes fonctionnait donc, mais pas la
+  sortie pod vers l'exterieur ;
+- l'inspection iptables a montre que `POSTROUTING` envoyait bien le trafic
+  vers la chaine active `CILIUM_POST_nat`, mais que cette chaine etait vide.
+  Les regles MASQUERADE utiles etaient encore dans `OLD_CILIUM_POST_nat`,
+  chaine inactive et non referencee ;
+- un ajout manuel temporaire de MASQUERADE dans `CILIUM_POST_nat` a servi de
+  test de causalite : des que le trafic pod `10.42.0.0/24` etait masque par
+  l'IP de l'hote, un pod pouvait de nouveau resoudre et joindre GitLab. Cette
+  regle manuelle etait volontairement un workaround de diagnostic, pas une
+  configuration cible ;
+- la reparation durable choisie a ete de revenir a un etat Cilium propre :
+  redemarrage complet du noeud `minipc-devops-1`, puis relance du playbook
+  [`ansible/playbooks/cilium-setup.yml`](../ansible/playbooks/cilium-setup.yml).
+  Cilium a alors reconstruit lui-meme `CILIUM_POST_nat` avec ses regles
+  normales, notamment `cilium masquerade non-cluster` ;
+- la verification post-reboot a confirme que la regle temporaire n'etait plus
+  presente (`NO_TEMP_RULE`), que `net-test` resolvait `gitlab.com` via
+  CoreDNS, que l'acces HTTPS vers GitLab repondait (`HTTPS_OK`), puis qu'un
+  refresh hard Argo CD faisait passer l'`Application` `platform` en
+  `Synced` / `Healthy`.
 
 Diagnostic complet (boucle hypothese/commande/observation, schema Mermaid) :
 [`docs/evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](evidence/sprint-1/s1-t2-cilium-egress-blocker.md).
@@ -167,8 +185,8 @@ Points de vigilance non bloquants :
   - rendus Kustomize, YAML et schemas Kubernetes valides localement ;
   - trois schemas Draw.io ajoutes pour expliquer vue d'ensemble, structure repo
     et promotion.
-- `S1-T2` partiellement avance (2026-09-07), bloque par la panne reseau
-  Cilium (voir "Blocages") :
+- `S1-T2` termine (2026-09-07), apres resolution de la panne reseau Cilium
+  (voir "Blocages") :
   - Argo CD `v3.5.2` installe via manifest officiel pinne (pas `stable`
     flottant), verse dans [`gitops/argocd/install.yaml`](../gitops/argocd/install.yaml) ;
   - installation faite en `--server-side` (le CRD `applicationsets.argoproj.io`
@@ -183,8 +201,11 @@ Points de vigilance non bloquants :
     ([`gitops/argocd/bootstrap-application-platform.yaml`](../gitops/argocd/bootstrap-application-platform.yaml)),
     ciblant `gitops/platform` sur `https://gitlab.com/ClementV78/shopdemo.git`
     branche `main`, sync automatise + self-heal ;
-  - sync actuellement `Unknown` / health `Healthy` : bloque par l'absence
-    d'egress reseau du cluster, pas par la config Argo CD elle-meme.
+  - sync finale `Synced` / `Healthy` a la revision GitLab
+    `57763f42f5eb4e6333d42bfbe5c6ba392dd0accc` ;
+  - validation egress post-reboot : Cilium `OK`, `CILIUM_POST_nat`
+    repeuplee par Cilium, `net-test` vers `gitlab.com` OK, aucune regle
+    temporaire conservee.
 
 ## Documents de reference immediats
 
@@ -207,12 +228,10 @@ Points de vigilance non bloquants :
 
 ## Dernieres actions utiles
 
-- Session du 2026-09-07 (suite) : Argo CD installe et une premiere
-  `Application` `platform` configuree pour `S1-T2`, mais la synchronisation
-  est bloquee par une panne d'egress reseau du cluster (Cilium), documentee
-  en detail dans "Blocages" ci-dessus. Ne pas re-tenter d'installer Argo CD
-  depuis zero : l'installation est deja bonne, seul le reseau doit etre
-  repare.
+- Session du 2026-09-07 (suite) : Argo CD installe et premiere `Application`
+  `platform` synchronisee depuis GitLab. La panne d'egress Cilium qui bloquait
+  la comparaison GitOps a ete resolue par redemarrage du noeud puis relance du
+  playbook `cilium-setup`; le workaround iptables manuel n'est pas conserve.
 - `ADR-007` tranche le point laisse ouvert par `ADR-002` : `GitLab.com`
   devient la source de verite unique pour le code, la CI et le repo GitOps lu
   par Argo CD ; `GitHub` reste un miroir public en lecture seule via le push
@@ -308,15 +327,12 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Reparer l'egress reseau du cluster (voir "Blocages") avant de continuer
-   `S1-T2` : Argo CD et l'`Application` `platform` sont deja en place et n'ont
-   besoin d'aucune reconfiguration une fois le reseau retabli.
-2. Une fois l'egress retabli, verifier `kubectl get application platform -n
-   argocd` : `Sync Status` doit passer a `Synced` et les namespaces `argocd`
-   et `gateway-system` doivent apparaitre reconcilies.
-3. Documenter la preuve de synchronisation dans
-   [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md)
-   (tableau "Preuves") une fois `S1-T2` valide de bout en bout.
+1. Demarrer `S1-T3` : definir les namespaces et NetworkPolicies de base.
+2. Avant toute policy restrictive, garder une validation de non-regression :
+   DNS interne, egress GitLab depuis un pod de test, puis etat Argo CD
+   `Synced` / `Healthy`.
+3. Ne pas conserver de regle iptables manuelle comme configuration cible :
+   Cilium doit rester responsable du datapath et du masquerade.
 
 ## Rappel de maintenance
 

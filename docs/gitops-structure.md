@@ -67,10 +67,11 @@ deploie rien. Elle permet juste de poser la question : "si Argo CD ou kubectl
 rendait ce dossier maintenant, quel YAML Kubernetes sortirait ?". C'est pour
 cela qu'on peut valider `S1-T1` sans modifier le cluster.
 
-La partie Argo CD est volontairement dessinee comme une etape suivante. A partir
-de `S1-T2`, Argo CD observera Git, rendra les manifests, comparera le resultat
-avec l'etat reel du cluster `k3s`, puis synchronisera si la politique choisie
-l'autorise.
+La partie Argo CD est volontairement dessinee comme une etape suivante par
+rapport a `S1-T1`. Depuis `S1-T2` (termine le 2026-09-07), Argo CD observe
+reellement Git, rend les manifests, compare le resultat avec l'etat reel du
+cluster `k3s`, et synchronise selon la politique choisie (sync automatise +
+self-heal pour l'`Application` `platform`).
 
 ### Git, Argo CD et Kustomize : qui fait quoi
 
@@ -99,7 +100,7 @@ Dans le projet, cela donne :
 ```text
 GitLab.com (source de verite)         -> repository GitOps
 GitHub (miroir public, lecture seule) -> vitrine portfolio
-Argo CD a partir de S1-T2          -> reconciliation Git vers Kubernetes
+Argo CD depuis S1-T2               -> reconciliation Git vers Kubernetes
 Kustomize depuis S1-T1             -> rendu local des manifests
 Kubernetes                        -> namespaces, workloads et etat reel
 ```
@@ -295,13 +296,16 @@ gitops/
 | `gitops/apps/` | Bases applicatives reutilisables | Placeholder documente |
 | `gitops/environments/staging/` | Assemblage de validation locale/staging | Namespace `shopdemo-staging` |
 | `gitops/environments/prod/` | Assemblage production-like | Namespace `shopdemo-prod` |
-| `gitops/argocd/` | Objets Argo CD | Placeholder pour `S1-T2+` |
+| `gitops/argocd/` | Objets Argo CD | Placeholder a `S1-T1`, rempli depuis `S1-T2` (`install.yaml`, `bootstrap-application-platform.yaml`) |
+
+Mise a jour `S1-T2` (2026-09-07) : `gitops/argocd/` n'est plus un placeholder,
+Argo CD est installe et l'`Application` `platform` est `Synced` / `Healthy`.
 
 ## Namespaces
 
 | Namespace | Responsabilite | Remarque |
 |---|---|---|
-| `argocd` | Control plane GitOps | Argo CD sera installe plus tard |
+| `argocd` | Control plane GitOps | Argo CD `v3.5.2` installe et actif depuis `S1-T2` |
 | `gateway-system` | Gateway API / NGINX Gateway Fabric / auth gateway | Reserve aux composants plateforme |
 | `shopdemo-staging` | Workloads applicatifs de validation | Environnement non production |
 | `shopdemo-prod` | Workloads applicatifs production-like | Active plus tard par promotion explicite |

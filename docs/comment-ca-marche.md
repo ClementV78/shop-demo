@@ -39,6 +39,13 @@ mettre l'etat Kubernetes desire dans [`../gitops/`](../gitops/). A ce stade,
 Kustomize sert seulement a rendre les YAML localement pour verifier ce qui
 serait applique plus tard.
 
+Mise a jour `S1-T2` (2026-09-07) : Argo CD est desormais reellement installe
+et synchronise depuis GitLab. La section `S1-T1` ci-dessous decrit
+volontairement l'etat d'avant Argo CD, pour expliquer la progression pas a
+pas ; la suite se trouve dans le chapitre
+["S1-T2 - Comment Argo CD est installe et synchronise"](#s1-t2---comment-argo-cd-est-installe-et-synchronise)
+plus bas dans ce document.
+
 ## Sprint 0 - Comment le lab local est construit
 
 ### Le point d'entree : un playbook qui raconte l'ordre
@@ -582,8 +589,8 @@ app.kubernetes.io/managed-by: gitops
 shopdemo.io/environment: staging
 ```
 
-`argocd` existe parce que le prochain lot installera le control plane Argo CD
-dans ce namespace. `gateway-system` existe parce que Gateway API, NGINX Gateway
+`argocd` existe parce que ce namespace accueille le control plane Argo CD,
+installe depuis `S1-T2`. `gateway-system` existe parce que Gateway API, NGINX Gateway
 Fabric et les composants d'entree/authentification doivent rester separes des
 applications metier. `shopdemo-staging` et `shopdemo-prod` existent pour que les
 workloads applicatifs aient des frontieres claires par environnement.
@@ -612,6 +619,120 @@ kubeconform -strict -ignore-missing-schemas <rendered-yaml>
 C'est une validation adaptee au niveau du sprint. On ne simule pas une maturite
 qui n'existe pas encore ; on prouve seulement le contrat du lot courant.
 
+## S1-T2 - Comment Argo CD est installe et synchronise
+
+### Le probleme qu'on resout
+
+`S1-T1` a pose l'intention dans Git (namespaces, structure `gitops/`), mais
+rien ne la lisait encore. Sans un controleur qui observe le repository, cette
+intention reste juste du YAML inerte : personne ne compare, personne ne
+reconcilie. `S1-T2` installe ce controleur : Argo CD.
+
+### Ce que `S1-T2` met vraiment en place
+
+Trois objets concrets, dans [`../gitops/argocd/`](../gitops/argocd/) :
+
+```text
+gitops/argocd/
+  install.yaml                        # Argo CD lui-meme (CRD, controllers, RBAC)
+  bootstrap-application-platform.yaml # la premiere Application
+  README.md
+```
+
+`install.yaml` est le manifest officiel du projet Argo CD, telecharge depuis
+un tag versionne (`v3.5.2`), pas depuis l'alias flottant `stable` :
+
+```bash
+curl -sL -o gitops/argocd/install.yaml \
+  https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.2/manifests/install.yaml
+```
+
+Pourquoi un tag et pas `stable` : `stable` peut pointer vers une version
+differente demain, ce qui rendrait l'installation non reproductible d'une
+session a l'autre. Un tag fige la version que ce depot documente reellement.
+
+Premiere subtilite technique : ce manifest ne s'installe pas avec un simple
+`kubectl apply`. Le CRD `applicationsets.argoproj.io` est trop volumineux pour
+l'annotation `kubectl.kubernetes.io/last-applied-configuration` que le
+client-side apply essaie d'y ecrire (limite de 262144 octets). Il faut
+utiliser l'apply cote serveur, qui ne pose pas cette annotation :
+
+```bash
+kubectl apply -n argocd -f gitops/argocd/install.yaml \
+  --server-side --force-conflicts
+```
+
+Une fois Argo CD vivant (7 pods dans le namespace `argocd`), il lui faut une
+premiere `Application` : l'objet qui lui dit *quel* repo Git lire et *quel*
+chemin y surveiller.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://gitlab.com/ClementV78/shopdemo.git
+    targetRevision: main
+    path: gitops/platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+`prune: true` supprime du cluster ce qui disparait de Git. `selfHeal: true`
+annule automatiquement toute derive manuelle (un `kubectl edit` fait a la main
+sur une ressource geree serait ecrase au prochain cycle). C'est volontaire :
+le but de GitOps est que Git reste la seule source d'ecriture durable.
+
+### Le repo prive et le credential Git
+
+Le repo `ClementV78/shopdemo` est prive sur GitLab. Argo CD a donc besoin d'un
+identifiant pour cloner. Ce credential ne vit jamais dans Git : il est cree
+directement comme `Secret` Kubernetes, avec un token GitLab dedie et minimal
+(role `Reporter`, scope `read_repository` uniquement, pas le token plus
+privilegie deja utilise par la CI).
+
+Deuxieme subtilite technique, facile a oublier : Argo CD ne reconnait un
+`Secret` comme credential de repository que s'il porte un label precis. Sans
+ce label, le secret existe mais Argo CD l'ignore silencieusement :
+
+```bash
+kubectl label secret argocd-repo-shopdemo -n argocd \
+  argocd.argoproj.io/secret-type=repository
+```
+
+### Ce qui peut casser autour d'Argo CD sans que ce soit Argo CD
+
+Le premier essai de synchronisation de `S1-T2` a echoue non pas a cause d'Argo
+CD, mais a cause d'une panne d'egress reseau du cluster (une regression
+Cilium heritee du reset du 2026-09-05) : aucun pod ne pouvait sortir vers
+Internet, donc Argo CD ne pouvait pas cloner le repo. La lecon a retenir : un
+`Sync Status: Unknown` avec une erreur `dial tcp: lookup ... server
+misbehaving` n'est pas forcement un probleme de configuration GitOps, ca peut
+etre la couche reseau en dessous. Diagnostic complet, boucle
+hypothese/commande/observation et schema du blocage :
+[`evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](evidence/sprint-1/s1-t2-cilium-egress-blocker.md).
+
+### Comment les validations prouvent que ca marche
+
+```bash
+kubectl get pods -n argocd
+kubectl get applications -n argocd
+kubectl get application platform -n argocd \
+  -o jsonpath='{.status.sync.status}{" / "}{.status.health.status}{"\n"}'
+```
+
+La preuve attendue est `Synced / Healthy`, sans qu'aucun secret n'ait ete
+committe dans Git a aucun moment de ce lot.
+
 ## Ce qu'il faut savoir raconter en entretien
 
 Le discours court :
@@ -621,8 +742,8 @@ Le discours court :
 > d'agir, utilisent des handlers quand un service doit reagir a un changement,
 > et sont testes avec Molecule pour verifier converge, idempotence et etat
 > final. Ensuite, j'ai introduit une structure GitOps : Git porte l'etat desire,
-> Kustomize rend les manifests, et Argo CD sera ajoute ensuite pour synchroniser
-> le cluster.
+> Kustomize rend les manifests, et Argo CD synchronise le cluster depuis un
+> repo GitLab prive.
 
 Les points techniques a maitriser :
 

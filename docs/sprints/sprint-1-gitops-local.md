@@ -14,7 +14,7 @@ Conception cible :
 | ID | Tache | Etat | Depend de |
 |---|---|---|---|
 | S1-T1 | Cadrer la structure GitOps locale | Termine | S0 |
-| S1-T2 | Installer Argo CD sur le lab local | Planifie | S1-T1 |
+| S1-T2 | Installer Argo CD sur le lab local | Termine | S1-T1 |
 | S1-T3 | Definir les namespaces et NetworkPolicies de base | Planifie | S1-T1 |
 | S1-T4 | Creer les manifests applicatifs minimaux | Planifie | S1-T1 |
 | S1-T5 | Ajouter ApplicationSet staging | Planifie | S1-T2, S1-T4 |
@@ -81,8 +81,8 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Schemas Draw.io | Verifie | `validate.py --score` OK et exports SVG generes |
 | Installation Argo CD | Verifie | `v3.5.2` pinne, `gitops/argocd/install.yaml`, 7 pods `Running`, 3 CRD presentes |
 | Credential Git prive Argo CD | Verifie | Secret cluster non commite, token GitLab dedie lecture seule `argocd-readonly` (role `Reporter`, scope `read_repository`) |
-| Application `platform` | Cree, bloque | `gitops/argocd/bootstrap-application-platform.yaml`, cible `gitops/platform`, `Sync Status: Unknown` |
-| Sync GitOps plateforme | Bloque | Panne egress reseau Cilium independante d'Argo CD, diagnostiquee dans [`../evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](../evidence/sprint-1/s1-t2-cilium-egress-blocker.md) |
+| Application `platform` | Verifie | `gitops/argocd/bootstrap-application-platform.yaml`, cible `gitops/platform`, `Synced` / `Healthy` |
+| Sync GitOps plateforme | Verifie | Reconciliation Argo CD reussie depuis GitLab apres resolution du blocage Cilium, voir [`../evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](../evidence/sprint-1/s1-t2-cilium-egress-blocker.md) |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
@@ -96,10 +96,44 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
   `ADR-002`. Le repo GitOps cible est `GitLab.com`, source de verite, avec
   `GitHub` en miroir public (`ADR-007`).
 - Ecart accepte : la convention cible parle d'`ApplicationSet`, mais aucun
-  objet Argo CD n'est encore cree. C'est reporte a `S1-T2` pour garder le
-  premier lot simple et explicable.
+  `ApplicationSet` n'est encore cree. La premiere synchronisation utilise une
+  `Application` minimale ; les `ApplicationSet` restent prevus pour `S1-T5` et
+  `S1-T6`.
+
+## S1-T2 - Installer Argo CD sur le lab local
+
+Etat : `Termine`.
+
+Objectif : installer Argo CD sur le lab local, sans exposition publique au
+depart, puis valider qu'il lit le repo GitOps GitLab et synchronise un etat
+simple deja versionne.
+
+Livrables :
+
+- Argo CD `v3.5.2` installe via manifest officiel pinne dans
+  [`../../gitops/argocd/install.yaml`](../../gitops/argocd/install.yaml) ;
+- installation appliquee en server-side apply pour accepter la taille des CRD
+  Argo CD ;
+- credential Git prive cree dans le cluster, avec un token GitLab dedie
+  lecture seule (`Reporter`, scope `read_repository`) et non versionne ;
+- premiere `Application` `platform` creee dans
+  [`../../gitops/argocd/bootstrap-application-platform.yaml`](../../gitops/argocd/bootstrap-application-platform.yaml),
+  pointant vers `gitops/platform` sur GitLab `main` ;
+- synchronisation Argo CD validee : `platform` est `Synced` / `Healthy`.
+
+Incident resolu :
+
+- une panne egress Cilium preexistante a bloque la comparaison GitLab
+  (`ComparisonError`) pendant la validation ;
+- un workaround iptables a confirme la cause (`CILIUM_POST_nat` active vide),
+  mais n'a pas ete conserve comme etat cible ;
+- la reparation durable a ete validee apres redemarrage du noeud local et
+  relance du playbook [`../../ansible/playbooks/cilium-setup.yml`](../../ansible/playbooks/cilium-setup.yml) :
+  Cilium a reconstruit lui-meme `CILIUM_POST_nat`, l'egress pod vers GitLab
+  fonctionne, et Argo CD synchronise depuis GitLab.
 
 ## Prochaine etape
 
-`S1-T2` : installer Argo CD sur le lab local, documenter l'acces, puis valider
-que le control plane GitOps est sain avant de lui confier des applications.
+`S1-T3` : definir les namespaces et NetworkPolicies de base, en gardant en
+tete que l'egress Cilium est maintenant valide mais doit rester surveille lors
+des futures policies.

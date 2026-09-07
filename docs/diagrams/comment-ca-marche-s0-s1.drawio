@@ -56,7 +56,7 @@
         <mxCell id="18" value="kubectl kustomize&#xa;rend sans appliquer" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="15">
           <mxGeometry x="35" y="260" width="200" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="19" value="S1-T2&#xa;Argo CD prendra le relais" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff7cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="15">
+        <mxCell id="19" value="S1-T2 (termine)&#xa;Argo CD synchronise depuis GitLab" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="15">
           <mxGeometry x="45" y="345" width="180" height="58" as="geometry" />
         </mxCell>
         <mxCell id="20" value="orchestrent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8fb8ff;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="3" target="7">

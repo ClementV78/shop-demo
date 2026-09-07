@@ -18,8 +18,9 @@ Le pipeline separe :
 
 ## Base GitOps locale
 
-Le Sprint 1 demarre par une structure GitOps locale, versionnee dans
-[`../../gitops/`](../../gitops/), avant l'installation effective d'Argo CD.
+Le Sprint 1 a demarre par une structure GitOps locale, versionnee dans
+[`../../gitops/`](../../gitops/), avant l'installation effective d'Argo CD
+(`S1-T1`).
 
 Le cadrage detaille vit dans
 [`../gitops-structure.md`](../gitops-structure.md). Il separe :
@@ -27,10 +28,12 @@ Le cadrage detaille vit dans
 - `platform/` pour les ressources transverses du cluster ;
 - `apps/` pour les bases applicatives reutilisables ;
 - `environments/` pour les assemblages staging/prod ;
-- `argocd/` pour les objets Argo CD qui arriveront a partir de `S1-T2`.
+- `argocd/` pour les objets Argo CD, installes depuis `S1-T2`.
 
-Etat actuel : seuls la structure, les namespaces et les validations locales
-sont en place. Aucun `ApplicationSet` n'est encore applique au cluster.
+Etat actuel (depuis `S1-T2`, 2026-09-07) : Argo CD `v3.5.2` est installe et
+la premiere `Application` (`platform`) est `Synced` / `Healthy` depuis
+`GitLab.com`. Aucun `ApplicationSet` n'est encore applique au cluster
+(prevu a partir de `S1-T5`/`S1-T6`).
 
 ## Vue GitLab cible
 

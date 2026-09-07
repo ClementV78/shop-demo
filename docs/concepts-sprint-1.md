@@ -65,16 +65,18 @@ Argo CD est utile parce qu'il rend visible l'ecart entre ces deux etats.
 
 ## 3. Argo CD
 
-Argo CD est le control plane GitOps prevu pour le projet.
+Argo CD est le control plane GitOps du projet.
 
-Il fera trois choses :
+Il fait trois choses :
 
 - observer un chemin Git ;
 - comparer les manifests rendus avec le cluster ;
 - synchroniser le cluster si la politique l'autorise.
 
-`S1-T1` cree seulement le namespace `argocd`. L'installation reelle est prevue
-dans `S1-T2`.
+`S1-T1` a cree seulement le namespace `argocd`. `S1-T2` (termine le
+2026-09-07) a installe Argo CD `v3.5.2` pour de vrai et cree la premiere
+`Application` (`platform`), qui est `Synced` / `Healthy` :
+preuve dans [`evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](evidence/sprint-1/s1-t2-cilium-egress-blocker.md).
 
 ## 4. Kustomize
 
