@@ -373,31 +373,29 @@ evolution, et voir precisement ce qui change".
 
 ### Pourquoi les playbooks futurs ont `apply=false`
 
-Le Sprint 0 a aussi cadre trois playbooks futurs :
+Le Sprint 0 a aussi cadre deux playbooks futurs :
 
 - [`ansible/playbooks/runner-setup.yml`](../ansible/playbooks/runner-setup.yml)
 - [`ansible/playbooks/rds-setup.yml`](../ansible/playbooks/rds-setup.yml)
-- [`ansible/playbooks/gitea-setup.yml`](../ansible/playbooks/gitea-setup.yml)
 
 Ils existent pour clarifier la frontiere Terraform / Ansible. Terraform creera
-les ressources AWS ou Kubernetes ; Ansible configurera ce qui vit apres la
-creation : runner, bases, users, organisation Gitea, repos.
+les ressources AWS ; Ansible configurera ce qui vit apres la creation :
+runner, bases et users.
 
 Le point cle est qu'ils sont inoffensifs par defaut :
 
 ```yaml
 runner_setup_apply: false
 rds_setup_apply: false
-gitea_setup_apply: false
 ```
 
-Cela permet de versionner l'interface attendue sans appeler AWS, RDS ou Gitea
-trop tot. Les playbooks documentent deja les inputs et les secrets attendus,
-mais ils ne font rien tant que l'activation n'est pas explicite.
+Cela permet de versionner l'interface attendue sans appeler AWS ou RDS trop
+tot. Les playbooks documentent deja les inputs et les secrets attendus, mais
+ils ne font rien tant que l'activation n'est pas explicite.
 
 ## S1-T1 - Comment la base GitOps commence
 
-### Vue globale : Git, Gitea, Argo CD, Kustomize et Kubernetes
+### Vue globale : Git, Argo CD, Kustomize et Kubernetes
 
 Avant de rentrer dans les fichiers, il faut separer les responsabilites. Dans
 un flux GitOps, plusieurs outils apparaissent cote a cote, mais ils ne font pas
@@ -405,34 +403,31 @@ le meme travail.
 
 ```mermaid
 flowchart LR
-  D[Developpeur ou CI] --> G[GitHub ou Gitea<br/>repo GitOps]
+  D[Developpeur ou CI] --> G[GitLab.com ou GitHub<br/>repo GitOps]
   G --> A[Argo CD<br/>controleur GitOps]
   A --> K[Kustomize<br/>rendu YAML]
   K --> API[API Kubernetes]
   API --> R[Namespaces et workloads]
 ```
 
-Gitea et Argo CD ne sont donc pas deux manieres concurrentes de deployer.
-Gitea est un serveur Git self-hosted : il stocke des repositories, des commits
-et des branches. Argo CD est un controleur Kubernetes : il lit un repository
-Git, compare ce qu'il y trouve avec l'etat reel du cluster, puis synchronise le
-cluster quand c'est autorise.
+Git et Argo CD ne font pas le meme travail. Git stocke des repositories, des
+commits et des branches. Argo CD est un controleur Kubernetes : il lit un
+repository Git, compare ce qu'il y trouve avec l'etat reel du cluster, puis
+synchronise le cluster quand c'est autorise.
 
-Le projet prevoit Gitea pour demontrer un GitOps plus autonome dans le lab :
-un repo GitOps prive, heberge dans l'environnement maitrise, pourra contenir
-l'etat souhaite du cluster. Mais Argo CD n'a pas besoin de Gitea en soi. Il
-peut lire GitHub, GitLab ou Gitea. La vraie relation est donc :
+Le projet ne deploie plus de forge Git self-hosted dans le MVP. La relation
+cible est donc :
 
 ```text
-Gitea ou GitHub = la source de verite Git
+GitLab.com ou GitHub = la source de verite Git
 Argo CD = le moteur qui reconcilie cette source avec Kubernetes
 Kustomize = l'outil qui transforme les dossiers YAML en manifests finaux
 Kubernetes = le systeme qui stocke et execute l'etat reel
 ```
 
-Aujourd'hui, dans `S1-T1`, on ne deploie pas encore Argo CD et on ne s'appuie
-pas encore sur Gitea. On prepare seulement le contenu que GitOps devra lire :
-les dossiers, les namespaces et les points d'entree Kustomize.
+Aujourd'hui, dans `S1-T1`, on ne deploie pas encore Argo CD. On prepare
+seulement le contenu que GitOps devra lire : les dossiers, les namespaces et
+les points d'entree Kustomize.
 
 ### Le probleme qu'on resout
 

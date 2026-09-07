@@ -43,7 +43,7 @@ Ce schema met l'accent sur les responsabilites :
 - `GitLab.com` porte la CI et les shared runners ;
 - le role OIDC AWS permet l'authentification sans cle longue duree ;
 - le runner bootstrap prive reste reserve aux jobs qui doivent entrer dans le reseau AWS ;
-- `Gitea` reste le support du repo GitOps, puis `Argo CD` applique l'etat desire sur le workload.
+- le repo GitOps vit sur GitLab.com ou GitHub, puis `Argo CD` applique l'etat desire sur le workload.
 
 ## Principes de livraison
 

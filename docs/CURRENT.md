@@ -76,20 +76,30 @@ Points de vigilance non bloquants :
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
-- Decision suppression Gitea : [`docs/adr/ADR-002-remove-gitea-from-mvp.md`](adr/ADR-002-remove-gitea-from-mvp.md)
+- Decision retrait forge self-hosted : `ADR-002`
+- Decisions structurantes Sprint 0 / S1-T1 :
+  [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md),
+  [`ADR-004`](adr/ADR-004-use-k3s-cilium-replacement-mode.md),
+  [`ADR-005`](adr/ADR-005-use-ministack-for-local-aws-validation.md),
+  [`ADR-006`](adr/ADR-006-structure-gitops-platform-apps-environments.md)
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
 
-- [`ADR-002`](adr/ADR-002-remove-gitea-from-mvp.md) acte la suppression de
-  Gitea de la cible MVP GitOps. Gitea devient une extension optionnelle non
-  planifiee ; le chemin cible devient `GitLab.com` ou `GitHub` -> repo GitOps
-  -> Argo CD -> Kubernetes. Le nettoyage des references Gitea dans
-  l'architecture, les schemas, le sprint planning et le playbook
-  `gitea-setup.yml` reste a traiter dans un lot dedie.
+- Le retrait de la forge Git self-hosted a ete propage aux documents courants,
+  aux schemas sources/exports, au role `cloudflare-tunnel`, aux consignes
+  agents et aux playbooks Ansible : l'ancien playbook de forge a ete supprime.
+- Quatre ADR courts ont ete ajoutes pour acter les decisions structurantes
+  deja prises pendant Sprint 0 et `S1-T1` : separation Terraform
+  `bootstrap/workload`, k3s local avec Cilium en replacement mode, MiniStack
+  comme validation AWS locale limitee, et structure GitOps
+  `platform/apps/environments`.
+- `ADR-002` acte le retrait de la forge Git self-hosted de la cible MVP
+  GitOps. Le chemin cible devient `GitLab.com` ou `GitHub` -> repo GitOps ->
+  Argo CD -> Kubernetes.
 - [`docs/comment-ca-marche.md`](comment-ca-marche.md) et
   [`docs/gitops-structure.md`](gitops-structure.md) clarifient maintenant la
-  difference entre Gitea, Argo CD, Kustomize et Kubernetes, ainsi que le chemin
+  difference entre Git, Argo CD, Kustomize et Kubernetes, ainsi que le chemin
   exact par lequel les fichiers `kustomization.yaml` rendent les namespaces
   `argocd`, `gateway-system`, `shopdemo-staging` et `shopdemo-prod`.
 - `S1-T1` a demarre Sprint 1 avec une base GitOps sans effet de bord runtime :
@@ -99,10 +109,9 @@ Points de vigilance non bloquants :
 - Ajout de [`docs/comment-ca-marche.md`](comment-ca-marche.md), document vivant
   pour expliquer techniquement comment les sprints sont construits dans le
   code, avec Sprint 0 et `S1-T1` couverts.
-- `S0-T12` est termine : les playbooks futurs
-  `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml` existent avec
-  `*_apply=false` par defaut, assertions d'inputs, secrets externes et aucune
-  action AWS/RDS/Gitea par defaut.
+- `S0-T12` est termine : les playbooks futurs `runner-setup.yml` et
+  `rds-setup.yml` existent avec `*_apply=false` par defaut, assertions
+  d'inputs, secrets externes et aucune action AWS/RDS par defaut.
 - `S0-T13` a traite le probleme local k3s/Cilium : l'ancien etat k3s
   referencait encore `192.168.31.200` dans les master leases. Le cluster local
   a ete reconstruit via Ansible, puis Cilium a ete rendu explicite sur

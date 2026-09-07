@@ -40,8 +40,8 @@ Le depot contient actuellement :
 - une premiere structure GitOps locale dans [`../gitops/`](../gitops/),
   encore sans Argo CD installe ;
 - des tests Molecule pour les roles Ansible applicables ;
-- des playbooks futurs cadres pour `runner-setup`, `rds-setup` et
-  `gitea-setup`, mais sans execution cloud par defaut ;
+- des playbooks futurs cadres pour `runner-setup` et `rds-setup`, mais sans
+  execution cloud par defaut ;
 - une roadmap par sprint dans [`sprint-planning.md`](sprint-planning.md).
 
 <p align="center">

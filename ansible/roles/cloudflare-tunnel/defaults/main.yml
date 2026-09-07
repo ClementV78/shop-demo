@@ -4,8 +4,10 @@ cloudflare_tunnel_shopdemo_service_name: cloudflared-shopdemo
 cloudflare_tunnel_shopdemo_token: ""
 cloudflare_tunnel_shopdemo_token_env_var_name: TUNNEL_TOKEN
 cloudflare_tunnel_shopdemo_env_dir: /etc/cloudflared
-cloudflare_tunnel_shopdemo_env_file: "{{ cloudflare_tunnel_shopdemo_env_dir }}/shopdemo.env"
-cloudflare_tunnel_shopdemo_systemd_unit_path: "/etc/systemd/system/{{ cloudflare_tunnel_shopdemo_service_name }}.service"
+cloudflare_tunnel_shopdemo_env_file: >-
+  {{ cloudflare_tunnel_shopdemo_env_dir }}/shopdemo.env
+cloudflare_tunnel_shopdemo_systemd_unit_path: >-
+  /etc/systemd/system/{{ cloudflare_tunnel_shopdemo_service_name }}.service
 cloudflare_tunnel_shopdemo_binary_path: ""
 cloudflare_tunnel_shopdemo_manage_systemd: true
 cloudflare_tunnel_shopdemo_enabled: true
@@ -26,7 +28,3 @@ cloudflare_tunnel_shopdemo_future_routes:
     service: http://127.0.0.1:3000
     state: planned
     owner: grafana
-  - hostname: gitea.shopdemo.example.com
-    service: http://127.0.0.1:3001
-    state: planned
-    owner: gitea

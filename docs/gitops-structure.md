@@ -72,16 +72,15 @@ de `S1-T2`, Argo CD observera Git, rendra les manifests, comparera le resultat
 avec l'etat reel du cluster `k3s`, puis synchronisera si la politique choisie
 l'autorise.
 
-### Gitea, Argo CD et Kustomize : qui fait quoi
+### Git, Argo CD et Kustomize : qui fait quoi
 
 La vue globale a retenir est celle-ci : Git garde l'intention, Argo CD verifie
 que le cluster respecte cette intention, Kustomize prepare le YAML final, puis
 Kubernetes applique l'etat reel.
 
-Gitea se place du cote Git. C'est l'equivalent self-hosted d'un service comme
-GitHub ou GitLab pour ce besoin precis : heberger un repository, recevoir des
-commits, exposer des branches et des tags. Il ne cree pas de pods et ne parle
-pas directement a l'API Kubernetes.
+GitLab.com ou GitHub se placent du cote Git. Leur role est d'heberger un
+repository, recevoir des commits, exposer des branches et des tags. Ils ne
+creent pas de pods et ne parlent pas directement a l'API Kubernetes.
 
 Argo CD se place du cote Kubernetes. C'est un control plane qui tourne dans le
 cluster. Il lit un repository Git, detecte les ecarts entre Git et Kubernetes,
@@ -95,16 +94,15 @@ deploie rien.
 Dans le projet, cela donne :
 
 ```text
-GitHub aujourd'hui, Gitea plus tard -> repository GitOps
+GitLab.com ou GitHub                  -> repository GitOps
 Argo CD a partir de S1-T2          -> reconciliation Git vers Kubernetes
 Kustomize depuis S1-T1             -> rendu local des manifests
 Kubernetes                        -> namespaces, workloads et etat reel
 ```
 
-Gitea et Argo CD sont donc complementaires, pas redondants. On garde les deux
-dans la cible parce qu'ils montrent deux competences differentes : heberger et
-organiser une source de verite GitOps d'un cote, faire tourner un reconciler
-Kubernetes de l'autre.
+Git et Argo CD sont donc complementaires, pas redondants. Le MVP garde un repo
+Git existant comme source de verite et reserve l'effort d'exploitation a Argo
+CD, qui apporte la valeur GitOps principale cote Kubernetes.
 
 ### Kustomize en clair
 
@@ -381,6 +379,6 @@ kubectl kustomize gitops/environments/prod | kubeconform -strict -ignore-missing
 - appliquer les manifests sur le cluster ;
 - ajouter les workloads applicatifs ;
 - stocker des secrets ;
-- connecter Gitea ou GitLab CI au repo GitOps.
+- connecter GitLab CI ou GitHub Actions au repo GitOps.
 
 Ces sujets commencent a partir de `S1-T2`.

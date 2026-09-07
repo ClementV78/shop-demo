@@ -313,7 +313,6 @@ Exemples cibles dans ce projet :
 - `k3s-install.yml`
 - `runner-setup.yml`
 - `rds-setup.yml`
-- `gitea-setup.yml`
 - `harden.yml`
 - `teardown.yml`
 
@@ -351,9 +350,8 @@ Lecture :
 |---|---|---|---|---|---|
 | `runner-setup.yml` | EC2 runner bootstrap | host cible, URL GitLab, tags runner, executor | token runner GitLab | Docker executor via le role `gitlab-runner` | Creation EC2, IAM, Security Groups |
 | `rds-setup.yml` | Instance RDS PostgreSQL | endpoint, port, admin user, liste databases/users | mot de passe admin RDS, mots de passe applicatifs | databases et users least-privilege | Creation RDS, rotation Secrets Manager, migrations schema |
-| `gitea-setup.yml` | Gitea expose par Helm | URL Gitea, organisation, repositories | token admin Gitea, futur token bot GitOps | organisation et repositories | Deploiement Helm, creation infra, token bot tant que l'API/version n'est pas pinnee |
 
-Les trois playbooks affichent leur plan en mode par defaut et n'appellent pas
+Les deux playbooks affichent leur plan en mode par defaut et n'appellent pas
 de service externe tant que la variable d'activation correspondante reste a
 `false`.
 
@@ -363,10 +361,8 @@ Commandes de validation initiales :
 cd ansible
 ansible-playbook --syntax-check playbooks/runner-setup.yml
 ansible-playbook --syntax-check playbooks/rds-setup.yml
-ansible-playbook --syntax-check playbooks/gitea-setup.yml
 
 ansible-playbook --check playbooks/rds-setup.yml
-ansible-playbook --check playbooks/gitea-setup.yml
 ```
 
 Pour `runner-setup.yml`, le check mode dependra de l'inventaire AWS futur ou
@@ -497,7 +493,7 @@ Cette structure soutient directement les objectifs du Sprint 0 :
 
 - rendre le serveur Ubuntu local reproductible ;
 - poser la frontiere Terraform/Ansible ;
-- preparer la reutilisation vers le runner EC2 bootstrap, RDS et Gitea ;
+- preparer la reutilisation vers le runner EC2 bootstrap et RDS ;
 - rendre les roles testables et reutilisables.
 
 Elle est donc volontairement plus structuree qu'un simple playbook unique :
@@ -534,7 +530,6 @@ document pour garder la lecture principale du general vers le particulier.
 | `gitlab-runner.yml` | `all` | `gitlab-runner` | Installer/enregistrer un runner cible | Token externe si registration active |
 | `runner-setup.yml` | EC2 runner bootstrap futur | `gitlab-runner` via `include_role` | Post-provisioning EC2 apres Terraform | `runner_setup_apply=false` par defaut |
 | `rds-setup.yml` | `localhost` | Modules `community.postgresql` | Post-provisioning databases/users RDS | `rds_setup_apply=false`, secrets externes |
-| `gitea-setup.yml` | `localhost` | Appels API Gitea idempotents | Post-provisioning org/repos Gitea | `gitea_setup_apply=false`, token externe |
 | `teardown.yml` | `local` | Tasks de nettoyage ShopDemo local | Nettoyage conservateur du lab | `teardown_confirm=true` obligatoire |
 
 ## Ce qui reste a faire
@@ -548,8 +543,6 @@ Prochaine etape logique :
 
 Point d'attention actuel :
 
-- les playbooks `runner-setup.yml`, `rds-setup.yml` et `gitea-setup.yml`
+- les playbooks `runner-setup.yml` et `rds-setup.yml`
   sont prepares, mais leurs chemins `*_apply=true` attendent les ressources
-  reelles creees par Terraform ou Helm ;
-- la creation du token bot GitOps Gitea reste a confirmer lorsque la version
-  Gitea et le contrat de l'API token seront pinnees.
+  reelles creees par Terraform.

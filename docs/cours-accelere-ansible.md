@@ -355,9 +355,7 @@ Ansible configure ce qui existe deja.
 Exemples futurs de `S0-T12` :
 
 - Terraform creera l'EC2 runner ; Ansible installera Docker et GitLab Runner ;
-- Terraform creera RDS ; Ansible creera les databases et users applicatifs ;
-- Terraform/Helm deployeront Gitea ; Ansible creera l'organisation, les repos
-  et le token bot GitOps.
+- Terraform creera RDS ; Ansible creera les databases et users applicatifs.
 
 Cette separation evite deux problemes classiques :
 

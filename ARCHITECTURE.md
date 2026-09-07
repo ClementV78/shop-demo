@@ -28,7 +28,7 @@
 > - `API Gateway AWS + Lambda` gerent le webhook paiement entrant ;
 > - `SNS + SQS` portent le fan-out asynchrone ;
 > - le bootstrap local et les validations MiniStack servent a preparer l'infra avant les validations sur AWS reel ;
-> - un tunnel Cloudflare **dedie ShopDemo** est prepare localement pour exposer plus tard `Argo CD`, `Grafana` et `Gitea` sans port entrant public, sans reprendre les autres tunnels preexistants de l'hote.
+> - un tunnel Cloudflare **dedie ShopDemo** est prepare localement pour exposer plus tard `Argo CD` et `Grafana` sans port entrant public, sans reprendre les autres tunnels preexistants de l'hote.
 
 ## Vue d'ensemble
 
@@ -110,9 +110,9 @@ Le poste local ne cherche pas a simuler toute la production. Il sert a accelerer
 Le lab local inclut aussi un **tunnel Cloudflare dedie `shopdemo`**, pilote par
 un service `systemd` isole et un token externe. Ce tunnel ne remplace pas les
 autres tunnels preexistants sur l'hote ; il prepare l'exposition future de
-`Argo CD`, `Grafana` et `Gitea` sans imposer de port entrant public sur le
-serveur local. Les routes metier finales restent configurees cote Cloudflare
-quand les origins locales existent reellement.
+`Argo CD` et `Grafana` sans imposer de port entrant public sur le serveur
+local. Les routes metier finales restent configurees cote Cloudflare quand les
+origins locales existent reellement.
 
 Detail : [`docs/architecture/01-local-lab.md`](docs/architecture/01-local-lab.md)
 

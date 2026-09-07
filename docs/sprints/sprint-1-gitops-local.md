@@ -28,7 +28,7 @@ Sprint demarre le 2026-09-06.
 Hypotheses de depart :
 
 - le cluster local `k3s` existe deja et Cilium est operationnel ;
-- les routes Cloudflare vers `argocd`, `grafana` et `gitea` restent raccordees
+- les routes Cloudflare vers `argocd` et `grafana` restent raccordees
   seulement quand les origins locales existent reellement ;
 - les secrets restent hors Git et seront injectes via une source externe ou un
   mecanisme documente pendant le sprint ;
@@ -90,6 +90,8 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
   globales du cluster ou des objets prod.
 - Decision : `S1-T1` reste sans effet de bord runtime. Les validations sont
   limitees au rendu local et aux schemas.
+- Decision : la forge Git self-hosted sort de la cible MVP GitOps via
+  `ADR-002`. Le repo GitOps cible sera heberge sur GitLab.com ou GitHub.
 - Ecart accepte : la convention cible parle d'`ApplicationSet`, mais aucun
   objet Argo CD n'est encore cree. C'est reporte a `S1-T2` pour garder le
   premier lot simple et explicable.

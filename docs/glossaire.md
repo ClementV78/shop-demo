@@ -95,7 +95,6 @@ remplace pas la documentation officielle des outils.
 | GitLab Runner | Agent qui execute les jobs GitLab CI | Local aujourd'hui, EC2 bootstrap plus tard |
 | GitOps | Modele ou Git porte l'etat desire du cluster | Argo CD synchronise depuis Git |
 | Argo CD | Controleur GitOps Kubernetes | Prevu au Sprint 1 |
-| Gitea | Forge Git auto-hebergeable | Prevue pour les repos GitOps/lab |
 | Kaniko | Build d'images conteneur sans daemon Docker privilegie | Prevu pour builds rootless |
 | SBOM | Inventaire des composants logiciels d'une image ou application | Prevu comme preuve supply chain |
 | Trivy | Scanner securite pour images, IaC et dependances | Prevu dans les pipelines |

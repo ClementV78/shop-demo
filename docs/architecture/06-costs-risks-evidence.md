@@ -43,7 +43,7 @@
 
 ## NAT Gateway vs VPC Endpoints
 
-Les `VPC Endpoints` couvrent le trafic AWS-to-AWS. Le `NAT Gateway` reste necessaire pour le trafic non-AWS : registries publiques, dependances externes, GitLab/Gitea, OCSP/CRL, APIs externes.
+Les `VPC Endpoints` couvrent le trafic AWS-to-AWS. Le `NAT Gateway` reste necessaire pour le trafic non-AWS : registries publiques, dependances externes, GitLab/GitHub, OCSP/CRL, APIs externes.
 
 ## Risques assumes
 

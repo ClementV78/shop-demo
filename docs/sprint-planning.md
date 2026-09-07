@@ -7,7 +7,7 @@
 **Durée estimée :** 2 semaines | **Coût AWS :** 0$ (local) + ~5$/mois (bootstrap EC2, dès activation)  
 **Lacunes adressées :** Ansible, idempotence, Molecule, dynamic inventory, frontière Terraform/Ansible
 
-**Objectif :** rendre le serveur Ubuntu entièrement reproductible via un seul playbook, ET poser la frontière Terraform (provisionne) / Ansible (configure) qui sera réutilisée sur l'EC2 runner, RDS et Gitea dans les sprints suivants.
+**Objectif :** rendre le serveur Ubuntu entièrement reproductible via un seul playbook, ET poser la frontière Terraform (provisionne) / Ansible (configure) qui sera réutilisée sur l'EC2 runner et RDS dans les sprints suivants.
 
 **Molecule** crée un container Docker, joue le role dedans, vérifie le résultat, puis vérifie l'idempotence en rejouant le role une seconde fois — un role correct ne doit rien modifier au second passage.
 
@@ -16,7 +16,7 @@
 - Role `k3s-install` — k3s sans CNI par défaut, kubeconfig configuré
 - Role `cilium-setup` — Cilium via Helm, Hubble activé (mode replacement sur k3s)
 - Role `ministack-setup` — MiniStack + profil AWS CLI `ministack` (Docker prerequis)
-- Role `cloudflare-tunnel` — cloudflared installé, sous-domaines `argocd.`, `grafana.`, `gitea.` — exposition sans port entrant
+- Role `cloudflare-tunnel` — cloudflared installé, sous-domaines `argocd.` et `grafana.` — exposition sans port entrant
 - Role `gitlab-runner` — runner enregistré en mode Docker executor
 - Role `node-hardening` — baseline CIS via `dev-sec.os-hardening` (Ubuntu)
 - Playbook `bootstrap.yml` — orchestre tous les roles, idempotent
@@ -28,7 +28,6 @@
 
 - Playbook `runner-setup.yml` — configure l'EC2 runner bootstrap après sa création par Terraform (Docker, gitlab-runner, enregistrement token)
 - Playbook `rds-setup.yml` — crée les databases et users PostgreSQL avec privilèges least-privilege, une fois RDS provisionné par Terraform
-- Playbook `gitea-setup.yml` — configure l'organisation, les repos et le token bot GitOps via l'API Gitea après déploiement Helm
 
 ```yaml
 # ansible/playbooks/rds-setup.yml — extrait
@@ -71,7 +70,7 @@
 spec:
   generators:
     - git:
-        repoURL: https://gitea.local/org/idp-gitops.git
+        repoURL: https://gitlab.com/shopdemo/shopdemo-gitops.git
         revision: staging
         directories:
           - path: k8s/staging/*
@@ -153,7 +152,6 @@ Cette Landing Zone couvre les fondamentaux d'une fondation multi-comptes (Organi
 - Module `api-gateway-webhook` — API Gateway AWS + Lambda `lambda-webhook-paiement` (Go) + validation HMAC signature provider + IAM role + CloudWatch logs
 - Cognito User Pool + App Client
 - External Secrets Operator — synchronise Secrets Manager → Kubernetes `Secret`
-- Gitea déployé via Helm. Post-déploiement : `ansible-playbook gitea-setup.yml` crée l'org, les repos et le token bot GitOps (cf. Sprint 0)
 
 > **OS — Ubuntu vs Amazon Linux 2023** : le serveur local et l'EC2 runner bootstrap utilisent Ubuntu 24.04 LTS (distribution la plus documentée pour k3s/Cilium, support large du role `dev-sec.os-hardening`). Les nodes EKS provisionnés par Karpenter utilisent **Amazon Linux 2023** — AMI optimisée AWS, intégration native ECR/IMDSv2/SSM, patches de sécurité plus rapides. Le hardening CIS est appliqué aux deux : Ubuntu via Ansible classique (Sprint 0), AL2023 via `ansible-pull` au boot des nodes (ci-dessous).
 
@@ -178,7 +176,7 @@ spec:
     # ansible-pull — le node se configure lui-même au boot,
     # pas de connexion SSH sortante depuis le control node
     dnf install -y ansible-core
-    ansible-pull -U https://gitea.local/org/idp-platform.git \
+    ansible-pull -U https://gitlab.com/shopdemo/shopdemo-platform.git \
       ansible/playbooks/harden.yml \
       -i localhost,
 ```
@@ -391,15 +389,15 @@ scan-security:
     expire_in: 30 days
 ```
 
-**Component `update-gitops-tag`** — token bot Gitea dédié (scope minimal), `[skip ci]` obligatoire, patch via `yq` :
+**Component `update-gitops-tag`** — token GitOps dédié (scope minimal), `[skip ci]` obligatoire, patch via `yq` :
 ```yaml
 update-gitops-tag:
   needs: [scan-security]
   image: mikefarah/yq@sha256:<digest>   # yq pinné par digest
   script:
     - DIGEST=$(cat digest.txt)
-    - git clone https://gitops-bot:$GITOPS_TOKEN@gitea.local/org/idp-gitops.git
-    - cd idp-gitops
+    - git clone https://gitops-bot:$GITOPS_TOKEN@gitlab.com/shopdemo/shopdemo-gitops.git
+    - cd shopdemo-gitops
     # yq avec chemin explicite — robuste aux variations d'indentation/structure,
     # contrairement à sed -i sur du YAML
     - yq -i ".image = \"${ECR_REGISTRY}/${SERVICE_NAME}@${DIGEST}\"" \

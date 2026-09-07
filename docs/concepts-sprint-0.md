@@ -220,8 +220,7 @@ Dans Sprint 0, il sert surtout a verifier que les playbooks futurs sont
 correctement cadres :
 
 - `runner-setup.yml` ;
-- `rds-setup.yml` ;
-- `gitea-setup.yml`.
+- `rds-setup.yml`.
 
 Ces playbooks ont une protection volontaire :
 
@@ -233,7 +232,7 @@ Cela veut dire :
 
 - on peut verifier leurs inputs ;
 - on peut documenter leur contrat ;
-- aucune connexion GitLab/RDS/Gitea n'est faite tant que l'apply n'est pas
+- aucune connexion GitLab/RDS n'est faite tant que l'apply n'est pas
   explicitement active.
 
 Limite importante : le check mode n'est pas une preuve complete d'idempotence
@@ -247,7 +246,7 @@ Le Sprint 0 pose aussi une frontiere importante :
 | Terraform | Ansible |
 |---|---|
 | Cree l'infrastructure | Configure les hotes et services |
-| Gere les states `bootstrap` et `workload` | Gere k3s, Cilium, runner, Gitea, RDS |
+| Gere les states `bootstrap` et `workload` | Gere k3s, Cilium, runner et RDS |
 | Produit des outputs | Consomme des inputs |
 | Decrit des ressources cloud | Decrit l'etat attendu d'un systeme |
 

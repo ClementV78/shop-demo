@@ -30,7 +30,7 @@ Lorsqu'une tache correspond a un skill, lisez son `SKILL.md` avant d'agir.
 | Architecture AWS, revue, arbitrages et ADR | `aws-architecture-review` |
 | Revue AWS Well-Architected complete | `wa-review` |
 | Terraform, states, modules, Landing Zone, IAM et infrastructure AWS | `idp-terraform-engineer` |
-| Ansible, Molecule, Ubuntu/k3s, runners, RDS/Gitea et hardening | `idp-ansible-engineer` |
+| Ansible, Molecule, Ubuntu/k3s, runners, RDS et hardening | `idp-ansible-engineer` |
 | GitLab CI, OIDC, runners, Kaniko, SBOM, scans, GitOps et releases | `idp-devops-engineer` |
 | EKS/k3s, Cilium, Gateway API, Argo CD, Karpenter, IRSA, ESO et Kyverno | `idp-eks-platform-engineer` |
 | Go, Lambda, PostgreSQL, SNS/SQS, idempotence, HMAC, logs et Bruno | `shopdemo-go-engineer` |
@@ -98,7 +98,7 @@ La montee en competence du proprietaire est un objectif aussi important que la l
 - Conservez strictement la separation `bootstrap` permanent / `workload` ephemere.
 - Le destroy du workload ne doit jamais detruire le runner, le backend, le verrou ou le role dont il depend.
 - Examinez les plans pour les destructions, expositions publiques, extensions IAM, changements de region, tags manquants, couts et erreurs de state.
-- Terraform provisionne l'infrastructure ; Ansible configure les hotes, runners, services, bases, Gitea et le hardening.
+- Terraform provisionne l'infrastructure ; Ansible configure les hotes, runners, services, bases et le hardening.
 - Les roles Ansible doivent etre idempotents, ne pas journaliser de secrets et etre testes avec Molecule lorsque pertinent.
 
 ### Kubernetes Et EKS

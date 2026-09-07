@@ -57,7 +57,7 @@ bootstrap local.
 >   deja presents, volontairement hors schema detaille ;
 > - le token `shopdemo` est lu depuis `/etc/cloudflared/shopdemo.env`, donc
 >   **hors Git** et hors `ExecStart` ;
-> - les routes `argocd`, `grafana` et `gitea` sont **planifiees** cote
+> - les routes `argocd` et `grafana` sont **planifiees** cote
 >   Cloudflare, mais ne doivent etre branchees qu'une fois les origins locales
 >   reelles disponibles.
 
@@ -87,7 +87,7 @@ bootstrap local.
   impacter les autres tunnels hors perimetre du projet.
 - **Pedagogie** : le sprint prouve le pattern "tunnel dedie + secret externe +
   service systemd" sans attendre le Sprint 1 pour disposer d'`Argo CD`,
-  `Grafana` et `Gitea`.
+  et `Grafana`.
 
 ### Ce qui est implemente vs planifie
 
@@ -101,7 +101,7 @@ bootstrap local.
 
 **Planifie**
 
-- creation ou mise a jour des routes `argocd`, `grafana`, `gitea` cote
+- creation ou mise a jour des routes `argocd` et `grafana` cote
   Cloudflare une fois les services locaux disponibles ;
 - validation end-to-end de chaque hostname public ;
 - eventuelle integration de ce role dans un futur `bootstrap.yml`.
@@ -113,7 +113,7 @@ Le role ne cree pas l'objet tunnel cote Cloudflare a lui seul. Il suppose :
 - un tunnel `shopdemo` deja cree dans Cloudflare ;
 - un token `cloudflared` associe a ce tunnel ;
 - des routes publiees ajoutees plus tard dans Cloudflare pour `argocd`,
-  `grafana` et `gitea` quand les services locaux seront reels.
+  et `grafana` quand les services locaux seront reels.
 
 Usage retenu pour le token `shopdemo` :
 

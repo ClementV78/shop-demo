@@ -3,7 +3,7 @@
 ## Objectif
 
 Rendre le serveur Ubuntu local reproductible avec Ansible et poser la frontiere
-Terraform/Ansible reutilisee pour le runner EC2, RDS et Gitea.
+Terraform/Ansible reutilisee pour le runner EC2 et RDS.
 
 Conception cible :
 [`docs/sprint-planning.md - Sprint 0`](../sprint-planning.md#sprint-0--ansible--provisioning-local--fondations-bootstrap).
@@ -438,7 +438,7 @@ Depend de : `S0-T3`
     Ansible ;
   - recharge a la demande via
     `export SHOPDEMO_TUNNEL_TOKEN="$(sudo awk -F= '/^TUNNEL_TOKEN=/{print $2}' /etc/cloudflared/shopdemo.env)"`.
-- Implemente : variables de routes futures `argocd`, `grafana`, `gitea`
+- Implemente : variables de routes futures `argocd`, `grafana`
   documentees dans les defaults du role comme **routes planifiees** cote
   Cloudflare, sans pretendre que les origins locales existent deja.
 - Implemente : scenario Molecule minimal sous
@@ -471,7 +471,7 @@ Depend de : `S0-T3`
 #### Suite hors cloture de `S0-T8`
 
 - [ ] Quand les services existeront reellement, raccorder les routes
-  Cloudflare aux vraies origins locales (`argocd`, `grafana`, `gitea`).
+  Cloudflare aux vraies origins locales (`argocd`, `grafana`).
 - [ ] Rejouer au besoin le playbook avec un token temporairement recharge :
 
   ```bash
@@ -586,8 +586,8 @@ Perimetre retenu :
 - `bootstrap.yml` orchestre uniquement les roles du lab local.
 - `harden.yml` rejoue uniquement `node-hardening`.
 - `teardown.yml` retire uniquement les composants ShopDemo du lab local.
-- Les futurs playbooks AWS (`runner-setup.yml`, `rds-setup.yml`,
-  `gitea-setup.yml`) restent hors perimetre `S0-T11`.
+- Les futurs playbooks AWS (`runner-setup.yml`, `rds-setup.yml`) restent hors
+  perimetre `S0-T11`.
 
 Vue d'ensemble :
 
@@ -697,7 +697,6 @@ Depend de : `S0-T3`
 
 - [x] Creer `runner-setup.yml`.
 - [x] Creer `rds-setup.yml`.
-- [x] Creer `gitea-setup.yml`.
 - [x] Definir les variables et interfaces sans appeler AWS.
 
 #### Criteres d'acceptation
@@ -718,13 +717,9 @@ Depend de : `S0-T3`
   prepare la creation des databases `catalogue`, `panier`, `commande` et
   `stock`, ainsi que leurs users applicatifs `svc_*`. Les connexions
   PostgreSQL sont desactivees par defaut via `rds_setup_apply=false`.
-- Implemente : [`ansible/playbooks/gitea-setup.yml`](../../ansible/playbooks/gitea-setup.yml)
-  prepare la configuration de l'organisation `shopdemo` et des repos
-  `shopdemo-app`, `shopdemo-gitops` et `shopdemo-platform`, avec appels API
-  Gitea idempotents seulement si `gitea_setup_apply=true`.
-- Decide : la creation du token bot GitOps Gitea reste differee tant que la
-  version Gitea et le contrat exact de l'API token ne sont pas pinnees. Pour
-  l'instant, ce token doit venir d'une source externe.
+- Supprime de la cible : l'ancien playbook de configuration de forge Git
+  self-hosted avait ete prepare dans `S0-T12`, mais il est retire apres
+  `ADR-002`, car cette brique n'est plus un livrable MVP.
 - Ajoute : la collection `community.postgresql` est declaree dans
   [`ansible/requirements.yml`](../../ansible/requirements.yml) pour supporter
   les modules PostgreSQL du playbook RDS.
@@ -741,22 +736,18 @@ Depend de : `S0-T3`
     `community.postgresql:4.2.0` ;
   - `ansible-playbook --syntax-check playbooks/runner-setup.yml` OK ;
   - `ansible-playbook --syntax-check playbooks/rds-setup.yml` OK ;
-  - `ansible-playbook --syntax-check playbooks/gitea-setup.yml` OK ;
   - `ansible-playbook --check playbooks/runner-setup.yml -e runner_setup_hosts=localhost`
     OK, sans changement et sans charger le role GitLab Runner ;
   - `ansible-playbook --check playbooks/rds-setup.yml` OK, sans connexion
     PostgreSQL ;
-  - `ansible-playbook --check playbooks/gitea-setup.yml` OK, sans appel API
-    Gitea ;
-  - `ansible-lint playbooks/runner-setup.yml playbooks/rds-setup.yml playbooks/gitea-setup.yml`
+  - `ansible-lint playbooks/runner-setup.yml playbooks/rds-setup.yml`
     OK, profil `production` ;
   - `yamllint` OK sur les playbooks S0-T12 et le role `gitlab-runner` touche ;
   - le fichier Draw.io passe `validate.py` et `xmllint`, puis l'export SVG
     reussit via `xvfb-run drawio`.
 - Risque residuel : les chemins `*_apply=true` ne sont pas valides contre une
-  vraie EC2, un vrai RDS ou une vraie instance Gitea. Cette validation est
-  reportee aux sprints ou Terraform/Helm creeront effectivement ces
-  ressources.
+  vraie EC2 ou un vrai RDS. Cette validation est reportee aux sprints ou
+  Terraform creera effectivement ces ressources.
 
 ## S0-E5 - Validation et cloture
 
@@ -787,15 +778,15 @@ Depend de : `S0-T5` a `S0-T12`
   roles/*/handlers/main.yml roles/*/defaults/main.yml` passe avec le profil
   `production`.
 - Verifie : `yamllint` passe sur le perimetre touche par `S0-T12` et les
-  corrections de cloture (`runner-setup`, `rds-setup`, `gitea-setup`,
+  corrections de cloture (`runner-setup`, `rds-setup`,
   `teardown`, `gitlab-runner`, `k3s-install`, `ministack-setup`,
   `cilium-setup/molecule/default/converge.yml`, `requirements.yml`).
 - Verifie : les schemas Draw.io ajoutes ou modifies pour le sprint
   (`ansible-overview-drawio`, `k3s-install-role-flow-drawio`,
   `terraform-ansible-boundary`) passent `validate.py` et `xmllint`, avec export
   SVG disponible.
-- Verifie : les playbooks futurs `runner-setup.yml`, `rds-setup.yml` et
-  `gitea-setup.yml` passent `--check` sans appel externe et avec `changed=0`.
+- Verifie : les playbooks futurs `runner-setup.yml` et `rds-setup.yml`
+  passent `--check` sans appel externe et avec `changed=0`.
 - Verifie : `teardown.yml --check -e teardown_confirm=true` passe sans
   execution reelle. Le dry-run predit des suppressions pour le tunnel
   `cloudflared-shopdemo`, ce qui est attendu dans un teardown simule.
