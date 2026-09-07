@@ -2,7 +2,7 @@
 
 Ce document raconte, dans l'ordre, ce qui s'est passe pendant `S1-T2`. Il est ecrit pour etre relu a froid, sans avoir suivi la session : chaque schema est suivi d'une explication en phrases, et les details techniques sont volontairement remis dans leur contexte plutot que listes.
 
-Pour la version courte et factuelle, voir [`sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md). Pour le diagnostic complet de l'incident reseau, voir [`evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](evidence/sprint-1/s1-t2-cilium-egress-blocker.md).
+Pour la version courte et factuelle, voir [`sprints/sprint-1-gitops-local.md`](../../sprints/sprint-1-gitops-local.md). Pour le diagnostic complet de l'incident reseau, voir [`s1-t2-cilium-egress-blocker.md`](s1-t2-cilium-egress-blocker.md).
 
 ## Sommaire
 
@@ -156,10 +156,10 @@ La reparation qui a marche est passee par le chemin reproductible du projet : re
 Voici ou en est le lab a la fin de `S1-T2`.
 
 <p align="center">
-  <img src="diagrams/s1-t2-vue-densemble.svg" alt="Vue d ensemble apres installation Argo CD" width="1050">
+  <img src="../../diagrams/s1-t2-vue-densemble.svg" alt="Vue d ensemble apres installation Argo CD" width="1050">
 </p>
 
-> Source editable : [`diagrams/s1-t2-vue-densemble.drawio`](diagrams/s1-t2-vue-densemble.drawio).
+> Source editable : [`diagrams/s1-t2-vue-densemble.drawio`](../../diagrams/s1-t2-vue-densemble.drawio).
 
 La lecture se fait de gauche a droite. A gauche, la source de verite : le depot GitLab prive, sur la branche `main`, avec a l'interieur le dossier `gitops/platform` qui est le seul reellement surveille aujourd'hui. En dessous, GitHub recoit une copie automatique, mais personne ne travaille dessus, c'est une vitrine.
 
