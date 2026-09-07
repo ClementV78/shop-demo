@@ -91,7 +91,8 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 - Decision : `S1-T1` reste sans effet de bord runtime. Les validations sont
   limitees au rendu local et aux schemas.
 - Decision : la forge Git self-hosted sort de la cible MVP GitOps via
-  `ADR-002`. Le repo GitOps cible sera heberge sur GitLab.com ou GitHub.
+  `ADR-002`. Le repo GitOps cible est `GitLab.com`, source de verite, avec
+  `GitHub` en miroir public (`ADR-007`).
 - Ecart accepte : la convention cible parle d'`ApplicationSet`, mais aucun
   objet Argo CD n'est encore cree. C'est reporte a `S1-T2` pour garder le
   premier lot simple et explicable.

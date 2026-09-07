@@ -43,7 +43,10 @@ Ce schema met l'accent sur les responsabilites :
 - `GitLab.com` porte la CI et les shared runners ;
 - le role OIDC AWS permet l'authentification sans cle longue duree ;
 - le runner bootstrap prive reste reserve aux jobs qui doivent entrer dans le reseau AWS ;
-- le repo GitOps vit sur GitLab.com ou GitHub, puis `Argo CD` applique l'etat desire sur le workload.
+- le repo GitOps vit sur `GitLab.com`, source de verite unique pour le code,
+  la CI et Argo CD ; `GitHub` reste un miroir public en lecture seule
+  ([`ADR-007`](../adr/ADR-007-gitlab-source-of-truth-github-mirror.md)),
+  puis `Argo CD` applique l'etat desire sur le workload.
 
 ## Principes de livraison
 

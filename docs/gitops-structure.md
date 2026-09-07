@@ -78,9 +78,12 @@ La vue globale a retenir est celle-ci : Git garde l'intention, Argo CD verifie
 que le cluster respecte cette intention, Kustomize prepare le YAML final, puis
 Kubernetes applique l'etat reel.
 
-GitLab.com ou GitHub se placent du cote Git. Leur role est d'heberger un
+`GitLab.com` et `GitHub` se placent du cote Git. Leur role est d'heberger un
 repository, recevoir des commits, exposer des branches et des tags. Ils ne
 creent pas de pods et ne parlent pas directement a l'API Kubernetes.
+`GitLab.com` est la source de verite lue par Argo CD ; `GitHub` reste un
+miroir public en lecture seule alimente par push mirroring
+([`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)).
 
 Argo CD se place du cote Kubernetes. C'est un control plane qui tourne dans le
 cluster. Il lit un repository Git, detecte les ecarts entre Git et Kubernetes,
@@ -94,7 +97,8 @@ deploie rien.
 Dans le projet, cela donne :
 
 ```text
-GitLab.com ou GitHub                  -> repository GitOps
+GitLab.com (source de verite)         -> repository GitOps
+GitHub (miroir public, lecture seule) -> vitrine portfolio
 Argo CD a partir de S1-T2          -> reconciliation Git vers Kubernetes
 Kustomize depuis S1-T1             -> rendu local des manifests
 Kubernetes                        -> namespaces, workloads et etat reel

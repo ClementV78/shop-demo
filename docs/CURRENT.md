@@ -13,7 +13,31 @@ Suivi detaille :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T2 | Installer Argo CD sur le lab local | Planifie | Preparer l'installation, les manifests Argo CD et les validations sans exposer de secret |
+| S1-T2 | Installer Argo CD sur le lab local | Planifie | Installer Argo CD dans `argocd`, le brancher sur le repo GitOps, puis prouver une premiere synchronisation simple |
+
+Objectif de reprise :
+
+- installer Argo CD sur le `k3s` local, sans exposition publique au depart ;
+- utiliser la structure GitOps deja posee par `S1-T1` ;
+- faire lire a Argo CD le repo GitOps `GitLab.com`, source de verite
+  ([`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)) ;
+- creer une premiere `Application` minimale ;
+- verifier que le chemin `repo GitOps -> Argo CD -> Kubernetes` fonctionne.
+
+Validation attendue pour `S1-T2` :
+
+- `kubectl get pods -n argocd` montre les composants Argo CD en etat sain ;
+- `kubectl get applications -n argocd` montre au moins une application ;
+- la synchronisation applique un etat simple deja versionne, par exemple des
+  namespaces ou une app minimale ;
+- aucun secret n'est versionne ;
+- Cloudflare reste hors scope tant que l'acces local suffit.
+
+Point de cadrage :
+
+Ne pas transformer `S1-T2` en plateforme GitOps complete. Le but MVP est :
+Argo CD tourne, lit le repo GitOps, applique un etat simple, et le projet sait
+l'expliquer proprement.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
@@ -82,10 +106,17 @@ Points de vigilance non bloquants :
   [`ADR-004`](adr/ADR-004-use-k3s-cilium-replacement-mode.md),
   [`ADR-005`](adr/ADR-005-use-ministack-for-local-aws-validation.md),
   [`ADR-006`](adr/ADR-006-structure-gitops-platform-apps-environments.md)
+- Decision de cadrage S1-T2 :
+  [`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
 
+- `ADR-007` tranche le point laisse ouvert par `ADR-002` : `GitLab.com`
+  devient la source de verite unique pour le code, la CI et le repo GitOps lu
+  par Argo CD ; `GitHub` reste un miroir public en lecture seule via le push
+  mirroring natif GitLab. Reste a faire : configurer le mirroring cote GitLab
+  et documenter la procedure une fois faite.
 - Le retrait de la forge Git self-hosted a ete propage aux documents courants,
   aux schemas sources/exports, au role `cloudflare-tunnel`, aux consignes
   agents et aux playbooks Ansible : l'ancien playbook de forge a ete supprime.
@@ -124,7 +155,7 @@ Points de vigilance non bloquants :
   completement pour `cilium-setup`, `ministack-setup` et `cloudflare-tunnel`.
   `ministack-setup` valide maintenant healthcheck `200`, smoke STS `rc=0` et
   idempotence `changed=0` dans Molecule.
-- Verifie pour `S0-T12` : `syntax-check` OK sur les trois playbooks,
+- Verifie pour `S0-T12` : `syntax-check` OK sur les deux playbooks,
   `--check` OK sans appel externe, `ansible-lint` OK en profil `production`,
   `yamllint` OK sur le perimetre touche, et schema Draw.io exporte en SVG.
 - La vue d'ensemble Ansible de
