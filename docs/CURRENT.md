@@ -47,38 +47,44 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T3 | Definir les namespaces et NetworkPolicies de base | Planifie | Cadrer les flux autorises sans casser l'egress pod valide pendant `S1-T2` |
+| S1-T4 | Creer les manifests applicatifs minimaux | Planifie | Poser une base applicative simple dans `gitops/apps`, puis l'assembler dans staging |
 
 Objectif de reprise :
 
-- demarrer `S1-T3` sans remettre en cause l'installation Argo CD validee ;
-- conserver GitLab.com comme source de verite GitOps
-  ([`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)) ;
-- definir les namespaces et NetworkPolicies de base de maniere progressive ;
-- verifier que les futures policies ne cassent ni DNS interne, ni egress
-  GitLab, ni la reconciliation Argo CD.
+- creer une base applicative minimale et reutilisable dans `gitops/apps` ;
+- l'assembler dans `gitops/environments/staging` sans dupliquer les manifests ;
+- garder la synchronisation manuelle sur `staging` et `prod` tant que le
+  modele n'est pas stabilise ;
+- respecter les conventions attendues sur un workload : probes, requests et
+  limits, ServiceAccount dedie, pas d'image en tag flottant.
 
-Validation de non-regression attendue pendant `S1-T3` :
+Piege connu, a anticiper des le debut de `S1-T4` :
 
-- `kubectl get applications -n argocd` garde `platform` en `Synced` /
-  `Healthy` ;
-- un pod de test resout `gitlab.com` via CoreDNS ;
-- un pod de test atteint `https://gitlab.com` ;
+`default-deny-ingress` est desormais actif dans `shopdemo-staging`. Un premier
+workload y sera donc **injoignable depuis l'exterieur du namespace** tant
+qu'aucune autorisation ciblee n'aura ete ajoutee. C'est le fonctionnement
+normal des policies posees en `S1-T3`, pas une regression : voir
+[`docs/evidence/sprint-1/s1-t3-networkpolicies-validation.md`](evidence/sprint-1/s1-t3-networkpolicies-validation.md).
+
+Validation de non-regression attendue pendant `S1-T4` :
+
+- les trois `Application` restent `Synced` / `Healthy` ;
+- l'egress et le DNS depuis `shopdemo-staging` continuent de fonctionner ;
 - aucun secret n'est versionne ;
 - Cloudflare reste hors scope tant que l'acces local suffit.
 
 Point de cadrage :
 
-Ne pas transformer `S1-T3` en modele reseau complet. Le but MVP est :
-des namespaces et policies de base comprehensibles, testables et compatibles
-avec le flux GitOps deja valide.
+Ne pas transformer `S1-T4` en application complete. Le but MVP est un workload
+minimal, correctement decrit, qui prouve le chemin `base applicative ->
+assemblage par environnement -> synchronisation Argo CD`.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`, `S1-T2`.
+`S1-T1`, `S1-T2`, `S1-T3`.
 
 ## Blocages
 
@@ -206,6 +212,21 @@ Points de vigilance non bloquants :
   - validation egress post-reboot : Cilium `OK`, `CILIUM_POST_nat`
     repeuplee par Cilium, `net-test` vers `gitlab.com` OK, aucune regle
     temporaire conservee.
+- `S1-T3` termine (2026-09-07) :
+  - deux `Application` Argo CD en synchronisation manuelle,
+    [`gitops/argocd/application-staging.yaml`](../gitops/argocd/application-staging.yaml)
+    et [`gitops/argocd/application-prod.yaml`](../gitops/argocd/application-prod.yaml),
+    prennent enfin en charge `gitops/environments/` que personne ne lisait ;
+  - namespaces `shopdemo-staging` et `shopdemo-prod` crees par le chemin
+    GitOps, pas par un `kubectl` manuel ;
+  - deux `NetworkPolicy` standard par environnement, `default-deny-ingress` et
+    `allow-ingress-same-namespace` ;
+  - porte manuelle verifiee : policies poussees sur GitLab, Applications
+    `OutOfSync`, et rien applique tant que la sync n'est pas declenchee ;
+  - isolation prouvee par mesure avant/apres : joignable depuis `default`
+    avant, bloque apres, trafic intra-namespace et egress intacts ;
+  - `ADR-008` acte NetworkPolicy standard par defaut et `CiliumNetworkPolicy`
+    par exception ; aucune `CiliumNetworkPolicy` n'existe encore.
 
 ## Documents de reference immediats
 
@@ -225,9 +246,16 @@ Points de vigilance non bloquants :
   [`ADR-006`](adr/ADR-006-structure-gitops-platform-apps-environments.md)
 - Decision de cadrage S1-T2 :
   [`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)
+- Decision de cadrage S1-T3 :
+  [`ADR-008`](adr/ADR-008-standard-networkpolicy-by-default.md)
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- `S1-T3` est termine : les namespaces applicatifs existent enfin dans le
+  cluster, avec une isolation en entree et une porte de synchronisation
+  manuelle qui protege Argo CD d'un auto-verrouillage. Le namespace `argocd`
+  reste volontairement hors perimetre, c'est une dette tracee.
 
 - Session du 2026-09-07 (suite) : Argo CD installe et premiere `Application`
   `platform` synchronisee depuis GitLab. La panne d'egress Cilium qui bloquait
@@ -338,11 +366,14 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S1-T3` : definir les namespaces et NetworkPolicies de base.
-2. Avant toute policy restrictive, garder une validation de non-regression :
-   DNS interne, egress GitLab depuis un pod de test, puis etat Argo CD
-   `Synced` / `Healthy`.
-3. Ne pas conserver de regle iptables manuelle comme configuration cible :
+1. Demarrer `S1-T4` : creer les manifests applicatifs minimaux dans
+   `gitops/apps`, puis les assembler dans `gitops/environments/staging`.
+2. Se rappeler que `default-deny-ingress` est actif : un premier workload sera
+   injoignable depuis l'exterieur de son namespace tant qu'aucune autorisation
+   ciblee n'aura ete ajoutee. C'est attendu, pas une regression.
+3. Garder la synchronisation manuelle sur `staging` et `prod`, et ne pas
+   passer ces Applications en `automated` sans decision explicite.
+4. Ne pas conserver de regle iptables manuelle comme configuration cible :
    Cilium doit rester responsable du datapath et du masquerade.
 
 ## Rappel de maintenance

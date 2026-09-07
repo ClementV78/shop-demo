@@ -15,7 +15,7 @@ Conception cible :
 |---|---|---|---|
 | S1-T1 | Cadrer la structure GitOps locale | Termine | S0 |
 | S1-T2 | Installer Argo CD sur le lab local | Termine | S1-T1 |
-| S1-T3 | Definir les namespaces et NetworkPolicies de base | Planifie | S1-T1 |
+| S1-T3 | Definir les namespaces et NetworkPolicies de base | Termine | S1-T1 |
 | S1-T4 | Creer les manifests applicatifs minimaux | Planifie | S1-T1 |
 | S1-T5 | Ajouter ApplicationSet staging | Planifie | S1-T2, S1-T4 |
 | S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | S1-T5 |
@@ -83,6 +83,12 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Credential Git prive Argo CD | Verifie | Secret cluster non commite, token GitLab dedie lecture seule `argocd-readonly` (role `Reporter`, scope `read_repository`) |
 | Application `platform` | Verifie | `gitops/argocd/bootstrap-application-platform.yaml`, cible `gitops/platform`, `Synced` / `Healthy` |
 | Sync GitOps plateforme | Verifie | Reconciliation Argo CD reussie depuis GitLab apres resolution du blocage Cilium, voir [`../evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](../evidence/sprint-1/s1-t2-cilium-egress-blocker.md) |
+| Namespaces applicatifs crees par GitOps | Verifie | `shopdemo-staging` et `shopdemo-prod` `Active` apres sync manuelle des Applications `staging` et `prod` |
+| Porte de synchronisation manuelle | Verifie | Policies poussees sur GitLab : Applications `OutOfSync` et `kubectl get networkpolicies` vide tant que la sync n'est pas declenchee |
+| Isolation ingress inter-namespaces | Verifie | Mesure avant/apres : joignable depuis `default` avant, bloque apres, voir [`../evidence/sprint-1/s1-t3-networkpolicies-validation.md`](../evidence/sprint-1/s1-t3-networkpolicies-validation.md) |
+| Trafic intra-namespace preserve | Verifie | `probe-in` joint `web.shopdemo-staging` avant et apres application des policies |
+| Non-regression egress et DNS | Verifie | Resolution `gitlab.com` et `https://gitlab.com` OK depuis `shopdemo-staging` apres policies |
+| Validation NetworkPolicies | Verifie | `yamllint`, `kubeconform -strict`, `kubectl apply --dry-run=server` sur les rendus des deux environnements |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
@@ -136,8 +142,60 @@ Incident resolu :
   Cilium a reconstruit lui-meme `CILIUM_POST_nat`, l'egress pod vers GitLab
   fonctionne, et Argo CD synchronise depuis GitLab.
 
+## S1-T3 - Definir les namespaces et NetworkPolicies de base
+
+Etat : `Termine`.
+
+Objectif : faire exister les namespaces applicatifs par le chemin GitOps, puis
+poser une premiere isolation reseau, sans remettre en cause l'egress repare
+pendant `S1-T2`.
+
+Livrables :
+
+- deux `Application` Argo CD en synchronisation manuelle,
+  [`../../gitops/argocd/application-staging.yaml`](../../gitops/argocd/application-staging.yaml)
+  et [`../../gitops/argocd/application-prod.yaml`](../../gitops/argocd/application-prod.yaml),
+  qui prennent en charge `gitops/environments/` jusque-la lu par personne ;
+- namespaces `shopdemo-staging` et `shopdemo-prod` reellement crees dans le
+  cluster, via GitOps et non par un `kubectl` manuel ;
+- deux `NetworkPolicy` standard par environnement : `default-deny-ingress` et
+  `allow-ingress-same-namespace` ;
+- decision d'API tracee dans
+  [`../adr/ADR-008-standard-networkpolicy-by-default.md`](../adr/ADR-008-standard-networkpolicy-by-default.md) ;
+- preuve avant/apres dans
+  [`../evidence/sprint-1/s1-t3-networkpolicies-validation.md`](../evidence/sprint-1/s1-t3-networkpolicies-validation.md).
+
+Decisions de cadrage :
+
+- synchronisation manuelle plutot qu'automatique pour ce lot. Une regle reseau
+  erronee poussee dans un chemin synchronise automatiquement pourrait couper
+  Argo CD de GitLab, donc l'empecher de recevoir son propre correctif. La porte
+  manuelle rend ce scenario impossible ;
+- policies limitees a l'ingress, egress laisse entierement ouvert. Cela evite
+  de fragiliser le chemin pod vers GitLab tout juste repare, et suffit a poser
+  une isolation entre namespaces ;
+- namespace `argocd` volontairement hors perimetre. C'est le seul endroit ou
+  une erreur de policy coute cher, et il conserve les sept `NetworkPolicy`
+  livrees par le manifest d'installation Argo CD ;
+- namespace `gateway-system` hors perimetre aussi, tant que NGINX Gateway
+  Fabric n'y est pas installe.
+
+Ce qui n'a volontairement pas ete fait :
+
+- pas de restriction d'egress ;
+- pas de `CiliumNetworkPolicy`, donc pas encore d'autorisation par nom de
+  domaine ;
+- pas de policy sur `argocd` ni `gateway-system` ;
+- pas de workload applicatif permanent, ce sujet appartient a `S1-T4`.
+
+Dette assumee : securiser le namespace `argocd` avec un egress `toFQDNs` vers
+`gitlab.com`, accompagne d'un `AppProject` dedie et d'une procedure de rollback
+manuel connue avant d'y toucher.
+
 ## Prochaine etape
 
-`S1-T3` : definir les namespaces et NetworkPolicies de base, en gardant en
-tete que l'egress Cilium est maintenant valide mais doit rester surveille lors
-des futures policies.
+`S1-T4` : creer les manifests applicatifs minimaux. Attention au moment ou les
+premiers workloads arriveront dans `shopdemo-staging` : `default-deny-ingress`
+refusera toute entree tant qu'une autorisation ciblee, typiquement depuis la
+gateway, n'aura pas ete ajoutee. Ce refus sera le comportement normal des
+policies posees en `S1-T3`, pas une regression.
