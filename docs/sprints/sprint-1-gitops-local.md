@@ -79,8 +79,10 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Validation YAML GitOps | Verifie | `yamllint gitops` |
 | Validation schemas Kubernetes | Verifie | `kubeconform -strict -ignore-missing-schemas` sur les rendus Kustomize |
 | Schemas Draw.io | Verifie | `validate.py --score` OK et exports SVG generes |
-| Installation Argo CD | Planifie | A renseigner |
-| Sync GitOps staging | Planifie | A renseigner |
+| Installation Argo CD | Verifie | `v3.5.2` pinne, `gitops/argocd/install.yaml`, 7 pods `Running`, 3 CRD presentes |
+| Credential Git prive Argo CD | Verifie | Secret cluster non commite, token GitLab dedie lecture seule `argocd-readonly` (role `Reporter`, scope `read_repository`) |
+| Application `platform` | Cree, bloque | `gitops/argocd/bootstrap-application-platform.yaml`, cible `gitops/platform`, `Sync Status: Unknown` |
+| Sync GitOps plateforme | Bloque | Panne egress reseau Cilium independante d'Argo CD, diagnostiquee dans [`../evidence/sprint-1/s1-t2-cilium-egress-blocker.md`](../evidence/sprint-1/s1-t2-cilium-egress-blocker.md) |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
