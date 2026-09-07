@@ -29,16 +29,20 @@ sert un besoin visible du systeme, au lieu d'etre ajoutee pour cocher une case.
 
 ## Ce qui existe aujourd'hui
 
-Etat verifie : Sprint 0 est clos ; Sprint 1 a demarre avec `S1-T1`, centre sur
-la structure GitOps locale.
+Etat verifie : Sprint 0 est clos ; Sprint 1 est en cours. `S1-T1` a pose la
+structure GitOps locale et `S1-T2` a installe Argo CD avec une premiere
+`Application` synchronisee depuis GitLab.com.
 
 Le depot contient actuellement :
 
 - une documentation d'architecture cible dans [`../ARCHITECTURE.md`](../ARCHITECTURE.md) ;
 - un bootstrap Ansible local avec `k3s`, `Cilium`, `MiniStack`,
   `cloudflare-tunnel`, `gitlab-runner` et `node-hardening` ;
-- une premiere structure GitOps locale dans [`../gitops/`](../gitops/),
-  encore sans Argo CD installe ;
+- une premiere structure GitOps locale dans [`../gitops/`](../gitops/), avec
+  Argo CD `v3.5.2` installe et l'`Application` `platform` en
+  `Synced` / `Healthy` ;
+- GitLab.com comme source de verite pour le code, la CI/CD et GitOps, avec
+  GitHub en miroir public lecture seule ;
 - des tests Molecule pour les roles Ansible applicables ;
 - des playbooks futurs cadres pour `runner-setup` et `rds-setup`, mais sans
   execution cloud par defaut ;
@@ -53,7 +57,9 @@ Ce qui n'existe pas encore comme implementation complete :
 - les microservices Go de ShopDemo ;
 - les modules Terraform AWS complets ;
 - le cluster EKS reel ;
-- Argo CD installe et synchronisant le repo GitOps local ;
+- les `ApplicationSet` Argo CD pour les environnements applicatifs ;
+- un `AppProject` ShopDemo dedie pour remplacer l'usage temporaire du projet
+  Argo CD `default` ;
 - l'observabilite complete ;
 - le runtime agentique applicatif.
 
@@ -120,8 +126,9 @@ Le discours simple est :
 > J'ai construit ShopDemo comme support d'une plateforme interne. Le metier est
 > volontairement simple, mais l'architecture couvre les sujets importants :
 > IaC, CI/CD, GitOps, Kubernetes, securite, observabilite et cout. Le Sprint 0
-> stabilise le lab local avec Ansible. Les sprints suivants deplacent
-> progressivement le systeme vers AWS/EKS.
+> stabilise le lab local avec Ansible. Le Sprint 1 pose la base GitOps locale
+> avec Argo CD. Les sprints suivants deplacent progressivement le systeme vers
+> AWS/EKS.
 
 Points importants a savoir defendre :
 
@@ -130,6 +137,8 @@ Points importants a savoir defendre :
   ephemere ;
 - Ansible configure les hotes, Terraform cree l'infrastructure ;
 - GitLab CI valide et produit les artefacts, Argo CD applique l'etat GitOps ;
+- GitLab.com est la source de verite operationnelle ; GitHub sert de miroir
+  public pour la lecture portfolio ;
 - k3s sert au lab local, EKS reste la cible cloud ;
 - Cilium en local remplace le reseau k3s par defaut pour se rapprocher des
   sujets reseau/policies vises ;
