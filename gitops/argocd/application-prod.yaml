@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    shopdemo.io/environment: prod
+spec:
+  project: default
+  source:
+    repoURL: https://gitlab.com/ClementV78/shopdemo.git
+    targetRevision: main
+    path: gitops/environments/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shopdemo-prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false

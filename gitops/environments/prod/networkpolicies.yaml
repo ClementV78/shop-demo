@@ -1,0 +1,31 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: shopdemo-prod
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-same-namespace
+  namespace: shopdemo-prod
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    app.kubernetes.io/managed-by: gitops
+    shopdemo.io/environment: prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
