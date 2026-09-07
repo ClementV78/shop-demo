@@ -30,7 +30,7 @@
     { "from": "repo", "to": "argo", "label": "détecte changement", "variant": "emphasis" }
   ],
   "cards": [
-    { "dot": "cyan", "title": "Components — hébergés sur Gitea", "items": ["build-image@1.x : Kaniko + digest sha256 + SBOM", "scan-security@1.x : Trivy + OWASP + GitLeaks ∥ (DAG)", "update-gitops-tag@1.x : patch digest + [skip ci]"] },
+    { "dot": "cyan", "title": "Components CI versionnés", "items": ["build-image@1.x : Kaniko + digest sha256 + SBOM", "scan-security@1.x : Trivy + OWASP + GitLeaks ∥ (DAG)", "update-gitops-tag@1.x : patch digest + [skip ci]"] },
     { "dot": "rose", "title": "Include à version fixe", "items": ["Chaque pipeline service inclut les Components @1.x", "Pas de latest — rollback prévisible", "Prod protégé par environnement + approbation manuelle"] }
   ]
 }

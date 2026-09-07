@@ -7,10 +7,10 @@
                 <mxCell id="2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f7f8f4;strokeColor=#f7f8f4;" parent="1" vertex="1">
                     <mxGeometry width="1400" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="3" value="Architecture GitLab du projet&#xa;&lt;font style=&quot;font-size:13px;color:#60748a&quot;&gt;GitLab.com pour la CI, runner bootstrap prive, GitOps sur Gitea et sync Argo CD&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=24;fontColor=#293241;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                <mxCell id="3" value="Architecture GitLab du projet&#xa;&lt;font style=&quot;font-size:13px;color:#60748a&quot;&gt;GitLab.com pour la CI, runner bootstrap prive, repo GitOps et sync Argo CD&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=24;fontColor=#293241;align=left;verticalAlign=middle;" parent="1" vertex="1">
                     <mxGeometry x="60" y="28" width="920" height="42" as="geometry"/>
                 </mxCell>
-                <mxCell id="4" value="Decision ADR-001&#xa;&lt;font style=&quot;font-size:11px;color:#5f3d00&quot;&gt;GitLab.com reste le SaaS CI de reference ; Gitea reste self-hosted pour GitOps&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#5f3d00;spacing=10;" parent="1" vertex="1">
+                <mxCell id="4" value="Decisions ADR-001 / ADR-002&#xa;&lt;font style=&quot;font-size:11px;color:#5f3d00&quot;&gt;CI sur GitLab.com ; forge Git self-hosted retiree du MVP&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#5f3d00;spacing=10;" parent="1" vertex="1">
                     <mxGeometry x="980" y="28" width="360" height="58" as="geometry"/>
                 </mxCell>
                 <mxCell id="10" value="Developpeur&#xa;&lt;font style=&quot;font-size:11px;color:#60748a&quot;&gt;push / merge request&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#f8fbff;strokeColor=#b8c4d9;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#334155;spacing=10;" parent="1" vertex="1">
@@ -58,10 +58,10 @@
                 <mxCell id="57" value="acces prive" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7dcf89;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" parent="30" source="34" target="35" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="40" value="Plateforme GitOps self-hosted" style="swimlane;html=1;rounded=1;whiteSpace=wrap;fillColor=#f2fffd;strokeColor=#43d3c2;fontStyle=1;startSize=34;" parent="1" vertex="1">
+                <mxCell id="40" value="Flux GitOps" style="swimlane;html=1;rounded=1;whiteSpace=wrap;fillColor=#f2fffd;strokeColor=#43d3c2;fontStyle=1;startSize=34;" parent="1" vertex="1">
                     <mxGeometry x="300" y="590" width="800" height="200" as="geometry"/>
                 </mxCell>
-                <mxCell id="41" value="Repo GitOps Gitea&#xa;&lt;font style=&quot;font-size:11px;color:#2f7a73&quot;&gt;desired state, digests, [skip ci]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="40" vertex="1">
+                <mxCell id="41" value="Repo GitOps&#xa;&lt;font style=&quot;font-size:11px;color:#2f7a73&quot;&gt;desired state, digests, [skip ci]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="40" vertex="1">
                     <mxGeometry x="40" y="71" width="260" height="76" as="geometry"/>
                 </mxCell>
                 <mxCell id="42" value="Argo CD&#xa;&lt;font style=&quot;font-size:11px;color:#2f7a73&quot;&gt;watch repo et sync cluster&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#173a38;spacing=10;" parent="40" vertex="1">

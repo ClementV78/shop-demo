@@ -9,7 +9,7 @@
   "lanes": [
     { "id": "dev", "label": "Développeur" },
     { "id": "ci", "label": "GitLab CI" },
-    { "id": "gitops", "label": "GitOps (Gitea)" },
+    { "id": "gitops", "label": "Repo GitOps" },
     { "id": "argocd", "label": "Argo CD" }
   ],
   "nodes": [

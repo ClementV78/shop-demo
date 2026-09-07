@@ -26,7 +26,7 @@
         <mxCell id="8" value="playbooks par role&#xa;k3s, Cilium, runner, etc." style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
           <mxGeometry x="35" y="146" width="200" height="58" as="geometry" />
         </mxCell>
-        <mxCell id="9" value="playbooks futurs&#xa;runner / RDS / Gitea&#xa;apply=false par defaut" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;" vertex="1" parent="6">
+        <mxCell id="9" value="playbooks futurs&#xa;runner / RDS&#xa;apply=false par defaut" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;" vertex="1" parent="6">
           <mxGeometry x="35" y="225" width="200" height="70" as="geometry" />
         </mxCell>
         <mxCell id="10" value="3. Roles convergent" style="swimlane;startSize=32;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="1">

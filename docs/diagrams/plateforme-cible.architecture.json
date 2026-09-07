@@ -47,7 +47,7 @@
     { "from": "sns", "to": "sqsstock", "label": "fan-out", "route": "orthogonal-h" },
     { "from": "sns", "to": "sqsnotif", "route": "orthogonal-h" },
     { "from": "paiement", "to": "vpcep", "label": "ECR / SQS / Secrets Manager / STS / S3 (pods)", "variant": "dashed", "fromSide": "left", "toSide": "top" },
-    { "from": "paiement", "to": "nat", "label": "images publiques, deps Go, Gitea", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 20 }
+    { "from": "paiement", "to": "nat", "label": "images publiques, deps Go", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 20 }
   ],
   "cards": [
     { "dot": "cyan", "title": "Chemin synchrone", "items": ["CloudFront route / vers S3, /api/* vers l'ALB", "Un seul point d'auth : jwt-authorizer central (ExternalAuth)", "4 services Go stateless derrière Gateway API"] },

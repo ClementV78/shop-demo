@@ -201,7 +201,7 @@ rect.c-bg-rect { fill: var(--bg); }
         <rect x="597" y="454" width="226" height="14" rx="3" class="c-mask"/>
         <text x="710" y="464" class="t-messagebus" font-size="8" text-anchor="middle">ECR / SQS / Secrets Manager / STS / S3 (pods)</text>
         <rect x="763.2" y="488" width="163.6" height="14" rx="3" class="c-mask"/>
-        <text x="845" y="498" class="t-messagebus" font-size="8" text-anchor="middle">images publiques, deps Go, Gitea</text>
+        <text x="845" y="498" class="t-messagebus" font-size="8" text-anchor="middle">images publiques, deps Go</text>
 
         <!-- Legend -->
         <text x="40" y="671" class="t-primary" font-size="9" font-weight="600">Legend</text>
