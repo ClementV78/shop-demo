@@ -8,12 +8,15 @@ Objectif du Sprint 1 :
 - demarrer en local sur le cluster `k3s + Cilium` livre au Sprint 0 ;
 - garder une structure compatible avec la cible EKS ;
 - separer clairement la plateforme, les applications et les environnements ;
-- valider les manifests avant toute synchronisation Argo CD.
+- valider les manifests avant et apres leur synchronisation par Argo CD.
 
 ## Structure
 
 ```text
 gitops/
+  argocd/
+    install.yaml
+    bootstrap-application-platform.yaml
   platform/
     namespaces/
       base/
@@ -39,9 +42,12 @@ gitops/
 
 ## Etat actuel
 
-`S1-T1` pose uniquement le cadrage et les namespaces de base.
+`S1-T1` a pose le cadrage et les namespaces de base. `S1-T2` installe Argo CD
+et synchronise la premiere `Application` `platform` depuis GitLab.com, source
+de verite GitOps.
 
 - `platform/` cree les namespaces techniques `argocd` et `gateway-system`.
 - `environments/staging/` cree le namespace applicatif `shopdemo-staging`.
 - `environments/prod/` cree le namespace applicatif `shopdemo-prod`.
-- Argo CD n'est pas encore installe par ces manifests.
+- `argocd/` contient le manifest Argo CD pinne et l'`Application` bootstrap
+  `platform`.

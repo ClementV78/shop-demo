@@ -254,9 +254,11 @@ prod pourront reutiliser la meme base applicative, mais changer certains
 details : le namespace, le nombre de replicas, l'image exacte, les routes ou les
 parametres de securite.
 
-Enfin, `argocd/` prepare les objets qui piloteront cette lecture : `AppProject`,
-`Application` ou `ApplicationSet`. En `S1-T1`, on documente seulement ce futur
-emplacement ; on ne donne pas encore le controle du cluster a Argo CD.
+Enfin, `argocd/` contient les objets qui pilotent cette lecture. Depuis
+`S1-T2`, Argo CD est installe via un manifest pinne et une premiere
+`Application` synchronise `gitops/platform` depuis GitLab.com. Les
+`AppProject` et `ApplicationSet` restent planifies pour borner puis etendre le
+modele GitOps.
 
 ```text
 gitops/
@@ -279,6 +281,8 @@ gitops/
       namespace.yaml
   argocd/
     README.md
+    install.yaml
+    bootstrap-application-platform.yaml
 ```
 
 <p align="center">
@@ -290,7 +294,7 @@ gitops/
 
 ## Responsabilites
 
-| Zone | Role | Etat S1-T1 |
+| Zone | Role | Etat courant |
 |---|---|---|
 | `gitops/platform/` | Ressources transverses du cluster | Namespaces `argocd` et `gateway-system` |
 | `gitops/apps/` | Bases applicatives reutilisables | Placeholder documente |
@@ -337,9 +341,9 @@ donc un gate de promotion entre les deux : tag semver, validation manuelle, ou
 autre decision explicite. Quand la promotion est acceptee, le chemin prod pointe
 a son tour vers le digest approuve, puis Argo CD prod synchronise.
 
-Cette convention n'est pas encore implementee en `S1-T1`. Elle est documentee
-maintenant pour que les prochains fichiers GitOps soient ranges dans le bon
-modele des le depart.
+Cette convention n'est pas encore implementee. Elle est documentee maintenant
+pour que les prochains fichiers GitOps soient ranges dans le bon modele des le
+depart.
 
 ## Sync Waves
 
@@ -353,8 +357,9 @@ Convention cible pour les futurs objets Argo CD :
 | `0` | Deployments, Services, ServiceAccounts |
 | `2` | HTTPRoutes et exposition |
 
-`S1-T1` ne cree pas encore les annotations de sync wave, car les manifests
-actuels sont seulement des namespaces et des placeholders.
+Les manifests actuels ne creent pas encore les annotations de sync wave. Cette
+convention devient utile lorsque plusieurs applications et dependances seront
+synchronisees par Argo CD.
 
 ## Validation locale
 
@@ -372,6 +377,10 @@ Validation YAML si `yamllint` est disponible :
 yamllint gitops
 ```
 
+Le manifest upstream `gitops/argocd/install.yaml` est exclu par `.yamllint` :
+il est genere par le projet Argo CD et valide par dry-run Kubernetes, pas par
+les regles de style du depot.
+
 Validation schema Kubernetes si `kubeconform` est disponible :
 
 ```bash
@@ -380,13 +389,12 @@ kubectl kustomize gitops/environments/staging | kubeconform -strict -ignore-miss
 kubectl kustomize gitops/environments/prod | kubeconform -strict -ignore-missing-schemas
 ```
 
-## Hors scope de S1-T1
+## Hors scope courant
 
-- installer Argo CD ;
-- creer les `Application` ou `ApplicationSet` ;
-- appliquer les manifests sur le cluster ;
 - ajouter les workloads applicatifs ;
+- creer un `AppProject` dedie pour remplacer le projet Argo CD `default` ;
+- creer les `ApplicationSet` staging et prod ;
 - stocker des secrets ;
 - connecter GitLab CI ou GitHub Actions au repo GitOps.
 
-Ces sujets commencent a partir de `S1-T2`.
+Ces sujets commencent a partir de `S1-T3` et des taches suivantes.

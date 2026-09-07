@@ -50,3 +50,6 @@ git diff --check
 - Argo CD n'est pas encore installe.
 - Les futurs `ApplicationSet`, NetworkPolicies et workloads applicatifs ne sont
   pas couverts par cette preuve.
+- Depuis `S1-T2`, `gitops/argocd/install.yaml` est exclu par `.yamllint` car
+  c'est un manifest upstream genere. Il reste valide par dry-run Kubernetes
+  server-side, pas par les regles de style YAML du depot.

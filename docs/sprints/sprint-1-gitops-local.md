@@ -76,7 +76,7 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Render Kustomize plateforme | Verifie | `kubectl kustomize gitops/platform` |
 | Render Kustomize staging | Verifie | `kubectl kustomize gitops/environments/staging` |
 | Render Kustomize prod | Verifie | `kubectl kustomize gitops/environments/prod` |
-| Validation YAML GitOps | Verifie | `yamllint gitops` |
+| Validation YAML GitOps | Verifie | `yamllint gitops` avec `gitops/argocd/install.yaml` exclu car manifest upstream genere |
 | Validation schemas Kubernetes | Verifie | `kubeconform -strict -ignore-missing-schemas` sur les rendus Kustomize |
 | Schemas Draw.io | Verifie | `validate.py --score` OK et exports SVG generes |
 | Installation Argo CD | Verifie | `v3.5.2` pinne, `gitops/argocd/install.yaml`, 7 pods `Running`, 3 CRD presentes |
@@ -99,6 +99,10 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
   `ApplicationSet` n'est encore cree. La premiere synchronisation utilise une
   `Application` minimale ; les `ApplicationSet` restent prevus pour `S1-T5` et
   `S1-T6`.
+- Dette acceptee : l'`Application` `platform` utilise encore l'`AppProject`
+  Argo CD `default` pour rester dans le perimetre minimal de `S1-T2`. Un
+  `AppProject` ShopDemo dedie doit etre ajoute avant d'etendre GitOps aux
+  workloads applicatifs.
 
 ## S1-T2 - Installer Argo CD sur le lab local
 

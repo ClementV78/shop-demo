@@ -50,7 +50,7 @@
         <mxCell id="16" value="shopdemo-prod&#xa;production-like" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="13">
           <mxGeometry x="50" y="385" width="200" height="66" as="geometry" />
         </mxCell>
-        <mxCell id="17" value="Etat S1-T1&#xa;le modele de promotion est cible ; aujourd'hui seuls la structure GitOps et les namespaces existent" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff7cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="17" value="Etat S1-T2&#xa;Argo CD synchronise deja platform ; la promotion applicative reste cible" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff7cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="120" y="520" width="410" height="88" as="geometry" />
         </mxCell>
         <mxCell id="18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8fb8ff;strokeWidth=2;" edge="1" parent="1" source="3" target="4">

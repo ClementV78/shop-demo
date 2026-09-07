@@ -1,0 +1,5 @@
+---
+extends: default
+
+ignore: |
+  gitops/argocd/install.yaml

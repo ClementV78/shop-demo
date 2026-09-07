@@ -96,13 +96,11 @@ Negatives :
 
 ## Suivi
 
-- configurer le push mirroring GitLab -> GitHub (`Settings > Repository >
-  Mirroring repositories`), procedure a documenter avec les commandes/etapes
-  UI exactes une fois faite ;
-- mettre a jour `docs/architecture/05-delivery-gitops.md` et
-  `docs/gitops-structure.md` pour remplacer "GitLab.com ou GitHub" par la
-  decision explicite ;
-- `S1-T2` configure l'`Application` Argo CD sur
+- Fait le 2026-09-07 : push mirroring GitLab -> GitHub configure avec
+  "Mirror only protected branches", donc seule `main` est miroitee.
+- Fait le 2026-09-07 : documentation GitOps mise a jour pour acter
+  GitLab.com comme source de verite et GitHub comme miroir public.
+- Fait le 2026-09-07 : `S1-T2` configure l'`Application` Argo CD sur
   `https://gitlab.com/ClementV78/shopdemo.git`.
 
 Validation de cet ADR :

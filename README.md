@@ -57,7 +57,7 @@ service `gitlab-runner` actif sur l'hote local, a son enregistrement sur
 arrive sprint par sprint.
 
 ```bash
-git clone https://github.com/ClementV78/shop-demo.git
+git clone https://gitlab.com/ClementV78/shopdemo.git
 cd shop-demo/ansible
 
 # Installer les collections requises
@@ -75,6 +75,9 @@ molecule test
 cd ../cilium-setup
 molecule test
 ```
+
+GitLab.com est la source de verite pour le developpement, la CI/CD et GitOps.
+GitHub reste un miroir public en lecture seule pour le portfolio.
 
 Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent des secrets externes non versionnes (`TUNNEL_TOKEN`, token runner GitLab) et ne font donc pas partie du chemin "copier-coller" ci-dessus. Le reste de la plateforme (Terraform, EKS, CI/CD complet) arrive sprint après sprint, voir [Où en est le projet](#où-en-est-le-projet).
 
