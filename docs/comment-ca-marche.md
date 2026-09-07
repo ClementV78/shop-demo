@@ -767,6 +767,8 @@ Pour approfondir :
 - [`concepts-sprint-0.md`](concepts-sprint-0.md) pour les concepts Sprint 0 ;
 - [`gitops-structure.md`](gitops-structure.md) pour la structure GitOps ;
 - [`concepts-sprint-1.md`](concepts-sprint-1.md) pour les concepts GitOps ;
+- [`recit-s1-t2.md`](recit-s1-t2.md) pour le recit narratif de `S1-T2`, avec
+  schemas commentes et l'histoire de l'incident reseau ;
 - [`sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
   [`sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md) pour
   les preuves detaillees.

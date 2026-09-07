@@ -70,22 +70,22 @@ interrompu en plein bascule pendant ou juste apres le reset k3s/Cilium du
 ```mermaid
 flowchart TB
     subgraph host["Hote minipc-devops-1 -- iptables nat table"]
-        PR["POSTROUTING\n(point d'entree systeme)"]
-        NEW["CILIUM_POST_nat\n(chaine active, VIDE)"]
-        OLD["OLD_CILIUM_POST_nat\n(chaine morte, 0 reference)\ncontient les vraies regles MASQUERADE"]
+        PR["POSTROUTING<br/>(point d'entree systeme)"]
+        NEW["CILIUM_POST_nat<br/>(chaine active, VIDE)"]
+        OLD["OLD_CILIUM_POST_nat<br/>(chaine morte, 0 reference)<br/>contient les vraies regles MASQUERADE"]
     end
 
     PR -->|"jump reel"| NEW
-    OLD -.->|"plus reference\npar aucun jump"| PR
+    OLD -.->|"plus reference<br/>par aucun jump"| PR
 
-    RECON["Reconciler Cilium\n(job-iptables-reconciliation-loop)"]
+    RECON["Reconciler Cilium<br/>(job-iptables-reconciliation-loop)"]
     RECON -->|"tente de peupler"| NEW
-    RECON -->|"tente d'abord de supprimer\nune regle fantome CIDR\n99.105.108.105/24"| OLD
-    OLD -->|"regle fantome absente\niptables: Bad rule"| FAIL["Echec => abandon du cycle\n(x807314 tentatives / 44h)"]
+    RECON -->|"tente d'abord de supprimer<br/>une regle fantome CIDR<br/>99.105.108.105/24"| OLD
+    OLD -->|"regle fantome absente<br/>iptables: Bad rule"| FAIL["Echec => abandon du cycle<br/>(x807314 tentatives / 44h)"]
     FAIL -.->|"NEW jamais peuplee"| NEW
 
-    POD["Pod applicatif\n(ex: argocd-repo-server)"] -->|"trafic sortant\nsrc 10.42.0.x"| PR
-    NEW -->|"aucune regle MASQUERADE\n=> paquet part avec IP pod\nnon routable sur le LAN"| DROP["Perte du paquet\n(timeout cote pod)"]
+    POD["Pod applicatif<br/>(ex: argocd-repo-server)"] -->|"trafic sortant<br/>src 10.42.0.x"| PR
+    NEW -->|"aucune regle MASQUERADE<br/>=> paquet part avec IP pod<br/>non routable sur le LAN"| DROP["Perte du paquet<br/>(timeout cote pod)"]
 
     style NEW fill:#f8d7da,stroke:#c0392b,color:#611a15
     style OLD fill:#fff3cd,stroke:#b8860b,color:#5c4a00

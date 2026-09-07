@@ -213,6 +213,7 @@ Points de vigilance non bloquants :
 - Sprint 0 detaille : [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
 - Sprint 1 detaille : [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md)
 - Comment ca marche techniquement : [`docs/comment-ca-marche.md`](comment-ca-marche.md)
+- Recit narratif de `S1-T2` avec schemas : [`docs/recit-s1-t2.md`](recit-s1-t2.md)
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
