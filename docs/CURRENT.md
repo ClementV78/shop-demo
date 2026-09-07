@@ -235,8 +235,18 @@ Points de vigilance non bloquants :
 - `ADR-007` tranche le point laisse ouvert par `ADR-002` : `GitLab.com`
   devient la source de verite unique pour le code, la CI et le repo GitOps lu
   par Argo CD ; `GitHub` reste un miroir public en lecture seule via le push
-  mirroring natif GitLab. Reste a faire : configurer le mirroring cote GitLab
-  et documenter la procedure une fois faite.
+  mirroring natif GitLab. Le mirroring est configure et verifie fonctionnel
+  (voir "Etat du depot Git" plus haut).
+- Documentation pedagogique alignee sur l'etat reel de `S1-T2` :
+  [`docs/comment-ca-marche.md`](comment-ca-marche.md) gagne un chapitre
+  "S1-T2 - Comment Argo CD est installe et synchronise" (manifest pinne,
+  piege du client-side apply sur le CRD `applicationsets`, label requis sur
+  le secret de credential Git, pont vers l'incident Cilium) ;
+  [`docs/concepts-sprint-1.md`](concepts-sprint-1.md),
+  [`docs/gitops-structure.md`](gitops-structure.md) et
+  [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
+  ne decrivent plus Argo CD au futur ; le schema
+  `diagrams/comment-ca-marche-s0-s1.drawio` reflete `S1-T2` comme termine.
 - Le retrait de la forge Git self-hosted a ete propage aux documents courants,
   aux schemas sources/exports, au role `cloudflare-tunnel`, aux consignes
   agents et aux playbooks Ansible : l'ancien playbook de forge a ete supprime.
