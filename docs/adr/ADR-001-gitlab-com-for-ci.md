@@ -1,8 +1,12 @@
-# ADR-001 - Utiliser GitLab.com pour la CI et reserver le self-hosted a Gitea/GitOps
+# ADR-001 - Utiliser GitLab.com pour la CI
 
 ## Statut
 
-Accepte
+Accepte.
+
+Partiellement supersede par
+[`ADR-002`](ADR-002-remove-gitea-from-mvp.md) pour la partie GitOps
+self-hosted.
 
 ## Contexte
 
@@ -22,11 +26,10 @@ Cette decision impacte :
 - la charge d'exploitation du lab ;
 - la lisibilite du portfolio.
 
-L'architecture cible de reference mentionne deja :
+L'architecture cible de reference mentionne :
 
 - des shared runners `GitLab.com` pour `apply/destroy workload` ;
-- un runner bootstrap prive pour les jobs necessitant le reseau VPC ;
-- `Gitea` comme composant self-hosted de la plateforme.
+- un runner bootstrap prive pour les jobs necessitant le reseau VPC.
 
 References :
 
@@ -39,9 +42,7 @@ References :
 
 Le projet utilise `GitLab.com` comme plateforme CI/CD de reference.
 
-Le self-hosted reste reserve a `Gitea` pour les besoins GitOps et de
-demonstration plateforme, mais pas a l'operation d'une instance GitLab
-auto-hebergee.
+Le projet n'opere pas d'instance GitLab auto-hebergee.
 
 Le role Ansible `gitlab-runner` sera donc concu pour :
 
@@ -75,12 +76,8 @@ Avantages :
 
 - simplification maximale.
 
-Inconvenients :
-
-- perd une partie de la demonstration plateforme autour de `Gitea` et du
-  GitOps auto-heberge.
-
-Decision : rejetee.
+Decision : finalement acceptee pour le MVP GitOps via
+[`ADR-002`](ADR-002-remove-gitea-from-mvp.md).
 
 ## Consequences
 
