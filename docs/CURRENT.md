@@ -9,11 +9,45 @@ Suivi detaille :
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
 [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md).
 
+## Etat du depot Git (a lire avant toute action git)
+
+Restructuration terminee pendant cette session, hors perimetre `S1-T2` mais
+prealable a la connexion Argo CD -> repo GitOps :
+
+- la branche par defaut est desormais `main` partout (local, GitHub, GitLab) ;
+  `master` n'existe plus nulle part ;
+- `git branch --set-upstream-to=gitlab/main main` est en place : un simple
+  `git push` / `git pull` cible GitLab par defaut ;
+- `GitLab.com` est la source de verite (code, CI, futur repo lu par Argo CD),
+  `GitHub` est un miroir public en lecture seule
+  ([`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md)) ;
+- le push mirroring natif GitLab -> GitHub est configure et actif (option
+  "Mirror only protected branches" activee, donc seule `main` est miroitee) ;
+- la branche `main` est protegee cote GitLab (`Allowed to push and merge`:
+  Maintainers, force-push desactive) ;
+- le token `shopdemo-access-token` (project access token, scopes
+  `read_api, create_runner, manage_runner, read_repository, write_repository,
+  read_registry, write_registry`) a ete recree avec le role `Maintainer` pour
+  pouvoir pousser sur `main` malgre la protection ; l'ancien token en cache
+  local a ete revoque et remplace. Attention : ce meme token sert aussi au
+  runner GitLab CI (`create_runner`/`manage_runner`) — verifier si un futur
+  souci CI est lie a ce changement de role ;
+- mirroring verifie et fonctionnel : `git ls-remote origin refs/heads/main`
+  et `git ls-remote gitlab refs/heads/main` matchent (`4c7b8ba`). Le premier
+  essai avait echoue avec `terminal prompts disabled` car les identifiants
+  etaient embarques dans l'URL du mirror ; la configuration fiable est
+  `Authentication method: Username and Password` avec `Username`/`Password`
+  (token) dans des champs separes, pas dans l'URL ;
+- piege local specifique a cet environnement : dans ce poste, `GIT_ASKPASS`
+  pointe vers le script d'invite VSCode et peut faire bloquer `git push`
+  indefiniment sans rien afficher si la popup ne s'ouvre pas. Contournement :
+  `GIT_ASKPASS= git push` force le prompt dans le terminal texte.
+
 ## Prochaine tache
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T2 | Installer Argo CD sur le lab local | Planifie | Installer Argo CD dans `argocd`, le brancher sur le repo GitOps, puis prouver une premiere synchronisation simple |
+| S1-T2 | Installer Argo CD sur le lab local | Planifie | Verifier la synchro du mirroring GitHub, puis installer Argo CD dans `argocd`, le brancher sur `https://gitlab.com/ClementV78/shopdemo.git` branche `main`, et prouver une premiere synchronisation simple |
 
 Objectif de reprise :
 
@@ -195,14 +229,20 @@ Points de vigilance non bloquants :
 - `S0-T11` est clos avec des playbooks `bootstrap.yml`, `harden.yml` et
   `teardown.yml` verifies en `--syntax-check` et `--check`, avec un teardown
   volontairement conservateur limite par defaut a `cloudflared-shopdemo`.
-- La branche GitHub `test/gitlab-runner-smoke` a ete mergee dans `master`
-  via la PR `#1`. En reprise de session, repartir de `master` a jour avant
-  tout nouveau travail.
+- La branche GitHub `test/gitlab-runner-smoke` a ete mergee dans l'ancienne
+  branche par defaut `master` via la PR `#1`. Cette branche a depuis ete
+  renommee `main` (voir "Etat du depot Git" ci-dessus) ; en reprise de
+  session, repartir de `main` a jour, source de verite `GitLab.com`.
+- Restructuration Git de la session du 2026-09-07 : renommage complet
+  `master` -> `main` (local, GitHub, GitLab), bascule de `GitLab.com` en
+  source de verite du repo GitOps (`ADR-007`), mise en place et validation du
+  push mirroring GitLab -> GitHub, et rotation du token `shopdemo-access-token`
+  vers le role `Maintainer` pour permettre les push sur `main` protegee.
 
 ## Prochaine reprise recommandee
 
 1. Demarrer `S1-T2` : installer Argo CD sur le lab local avec une procedure
-   documentee et reversible.
+   documentee et reversible, en pointant sur `GitLab.com` comme repo GitOps.
 2. Verifier que le namespace `argocd` existe ou sera cree par le chemin GitOps
    avant l'installation.
 3. Definir les premieres commandes de validation : pods Argo CD, service,
