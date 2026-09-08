@@ -19,7 +19,7 @@ Conception cible :
 | S1-T4 | Creer les manifests applicatifs minimaux | Termine | S1-T1 |
 | S1-T5 | Ajouter ApplicationSet staging | Termine | S1-T2, S1-T4 |
 | S1-T6 | Ajouter ApplicationSet prod base sur tags | Termine | S1-T5 |
-| S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | S1-T5 |
+| S1-T7 | Documenter usage, rollback et depannage GitOps | Termine | S1-T5 |
 
 ## Cadrage initial
 
@@ -103,7 +103,9 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Frontiere entre environnements | Verifie | Un merge dans `main` laisse prod `Synced` sur l'ancien tag, sans ecart signale |
 | Reprise automatique d'un tag | Verifie | Tag pose puis aucune intervention : deploiement effectif a t+150s, voir [`../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md) |
 | Isolation reseau en prod | Verifie | Requete depuis `default` vers `smoke.shopdemo-prod` bloquee |
-| Rollback GitOps | Planifie | A renseigner |
+| Rollback GitOps | Verifie | Release defectueuse promue puis annulee par tag superieur sur commit anterieur, retour a `Healthy` en 72 secondes, voir [`../evidence/sprint-1/s1-t7-rollback-execute.md`](../evidence/sprint-1/s1-t7-rollback-execute.md) |
+| Continuite de service pendant un incident | Verifie | Service repondant tout au long de la mauvaise release, grace a `maxUnavailable: 0` |
+| Guide d'exploitation | Verifie | [`../exploitation-gitops.md`](../exploitation-gitops.md), usage, rollback et depannage issus des pieges reels du sprint |
 
 ## Decisions et ecarts
 
@@ -341,8 +343,62 @@ Point de vigilance : la reprise d'un tag prend jusqu'a trois minutes, la
 decouverte reposant sur l'intervalle de reconciliation. Aucun webhook n'existe
 entre GitLab et Argo CD, dont le service est en `ClusterIP`.
 
+## S1-T7 - Documenter usage, rollback et depannage
+
+Etat : `Termine`.
+
+Objectif : rendre la plateforme exploitable par quelqu'un qui n'a pas vecu le
+sprint, et prouver le rollback au lieu de le decrire.
+
+Livrables :
+
+- [`../exploitation-gitops.md`](../exploitation-gitops.md), guide d'usage, de
+  retour arriere et de depannage, construit a partir des pieges reellement
+  rencontres plutot que de la documentation d'Argo CD ;
+- rollback **execute** en production, avec sa chronologie dans
+  [`../evidence/sprint-1/s1-t7-rollback-execute.md`](../evidence/sprint-1/s1-t7-rollback-execute.md).
+
+L'exercice a consiste a promouvoir une release volontairement defectueuse,
+digest d'image inexistant, puis a la corriger par la procedure documentee.
+
+Le resultat le plus interessant n'etait pas attendu : **le service a continue
+de repondre pendant tout l'incident**. La strategie `maxUnavailable: 0` posee
+en `S1-T4` a empeche Kubernetes de retirer un pod sain avant qu'un nouveau soit
+pret. Une mauvaise release a donc produit un deploiement bloque, pas une panne.
+Argo CD affichait `Progressing` et le `Deployment` moins de pods a jour que de
+repliques, ce qui est le signal a reconnaitre puisque le service rendu ne
+trahissait rien.
+
+Le retour a l'etat sain a pris 72 secondes apres la pose du tag correctif.
+
+## Sprint 1 termine
+
+Les sept taches sont livrees et validees. La chaine complete fonctionne :
+
+```text
+branche de feature -> merge request -> main -> staging deploie automatiquement
+                                                        |
+                                              tag semver pose sciemment
+                                                        v
+                                                 prod deploie sur le tag
+```
+
+Trois decisions structurantes ont ete actees pendant le sprint :
+[`ADR-007`](../adr/ADR-007-gitlab-source-of-truth-github-mirror.md) sur la
+source de verite, [`ADR-008`](../adr/ADR-008-standard-networkpolicy-by-default.md)
+sur les API de policy reseau, et
+[`ADR-009`](../adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md) sur
+le modele de promotion.
+
+Dettes et limites reportees, toutes documentees dans les preuves : `AppProject`
+dedie au lieu de `default`, securisation du namespace `argocd` avec un egress
+par nom de domaine, `preserveResourcesOnDeletion` a `false` en prod, absence de
+webhook entre GitLab et Argo CD, absence de sync waves, et promotion portant
+sur des manifests plutot que sur un digest d'image faute de CI.
+
 ## Prochaine etape
 
-`S1-T7` : documenter l'usage, le rollback et le depannage GitOps. Le rollback
-est la seule ligne encore `Planifie` dans le tableau de preuves, et le modele
-par tags le rend particulierement lisible : revenir a un tag anterieur suffit.
+`Sprint 2` : Landing Zone AWS avec Terraform. Conformement a la regle de
+progression du README, son fichier de suivi doit etre cree avant demarrage.
+Premier sprint engageant des couts AWS reels, ce qui change la nature des
+precautions a prendre.

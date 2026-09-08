@@ -85,17 +85,17 @@ Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent 
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
-![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-En_cours-yellow?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
+![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Terminé-green?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 1` - Argo CD et base GitOps locale |
+| Sprint actif | Aucun. `Sprint 1` est terminé, `Sprint 2` reste à cadrer |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
 |---|---|---|---|
 | 0 | Ansible et fondations bootstrap | Terminé | [`sprint-0-ansible.md`](docs/sprints/sprint-0-ansible.md) |
-| 1 | Argo CD et base GitOps locale | En cours | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
+| 1 | Argo CD et base GitOps locale | Terminé | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
 | 2 | Landing Zone AWS | Planifié | À créer avant démarrage |
 | 3 | Plateforme AWS et EKS | Planifié | À créer avant démarrage |
 | 4 | Observabilité | Planifié | À créer avant démarrage |
@@ -104,13 +104,15 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
-**Focus courant** : `Sprint 1` est demarre. `S1-T1` a pose la structure
-GitOps locale, `S1-T2` a installe Argo CD, `S1-T3` a fait exister les
-namespaces applicatifs avec une isolation reseau en entree, `S1-T4` a deploye
-une premiere base applicative, `S1-T5` genere desormais les `Application`
-automatiquement, et `S1-T6` a fait de la promotion vers prod un acte delibere
-par tag semver. La prochaine action est `S1-T7` : documenter usage, rollback et
-depannage.
+**Focus courant** : `Sprint 1` est terminé. La chaîne GitOps complète
+fonctionne sur le lab local : un merge dans `main` déploie automatiquement
+staging, et seule la pose d'un tag semver promeut en production. Le rollback a
+été exécuté sur un incident réel, pas seulement décrit. Voir le
+[guide d'exploitation](docs/exploitation-gitops.md).
+
+La prochaine étape est le `Sprint 2`, Landing Zone AWS avec Terraform. Son
+fichier de suivi reste à créer, et c'est le premier sprint qui engagera des
+coûts AWS réels.
 
 ## Démarrer ici
 

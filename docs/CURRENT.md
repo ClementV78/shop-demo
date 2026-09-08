@@ -3,7 +3,8 @@
 ## Sprint actif
 
 Sprint 0 - Ansible et fondations bootstrap : `Termine`.
-Sprint 1 - Argo CD et base GitOps locale : `En cours`.
+Sprint 1 - Argo CD et base GitOps locale : `Termine` le 2026-09-08.
+Sprint 2 - Landing Zone AWS : `A cadrer`, fichier de suivi a creer.
 
 Suivi detaille :
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
@@ -47,34 +48,36 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | Ecrire le guide d'exploitation, dont la procedure de rollback |
+| S2-T0 | Cadrer le Sprint 2 | A faire | Creer le fichier de suivi avant tout `terraform apply`, et chiffrer les couts attendus |
 
 Objectif de reprise :
 
-- ecrire le guide d'exploitation GitOps : usage courant, rollback, depannage ;
-- documenter le rollback, seule ligne encore `Planifie` du tableau de preuves.
-  Le modele par tags le rend simple : revenir a un tag anterieur suffit, et
-  Argo CD redeploie la version correspondante ;
-- couvrir les pieges rencontres pendant le sprint plutot que de reciter la
-  documentation d'Argo CD.
+- creer `docs/sprints/sprint-2-landing-zone.md` avant toute action Terraform,
+  conformement a la regle de progression du README ;
+- chiffrer les couts AWS attendus et la procedure de destruction avant
+  d'engager quoi que ce soit. C'est le premier sprint qui coute de l'argent
+  reel, ce qui change la nature des precautions ;
+- respecter la separation `bootstrap` permanent et `workload` ephemere posee
+  par [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md).
 
-Validation de non-regression attendue pendant `S1-T7` :
+Ce qui reste utilisable tel quel du Sprint 1 :
 
-- les cinq `Application` restent `Synced` / `Healthy` ;
-- `smoke` reste disponible en staging et en prod ;
-- un rollback reellement execute, pas seulement decrit.
+- la chaine GitOps locale, qui continuera de servir de banc d'essai ;
+- le guide d'exploitation [`docs/exploitation-gitops.md`](exploitation-gitops.md) ;
+- le modele de promotion par tags, transposable a des environnements AWS.
 
 Point de cadrage :
 
-`S1-T7` cloture le Sprint 1. Ne pas y ajouter de nouvelles fonctionnalites :
-Gateway API, sync waves et `AppProject` dedie relevent des sprints suivants.
+Ne pas lancer de `terraform apply` sans avoir cadre le sprint, chiffre les
+couts et documente le nettoyage. Les regles du depot l'interdisent sans demande
+explicite.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`, `S1-T5`, `S1-T6`.
+`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`, `S1-T5`, `S1-T6`, `S1-T7`. Sprint clos.
 
 ## Blocages
 
@@ -260,6 +263,17 @@ Points de vigilance non bloquants :
   - risque accepte : `preserveResourcesOnDeletion` reste `false` en prod ;
   - preuve : [`docs/evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](evidence/sprint-1/s1-t6-promotion-prod-par-tags.md).
 
+- `S1-T7` termine (2026-09-08), et Sprint 1 clos :
+  - guide d'exploitation [`docs/exploitation-gitops.md`](exploitation-gitops.md),
+    construit a partir des pieges reels du sprint ;
+  - rollback **execute** et non decrit : release defectueuse promue par tag,
+    incident constate, correction par tag superieur sur commit anterieur,
+    retour a `Healthy` en 72 secondes ;
+  - resultat inattendu : le service a repondu pendant tout l'incident, la
+    strategie `maxUnavailable: 0` posee en `S1-T4` ayant transforme une panne
+    potentielle en deploiement bloque ;
+  - preuve : [`docs/evidence/sprint-1/s1-t7-rollback-execute.md`](evidence/sprint-1/s1-t7-rollback-execute.md).
+
 ## Documents de reference immediats
 
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
@@ -268,6 +282,7 @@ Points de vigilance non bloquants :
 - Comment ca marche techniquement : [`docs/comment-ca-marche.md`](comment-ca-marche.md)
 - Recit narratif de `S1-T2` avec schemas : [`docs/evidence/sprint-1/recit-s1-t2.md`](evidence/sprint-1/recit-s1-t2.md)
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
+- Exploitation, rollback et depannage : [`docs/exploitation-gitops.md`](exploitation-gitops.md)
 - Promotion vers la production : [`docs/promotion-par-tags.md`](promotion-par-tags.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
@@ -284,6 +299,10 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- Sprint 1 est clos : sept taches livrees, trois ADR actes, et la chaine
+  complete `merge -> staging` puis `tag -> prod` fonctionne et a ete eprouvee
+  par un incident reel.
 
 - `S1-T6` est termine : la promotion vers prod passe par un tag semver, ce qui
   cree une vraie frontiere entre les environnements. Quatre tags de test ont
@@ -422,10 +441,11 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S1-T7` : guide d'usage, de rollback et de depannage GitOps.
-2. Executer reellement un rollback plutot que le decrire, en revenant a un tag
-   anterieur, et le consigner comme preuve.
-3. Ne pas ouvrir de nouveau chantier : `S1-T7` cloture le sprint.
+1. Cadrer le Sprint 2 dans un fichier de suivi dedie avant toute action.
+2. Chiffrer les couts AWS et ecrire la procedure de destruction avant le
+   premier `terraform apply`.
+3. Reprendre les dettes du Sprint 1 quand elles bloqueront : `AppProject`
+   dedie, securisation du namespace `argocd`, webhook GitLab vers Argo CD.
 
 ## Rappel de maintenance
 
