@@ -316,6 +316,9 @@ Livrables :
 - preuve dans
   [`../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md).
 
+Guide d'usage, avec les commandes de promotion et de retour arriere :
+[`../promotion-par-tags.md`](../promotion-par-tags.md).
+
 Le mecanisme : Argo CD n'evalue les contraintes semver **que sur les tags**,
 jamais sur les branches. Prod ignore donc l'avancee de `main` et ne bouge qu'au
 prochain tag.

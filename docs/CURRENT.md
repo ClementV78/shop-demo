@@ -268,6 +268,7 @@ Points de vigilance non bloquants :
 - Comment ca marche techniquement : [`docs/comment-ca-marche.md`](comment-ca-marche.md)
 - Recit narratif de `S1-T2` avec schemas : [`docs/evidence/sprint-1/recit-s1-t2.md`](evidence/sprint-1/recit-s1-t2.md)
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
+- Promotion vers la production : [`docs/promotion-par-tags.md`](promotion-par-tags.md)
 - Concepts Sprint 1 : [`docs/concepts-sprint-1.md`](concepts-sprint-1.md)
 - Decision CI GitLab : [`docs/adr/ADR-001-gitlab-com-for-ci.md`](adr/ADR-001-gitlab-com-for-ci.md)
 - Decision retrait forge self-hosted : `ADR-002`

@@ -70,6 +70,7 @@ Regle de lecture :
 | Pipeline CI/CD | [`pipeline-cicd-overview.svg`](pipeline-cicd-overview.svg) | [`pipeline-cicd-overview.workflow.json`](pipeline-cicd-overview.workflow.json) | [`pipeline-cicd-overview.html`](pipeline-cicd-overview.html) |
 | Architecture GitLab | [`gitlab-architecture.svg`](gitlab-architecture.svg) | [`gitlab-architecture.drawio`](gitlab-architecture.drawio) | - |
 | Webhook paiement async | [`webhook-paiement-async.svg`](webhook-paiement-async.svg) | [`webhook-paiement-async.workflow.json`](webhook-paiement-async.workflow.json) | [`webhook-paiement-async.html`](webhook-paiement-async.html) |
+| Promotion par tags | [`s1-t6-promotion-tags.svg`](s1-t6-promotion-tags.svg) | [`s1-t6-promotion-tags.drawio`](s1-t6-promotion-tags.drawio) | `docs/promotion-par-tags.md` |
 
 ## A nettoyer plus tard
 
