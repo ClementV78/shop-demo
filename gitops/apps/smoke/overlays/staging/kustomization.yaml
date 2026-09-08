@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: shopdemo-staging
+resources:
+  - ../../base
+# includeSelectors reste a false : le selecteur d un Deployment est immuable,
+# l ajouter apres coup casserait toute mise a jour ulterieure.
+labels:
+  - pairs:
+      shopdemo.io/environment: staging
+    includeSelectors: false

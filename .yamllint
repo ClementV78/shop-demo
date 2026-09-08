@@ -1,5 +1,12 @@
 ---
 extends: default
 
+rules:
+  # Une reference d'image epinglee par digest depasse largement 80 caracteres
+  # et ne peut pas etre coupee proprement en YAML. La convention d'epinglage
+  # prime sur la largeur, la limite est donc relevee plutot que contournee.
+  line-length:
+    max: 160
+
 ignore: |
   gitops/argocd/install.yaml

@@ -1,0 +1,15 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: smoke
+  labels:
+    app.kubernetes.io/name: smoke
+    app.kubernetes.io/component: smoke-test
+    app.kubernetes.io/part-of: shopdemo
+    app.kubernetes.io/managed-by: gitops
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smoke
