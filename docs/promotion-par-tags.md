@@ -73,14 +73,16 @@ C'est le point qui surprend, et il faut l'avoir en tete pour lire le fichier san
 
 Un `ApplicationSet` manipule **deux revisions distinctes**, qui ne servent pas a la meme chose.
 
-La revision du **generateur** dit quelle version du depot scanner pour **decouvrir** quelles applications existent. Elle vaut `main`.
+La revision du **generateur** dit quelle version du depot scanner pour **decouvrir** quelles applications existent.
 
-La revision du **template** dit ce que chaque `Application` generee va **deployer**. Elle vaut `v*`.
+La revision du **template** dit ce que chaque `Application` generee va **deployer**.
+
+Cote prod, les deux valent `v*`, et ce n'est pas un detail :
 
 ```yaml
 generators:
   - git:
-      revision: main                  # ou chercher les repertoires
+      revision: 'v*'                  # ou chercher les repertoires
       directories:
         - path: gitops/apps/*/overlays/prod
 template:
@@ -89,7 +91,9 @@ template:
       targetRevision: 'v*'            # quoi deployer une fois trouve
 ```
 
-Consequence pratique : un nouveau service devient **candidat** a la production des son merge dans `main`, mais il n'est reellement **deploye** qu'une fois inclus dans un tag.
+Si le generateur scannait `main`, un service tout juste merge apparaitrait immediatement comme `Application` cote prod, en cherchant son repertoire dans le dernier tag, ou il n'existe pas encore. On obtiendrait une `Application` en erreur permanente jusqu'a la promotion suivante. Une alerte rouge qui n'est pas un vrai probleme est exactement ce qui apprend a ignorer les alertes.
+
+En alignant les deux revisions sur les tags, une application n'apparait cote prod qu'une fois reellement promue.
 
 ## Promouvoir en pratique
 
@@ -134,7 +138,5 @@ Supprimer le tag defaillant fonctionnerait aussi, Argo CD retombant alors sur le
 **Aucun webhook.** La decouverte d'un tag repose entierement sur l'intervalle de reconciliation, car aucun webhook ne relie GitLab a Argo CD, dont le service est en `ClusterIP` et donc injoignable de l'exterieur. Un webhook rendrait la promotion quasi immediate.
 
 **La suppression est destructive.** `preserveResourcesOnDeletion` vaut `false`, donc si une `Application` generee disparait, ses ressources sont supprimees. Une erreur dans le motif du generateur supprimerait des workloads de production. Risque assume, documente dans la preuve, defendable uniquement parce que cette production est un environnement de demonstration.
-
-**Le generateur scanne `main`.** Une application mergee mais jamais taguee apparaitra comme `Application` cote prod, en essayant de deployer depuis un tag ou son repertoire n'existe pas encore. Le cas ne s'est pas presente, mais il se produira au premier service ajoute entre deux promotions.
 
 **On promeut des manifests, pas des images.** Le modele cible de [`sprint-planning.md`](sprint-planning.md) promeut un digest d'image produit par la CI. Cette CI n'existe pas encore, donc la promotion porte aujourd'hui sur la configuration seule.

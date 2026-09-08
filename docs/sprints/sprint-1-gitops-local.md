@@ -323,10 +323,12 @@ Le mecanisme : Argo CD n'evalue les contraintes semver **que sur les tags**,
 jamais sur les branches. Prod ignore donc l'avancee de `main` et ne bouge qu'au
 prochain tag.
 
-Subtilite a connaitre : un `ApplicationSet` a deux revisions distinctes. Le
-generateur scanne `main` pour **decouvrir** les applications, le template
-deploie depuis la contrainte semver. Un service devient candidat des son merge,
-mais n'est deploye qu'une fois inclus dans un tag.
+Subtilite a connaitre : un `ApplicationSet` a deux revisions distinctes, celle
+du generateur qui **decouvre** les applications et celle du template qui les
+**deploie**. Cote prod les deux valent `v*`, apres verification que le
+generateur accepte bien les contraintes semver. Scanner `main` aurait fait
+apparaitre tout service tout juste merge comme une `Application` en erreur
+jusqu'a la promotion suivante.
 
 Risque accepte : `preserveResourcesOnDeletion` reste a `false` en prod, comme
 en staging. Choix de coherence et de simplicite, pris en connaissance de la

@@ -87,7 +87,9 @@ Ce compromis est acceptable ici parce que la "production" du projet est un envir
 
 ## Ce que cette preuve ne couvre pas
 
-Le generateur prod scanne `main` et non un tag. Une application mergee mais jamais taguee apparaitrait donc comme `Application` cote prod, en essayant de deployer depuis un tag ou son repertoire n'existe pas. Le cas ne s'est pas presente ici, `smoke` etant present dans tous les tags, mais il se produira au premier service ajoute entre deux promotions.
+Le generateur prod a d'abord scanne `main`, ce qui aurait fait apparaitre toute application mergee mais non taguee comme une `Application` en erreur, incapable de trouver son chemin dans un tag anterieur a sa creation.
+
+Le point a ete corrige apres verification. La documentation ne precisant pas si le generateur accepte les contraintes semver, un `ApplicationSet` jetable et sans synchronisation a servi de test isole, plutot que de risquer la suppression de `prod-smoke` sur l'objet reel. Le generateur les accepte, sa revision est donc alignee sur `v*` comme celle du template.
 
 Aucune sync wave n'ordonne le socle et les applications.
 
