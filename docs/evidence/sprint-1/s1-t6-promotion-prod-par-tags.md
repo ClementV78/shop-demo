@@ -17,7 +17,7 @@ staging  ->  targetRevision: main   ->  suit chaque merge
 prod     ->  targetRevision: v*     ->  ne bouge qu'au prochain tag
 ```
 
-L'`ApplicationSet` prod garde deux notions de revision distinctes, et c'est une subtilite a connaitre. Son **generateur** scanne `main` pour decouvrir quelles applications existent. Son **template** deploie depuis la contrainte semver. Un nouveau service devient donc candidat des son merge, mais ne sera reellement deploye qu'une fois inclus dans un tag.
+L'`ApplicationSet` prod manipule deux notions de revision distinctes, et c'est une subtilite a connaitre. Son **generateur** dit ou chercher les applications, son **template** dit quoi deployer une fois trouvees. Les deux valent `v*`, de sorte qu'une application n'apparait cote prod qu'une fois reellement incluse dans une promotion.
 
 ## La preuve, dans les deux sens
 

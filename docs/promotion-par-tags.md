@@ -50,14 +50,19 @@ labels:
     includeTemplates: true
 ```
 
-**Un ApplicationSet prod**, dont le template porte la contrainte semver. C'est la seule difference reelle avec celui de staging.
+**Un ApplicationSet prod**, qui porte la contrainte semver a deux endroits. C'est la seule difference reelle avec celui de staging, qui a `main` aux memes places.
 
 ```yaml
 # gitops/argocd/applicationset-prod.yaml, extrait
+generators:
+  - git:
+      revision: 'v*'                # ou chercher les applications
+      directories:
+        - path: gitops/apps/*/overlays/prod
 template:
   spec:
     source:
-      targetRevision: 'v*'          # staging a "main" a cet endroit
+      targetRevision: 'v*'          # quoi deployer une fois trouvees
       path: '{{.path.path}}'
     destination:
       namespace: shopdemo-prod
