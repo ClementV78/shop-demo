@@ -18,7 +18,7 @@ Conception cible :
 | S1-T3 | Definir les namespaces et NetworkPolicies de base | Termine | S1-T1 |
 | S1-T4 | Creer les manifests applicatifs minimaux | Termine | S1-T1 |
 | S1-T5 | Ajouter ApplicationSet staging | Termine | S1-T2, S1-T4 |
-| S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | S1-T5 |
+| S1-T6 | Ajouter ApplicationSet prod base sur tags | Termine | S1-T5 |
 | S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | S1-T5 |
 
 ## Cadrage initial
@@ -99,6 +99,10 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Separation socle / applications | Verifie | `staging` possede namespace et policies, `staging-smoke` possede le workload, aucun recouvrement |
 | Transfert de propriete sans coupure | Verifie | Annotation `tracking-id` transferee, `Deployment` jamais recree, voir [`../evidence/sprint-1/s1-t5-applicationset-staging.md`](../evidence/sprint-1/s1-t5-applicationset-staging.md) |
 | Cycle de vie possede par l'ApplicationSet | Verifie | Suppression manuelle de l'`Application` generee, recreee en moins de dix secondes |
+| Promotion par tag semver | Verifie | `prod-smoke` deploie depuis `targetRevision: v*`, revision resolue identique au commit du tag |
+| Frontiere entre environnements | Verifie | Un merge dans `main` laisse prod `Synced` sur l'ancien tag, sans ecart signale |
+| Reprise automatique d'un tag | Verifie | Tag pose puis aucune intervention : deploiement effectif a t+150s, voir [`../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md) |
+| Isolation reseau en prod | Verifie | Requete depuis `default` vers `smoke.shopdemo-prod` bloquee |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
@@ -296,8 +300,44 @@ mise hors service, mais cela signifie qu'un motif de generateur mal ecrit
 supprimerait les workloads qui n'y correspondent plus. A trancher
 explicitement pour prod en `S1-T6`.
 
+## S1-T6 - Promotion vers prod sur tags semver
+
+Etat : `Termine`.
+
+Objectif : donner a prod une source differente de staging, pour que la
+promotion soit un acte delibere et non la consequence automatique d'un merge.
+
+Livrables :
+
+- [`../../gitops/apps/smoke/overlays/prod/`](../../gitops/apps/smoke/overlays/prod/),
+  overlay prod sans lequel le generateur ne trouverait rien ;
+- [`../../gitops/argocd/applicationset-prod.yaml`](../../gitops/argocd/applicationset-prod.yaml),
+  dont le template utilise `targetRevision: v*` ;
+- preuve dans
+  [`../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](../evidence/sprint-1/s1-t6-promotion-prod-par-tags.md).
+
+Le mecanisme : Argo CD n'evalue les contraintes semver **que sur les tags**,
+jamais sur les branches. Prod ignore donc l'avancee de `main` et ne bouge qu'au
+prochain tag.
+
+Subtilite a connaitre : un `ApplicationSet` a deux revisions distinctes. Le
+generateur scanne `main` pour **decouvrir** les applications, le template
+deploie depuis la contrainte semver. Un service devient candidat des son merge,
+mais n'est deploye qu'une fois inclus dans un tag.
+
+Risque accepte : `preserveResourcesOnDeletion` reste a `false` en prod, comme
+en staging. Choix de coherence et de simplicite, pris en connaissance de la
+recommandation inverse. Une erreur de motif dans le generateur supprimerait
+donc des workloads de production. Acceptable parce que cette production est un
+environnement de demonstration sur lab local, a rediscuter si elle devenait
+reellement exploitee.
+
+Point de vigilance : la reprise d'un tag prend jusqu'a trois minutes, la
+decouverte reposant sur l'intervalle de reconciliation. Aucun webhook n'existe
+entre GitLab et Argo CD, dont le service est en `ClusterIP`.
+
 ## Prochaine etape
 
-`S1-T6` : promotion vers prod sur tags semver `v*.*.*`, conformement au plan
-initial et a `ADR-009`. Trancher a cette occasion la valeur de
-`preserveResourcesOnDeletion` pour l'environnement de production.
+`S1-T7` : documenter l'usage, le rollback et le depannage GitOps. Le rollback
+est la seule ligne encore `Planifie` dans le tableau de preuves, et le modele
+par tags le rend particulierement lisible : revenir a un tag anterieur suffit.

@@ -47,35 +47,34 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | Promotion explicite par tag semver, et trancher preserveResourcesOnDeletion |
+| S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | Ecrire le guide d'exploitation, dont la procedure de rollback |
 
 Objectif de reprise :
 
-- faire suivre a prod des tags semver `v*.*.*` au lieu de la branche `main`,
-  conformement a [`ADR-009`](adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md) ;
-- trancher `preserveResourcesOnDeletion` pour prod. Par defaut il vaut `false`,
-  donc la disparition d'une `Application` generee **supprime ses ressources**.
-  Acceptable en staging, a decider consciemment en production ;
-- ne pas modifier le socle ni les applications de staging dans ce lot.
+- ecrire le guide d'exploitation GitOps : usage courant, rollback, depannage ;
+- documenter le rollback, seule ligne encore `Planifie` du tableau de preuves.
+  Le modele par tags le rend simple : revenir a un tag anterieur suffit, et
+  Argo CD redeploie la version correspondante ;
+- couvrir les pieges rencontres pendant le sprint plutot que de reciter la
+  documentation d'Argo CD.
 
-Validation de non-regression attendue pendant `S1-T6` :
+Validation de non-regression attendue pendant `S1-T7` :
 
-- les quatre `Application` existantes restent `Synced` / `Healthy` ;
-- le workload `smoke` reste 2/2 disponible dans `shopdemo-staging` ;
-- un commit sur `main` continue de partir automatiquement en staging, et
-  **jamais** en prod.
+- les cinq `Application` restent `Synced` / `Healthy` ;
+- `smoke` reste disponible en staging et en prod ;
+- un rollback reellement execute, pas seulement decrit.
 
 Point de cadrage :
 
-Prod ne doit rien recevoir tant qu'aucun tag n'est pose. C'est le seul test qui
-prouve que la frontiere entre les deux environnements existe reellement.
+`S1-T7` cloture le Sprint 1. Ne pas y ajouter de nouvelles fonctionnalites :
+Gateway API, sync waves et `AppProject` dedie relevent des sprints suivants.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`, `S1-T5`.
+`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`, `S1-T5`, `S1-T6`.
 
 ## Blocages
 
@@ -250,6 +249,17 @@ Points de vigilance non bloquants :
     d'environnement prevues au plan initial ;
   - preuve : [`docs/evidence/sprint-1/s1-t5-applicationset-staging.md`](evidence/sprint-1/s1-t5-applicationset-staging.md).
 
+- `S1-T6` termine (2026-09-08) :
+  - prod suit `targetRevision: v*`, une contrainte semver qu'Argo CD n'evalue
+    que sur les tags, jamais sur les branches ;
+  - frontiere prouvee dans les deux sens : un merge dans `main` laisse prod
+    `Synced` sur l'ancien tag, et un tag pose est repris automatiquement en
+    150 secondes sans aucune intervention ;
+  - un premier essai a ete ecarte car un rafraichissement force coincidait avec
+    la reprise automatique, rendant le resultat non attribuable ;
+  - risque accepte : `preserveResourcesOnDeletion` reste `false` en prod ;
+  - preuve : [`docs/evidence/sprint-1/s1-t6-promotion-prod-par-tags.md`](evidence/sprint-1/s1-t6-promotion-prod-par-tags.md).
+
 ## Documents de reference immediats
 
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
@@ -273,6 +283,13 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- `S1-T6` est termine : la promotion vers prod passe par un tag semver, ce qui
+  cree une vraie frontiere entre les environnements. Quatre tags de test ont
+  ete poses, `v0.1.0` a `v0.4.0`.
+- Aucun webhook n'existe entre GitLab et Argo CD, donc une promotion met
+  jusqu'a trois minutes a etre vue. Sans consequence en lab, a corriger si
+  Argo CD devient joignable de l'exterieur.
 
 - `S1-T5` est termine : les `Application` applicatives sont desormais generees,
   plus declarees. Attention, la suppression d'une `Application` generee detruit
@@ -404,11 +421,10 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S1-T6` : promotion vers prod sur tags semver.
-2. Trancher `preserveResourcesOnDeletion` pour prod avant d'y brancher un
-   `ApplicationSet`, la valeur par defaut etant destructive.
-3. Verifier apres coup qu'un commit sur `main` part bien en staging et pas en
-   prod. Sans ce test, la frontiere entre environnements reste theorique.
+1. Demarrer `S1-T7` : guide d'usage, de rollback et de depannage GitOps.
+2. Executer reellement un rollback plutot que le decrire, en revenant a un tag
+   anterieur, et le consigner comme preuve.
+3. Ne pas ouvrir de nouveau chantier : `S1-T7` cloture le sprint.
 
 ## Rappel de maintenance
 
