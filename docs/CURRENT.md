@@ -53,8 +53,10 @@ Objectif de reprise :
 
 - remplacer les `Application` declarees une par une par un `ApplicationSet`
   pour staging ;
-- garder la synchronisation manuelle, un `ApplicationSet` en mode automatique
-  reintroduirait le risque d'auto-verrouillage evite depuis `S1-T3` ;
+- respecter le decoupage decide le 2026-09-08 : `platform` en manuel car
+  c'est le seul chemin capable de rendre Argo CD inoperant, `staging` en
+  automatique car une erreur y reste une panne recuperable, `prod` en manuel
+  tant qu'il suit `main` plutot que des tags ;
 - s'appuyer sur la base applicative posee en `S1-T4`, sans la modifier.
 
 Validation de non-regression attendue pendant `S1-T5` :
@@ -386,6 +388,8 @@ Points de vigilance non bloquants :
    auto-verrouillage, et elle a deja servi trois fois.
 3. Ne pas modifier la base applicative de `S1-T4` dans ce lot, seul le
    mecanisme de declaration change.
+4. Ne pas automatiser `prod` avant que `S1-T6` lui donne une source distincte
+   de `main` : ce serait supprimer la frontiere entre staging et production.
 
 ## Rappel de maintenance
 

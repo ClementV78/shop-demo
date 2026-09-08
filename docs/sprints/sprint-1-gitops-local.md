@@ -111,6 +111,29 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
   `ApplicationSet` n'est encore cree. La premiere synchronisation utilise une
   `Application` minimale ; les `ApplicationSet` restent prevus pour `S1-T5` et
   `S1-T6`.
+- Decision (2026-09-08) : les politiques de synchronisation suivent le risque,
+  et non l'ordre de creation des `Application`. `platform` passe en manuel,
+  `staging` en automatique.
+
+  Le decoupage precedent etait un heritage chronologique. `platform` avait ete
+  automatise en `S1-T2` pour demontrer le modele, et la porte manuelle avait
+  ete posee en `S1-T3` sur les nouveaux chemins, ceux qu'on creait alors.
+
+  L'analyse le contredit : une `NetworkPolicy` est namespacee, donc celle de
+  `shopdemo-staging` ne peut pas couper `argocd-repo-server` de GitLab, et
+  Argo CD n'a pas besoin de joindre les pods applicatifs pour evaluer leur
+  sante. La porte manuelle protegeait donc contre un risque inexistant sur ce
+  chemin, pendant que `platform`, seul chemin capable de rendre Argo CD
+  inoperant, etait applique sans controle.
+
+  `prod` reste manuel malgre son profil de risque identique a `staging`, mais
+  pour une autre raison : il suit encore `targetRevision: main`. L'automatiser
+  maintenant enverrait chaque commit directement en production et supprimerait
+  la frontiere entre les deux environnements. Son automatisation viendra en
+  `S1-T6`, couplee aux tags semver.
+
+  Verifie apres bascule : une mise a l'echelle manuelle de `smoke` a 1 replique
+  a ete annulee par `selfHeal` en moins de quinze secondes.
 - Dette acceptee : l'`Application` `platform` utilise encore l'`AppProject`
   Argo CD `default` pour rester dans le perimetre minimal de `S1-T2`. Un
   `AppProject` ShopDemo dedie doit etre ajoute avant d'etendre GitOps aux
