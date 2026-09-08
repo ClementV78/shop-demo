@@ -12,10 +12,3 @@ labels:
       shopdemo.io/environment: prod
     includeSelectors: false
     includeTemplates: true
-
-# RELEASE DEFECTUEUSE VOLONTAIRE : digest inexistant, pour exercer la procedure
-# de rollback sur un incident reel plutot que theorique.
-images:
-  - name: nginxinc/nginx-unprivileged
-    newTag: 1.27-alpine
-    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
