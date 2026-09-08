@@ -47,36 +47,35 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T5 | Ajouter ApplicationSet staging | Planifie | Remplacer les Application declarees une par une, sans repasser en sync automatique |
+| S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | Promotion explicite par tag semver, et trancher preserveResourcesOnDeletion |
 
 Objectif de reprise :
 
-- remplacer les `Application` declarees une par une par un `ApplicationSet`
-  pour staging ;
-- respecter le decoupage decide le 2026-09-08 : `platform` en manuel car
-  c'est le seul chemin capable de rendre Argo CD inoperant, `staging` en
-  automatique car une erreur y reste une panne recuperable, `prod` en manuel
-  tant qu'il suit `main` plutot que des tags ;
-- s'appuyer sur la base applicative posee en `S1-T4`, sans la modifier.
+- faire suivre a prod des tags semver `v*.*.*` au lieu de la branche `main`,
+  conformement a [`ADR-009`](adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md) ;
+- trancher `preserveResourcesOnDeletion` pour prod. Par defaut il vaut `false`,
+  donc la disparition d'une `Application` generee **supprime ses ressources**.
+  Acceptable en staging, a decider consciemment en production ;
+- ne pas modifier le socle ni les applications de staging dans ce lot.
 
-Validation de non-regression attendue pendant `S1-T5` :
+Validation de non-regression attendue pendant `S1-T6` :
 
-- les trois `Application` existantes restent `Synced` / `Healthy` ;
+- les quatre `Application` existantes restent `Synced` / `Healthy` ;
 - le workload `smoke` reste 2/2 disponible dans `shopdemo-staging` ;
-- l'egress et le DNS depuis `shopdemo-staging` continuent de fonctionner ;
-- aucun secret n'est versionne.
+- un commit sur `main` continue de partir automatiquement en staging, et
+  **jamais** en prod.
 
 Point de cadrage :
 
-Ne pas etendre l'`ApplicationSet` a prod dans le meme lot. La promotion vers
-prod est le sujet de `S1-T6`, avec son modele de tags.
+Prod ne doit rien recevoir tant qu'aucun tag n'est pose. C'est le seul test qui
+prouve que la frontiere entre les deux environnements existe reellement.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`.
+`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`, `S1-T5`.
 
 ## Blocages
 
@@ -235,6 +234,22 @@ Points de vigilance non bloquants :
     bloquee, ce qui eprouve les policies de `S1-T3` sur un vrai workload ;
   - preuve : [`docs/evidence/sprint-1/s1-t4-manifests-applicatifs.md`](evidence/sprint-1/s1-t4-manifests-applicatifs.md).
 
+- `S1-T5` termine (2026-09-08) :
+  - [`gitops/argocd/applicationset-staging.yaml`](../gitops/argocd/applicationset-staging.yaml)
+    genere une `Application` par application trouvee dans
+    `gitops/apps/*/overlays/staging` : ajouter un service revient a creer un
+    repertoire ;
+  - l'`Application` `staging` est reduite au socle de l'environnement,
+    namespace et policies, sans recouvrement avec les applications ;
+  - transfert de propriete sans interruption, verifie par l'annotation
+    `argocd.argoproj.io/tracking-id` et l'age inchange du `Deployment` ;
+  - suppression manuelle d'une `Application` generee : recreee en moins de dix
+    secondes par l'`ApplicationSet` ;
+  - [`ADR-009`](adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md)
+    acte la promotion par chemin et par tag, ecartant les branches
+    d'environnement prevues au plan initial ;
+  - preuve : [`docs/evidence/sprint-1/s1-t5-applicationset-staging.md`](evidence/sprint-1/s1-t5-applicationset-staging.md).
+
 ## Documents de reference immediats
 
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
@@ -258,6 +273,14 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- `S1-T5` est termine : les `Application` applicatives sont desormais generees,
+  plus declarees. Attention, la suppression d'une `Application` generee detruit
+  ses ressources par defaut, ce qui est voulu pour une mise hors service mais
+  transforme une erreur de motif en suppression reelle.
+- Les politiques de synchronisation ont ete alignees sur le risque le
+  2026-09-08 : `platform` en manuel, `staging` en automatique, `prod` en manuel
+  jusqu'a ses tags.
 
 - `S1-T4` est termine : une base applicative complete est deployee par le
   chemin GitOps, avec les conventions de securite et de disponibilite
@@ -381,15 +404,11 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S1-T5` : remplacer les `Application` par un `ApplicationSet`
-   pour staging.
-2. Ne pas passer l'`ApplicationSet` en synchronisation automatique sans
-   decision explicite. La porte manuelle protege Argo CD d'un
-   auto-verrouillage, et elle a deja servi trois fois.
-3. Ne pas modifier la base applicative de `S1-T4` dans ce lot, seul le
-   mecanisme de declaration change.
-4. Ne pas automatiser `prod` avant que `S1-T6` lui donne une source distincte
-   de `main` : ce serait supprimer la frontiere entre staging et production.
+1. Demarrer `S1-T6` : promotion vers prod sur tags semver.
+2. Trancher `preserveResourcesOnDeletion` pour prod avant d'y brancher un
+   `ApplicationSet`, la valeur par defaut etant destructive.
+3. Verifier apres coup qu'un commit sur `main` part bien en staging et pas en
+   prod. Sans ce test, la frontiere entre environnements reste theorique.
 
 ## Rappel de maintenance
 

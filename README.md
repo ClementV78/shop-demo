@@ -106,9 +106,10 @@ Règles de progression : un seul sprint `En cours` à la fois ; le prochain spri
 
 **Focus courant** : `Sprint 1` est demarre. `S1-T1` a pose la structure
 GitOps locale, `S1-T2` a installe Argo CD, `S1-T3` a fait exister les
-namespaces applicatifs avec une isolation reseau en entree, et `S1-T4` a
-deploye une premiere base applicative par le chemin GitOps complet. La
-prochaine action est `S1-T5` : ajouter un `ApplicationSet` pour staging.
+namespaces applicatifs avec une isolation reseau en entree, `S1-T4` a deploye
+une premiere base applicative, et `S1-T5` genere desormais les `Application`
+automatiquement au lieu de les declarer. La prochaine action est `S1-T6` : la
+promotion vers prod sur tags semver.
 
 ## Démarrer ici
 

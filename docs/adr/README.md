@@ -24,3 +24,4 @@ statut et lien avec `ARCHITECTURE.md`.
 | [`ADR-006`](ADR-006-structure-gitops-platform-apps-environments.md) | Accepte | Structurer GitOps en platform, apps et environments |
 | [`ADR-007`](ADR-007-gitlab-source-of-truth-github-mirror.md) | Accepte | GitLab.com source de verite GitOps, GitHub en miroir public |
 | [`ADR-008`](ADR-008-standard-networkpolicy-by-default.md) | Accepte | NetworkPolicy standard par defaut, CiliumNetworkPolicy par exception |
+| [`ADR-009`](ADR-009-promotion-par-chemin-plutot-que-par-branche.md) | Accepte | Promotion par chemin et par tag, pas de branche d'environnement |

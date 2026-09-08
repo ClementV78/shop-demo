@@ -17,7 +17,7 @@ Conception cible :
 | S1-T2 | Installer Argo CD sur le lab local | Termine | S1-T1 |
 | S1-T3 | Definir les namespaces et NetworkPolicies de base | Termine | S1-T1 |
 | S1-T4 | Creer les manifests applicatifs minimaux | Termine | S1-T1 |
-| S1-T5 | Ajouter ApplicationSet staging | Planifie | S1-T2, S1-T4 |
+| S1-T5 | Ajouter ApplicationSet staging | Termine | S1-T2, S1-T4 |
 | S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | S1-T5 |
 | S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | S1-T5 |
 
@@ -95,6 +95,10 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Deploiement effectif | Verifie | `deployment.apps/smoke` 2/2 disponibles, `Synced` / `Healthy` apres sync manuelle |
 | Smoke test HTTP | Verifie | Reponse nginx obtenue depuis le namespace, voir [`../evidence/sprint-1/s1-t4-manifests-applicatifs.md`](../evidence/sprint-1/s1-t4-manifests-applicatifs.md) |
 | Isolation eprouvee sur un vrai workload | Verifie | Requete depuis `default` bloquee par `default-deny-ingress` |
+| Generation par ApplicationSet | Verifie | `staging-smoke` creee automatiquement depuis `gitops/apps/*/overlays/staging`, sans Application ecrite a la main |
+| Separation socle / applications | Verifie | `staging` possede namespace et policies, `staging-smoke` possede le workload, aucun recouvrement |
+| Transfert de propriete sans coupure | Verifie | Annotation `tracking-id` transferee, `Deployment` jamais recree, voir [`../evidence/sprint-1/s1-t5-applicationset-staging.md`](../evidence/sprint-1/s1-t5-applicationset-staging.md) |
+| Cycle de vie possede par l'ApplicationSet | Verifie | Suppression manuelle de l'`Application` generee, recreee en moins de dix secondes |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
@@ -259,9 +263,41 @@ Ce qui n'a volontairement pas ete fait :
 - pas d'overlay `prod`, coherent avec un modele de promotion explicite ;
 - pas de HPA, la charge d'un substitut ne le justifiant pas.
 
+## S1-T5 - Ajouter un ApplicationSet staging
+
+Etat : `Termine`.
+
+Objectif : ne plus declarer les `Application` applicatives a la main, et
+separer le socle d'un environnement de ce qui tourne dedans.
+
+Livrables :
+
+- [`../../gitops/argocd/applicationset-staging.yaml`](../../gitops/argocd/applicationset-staging.yaml),
+  generateur `git` scannant `gitops/apps/*/overlays/staging` ;
+- `Application` `staging` reduite au socle, namespace et policies ;
+- [`../adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md`](../adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md)
+  actant l'ecart avec le plan initial ;
+- preuve dans
+  [`../evidence/sprint-1/s1-t5-applicationset-staging.md`](../evidence/sprint-1/s1-t5-applicationset-staging.md).
+
+Ecart assume avec `docs/sprint-planning.md` :
+
+Le plan prevoyait un `ApplicationSet` surveillant une **branche** `staging`.
+Cette branche n'existe pas, et `ADR-006` puis `ADR-007` ont etabli une
+separation par chemin sur `main`. `ADR-009` acte donc la promotion par chemin
+pour staging et par tag pour prod, plutot que par branches d'environnement
+longue duree. Les branches de feature restent le mode de travail normal.
+
+Point de vigilance identifie :
+
+La suppression d'une `Application` generee **detruit ses ressources**, car
+`preserveResourcesOnDeletion` vaut `false` par defaut. C'est voulu pour une
+mise hors service, mais cela signifie qu'un motif de generateur mal ecrit
+supprimerait les workloads qui n'y correspondent plus. A trancher
+explicitement pour prod en `S1-T6`.
+
 ## Prochaine etape
 
-`S1-T5` : ajouter un `ApplicationSet` pour staging, afin de remplacer les
-`Application` declarees une par une. Garder en tete que la synchronisation est
-volontairement manuelle depuis `S1-T3` : basculer un `ApplicationSet` en
-automatique reintroduirait le risque d'auto-verrouillage evite jusqu'ici.
+`S1-T6` : promotion vers prod sur tags semver `v*.*.*`, conformement au plan
+initial et a `ADR-009`. Trancher a cette occasion la valeur de
+`preserveResourcesOnDeletion` pour l'environnement de production.
