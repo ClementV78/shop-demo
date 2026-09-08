@@ -40,6 +40,49 @@ la meme forme, et `smoke` restera utile comme test de bout en bout.
 - `PodDisruptionBudget`, avec au moins deux repliques pour qu'il ne bloque pas
   les evictions volontaires.
 
+## Le selecteur est un contrat gele
+
+Un `Deployment` utilise `spec.selector.matchLabels` pour savoir quels pods lui
+appartiennent. Kubernetes **interdit de modifier ce champ apres creation**, car
+changer le critere de propriete en cours de route laisserait des pods orphelins.
+
+Il faut donc distinguer deux natures de labels.
+
+Un label qui **decrit** (environnement, equipe, version, centre de cout) n'entre
+jamais dans le selecteur. Ces labels sont renommes ou reorganises au fil de la
+vie du projet, et chacun de ces changements deviendrait impossible.
+
+Un label qui **identifie** l'instance, typiquement `app.kubernetes.io/instance`,
+a sa place dans le selecteur, mais a une condition : sa **cle** doit etre
+declaree dans la base des la premiere creation, meme si sa valeur est banale.
+L'ajouter plus tard est impossible.
+
+Cette declaration anticipee est ce qui rend possible, plus tard, deux instances
+de la meme base dans un meme namespace, par exemple une version stable et un
+canari. Chaque overlay valorise alors la cle differemment, par un patch cible :
+
+```yaml
+# overlays/canari/kustomization.yaml
+nameSuffix: -canari
+patches:
+  - target: {kind: Deployment}
+    patch: |
+      - op: replace
+        path: /spec/selector/matchLabels/app.kubernetes.io~1instance
+        value: smoke-canari
+```
+
+Les deux `Deployment` ont alors des selecteurs disjoints et ne se disputent
+aucun pod. La repartition du trafic entre eux releve de Gateway API, dont les
+`HTTPRoute` savent ponderer plusieurs `backendRefs`, et non du selecteur.
+
+Aujourd'hui le besoin n'existe pas : `staging` et `prod` sont separes par
+namespace, et un selecteur ne regarde que son propre namespace. La cle
+`instance` n'est donc pas encore declaree dans `apps/smoke/base`. Ce serait le
+prerequis a poser **avant** tout premier deploiement d'un canari.
+
+## Ajouter un label sans toucher au selecteur
+
 Detail a ne pas oublier dans un overlay qui ajoute un label : utiliser
 `includeSelectors: false` **et** `includeTemplates: true`.
 

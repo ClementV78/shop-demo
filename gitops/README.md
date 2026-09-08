@@ -36,7 +36,8 @@ gitops/
 - Un environnement ne doit pas porter les ressources globales du cluster :
   `platform/` est synchronise separement.
 - Les secrets reels ne sont jamais stockes ici.
-- Les images de production-like devront utiliser des digests immuables.
+- Les images utilisent des digests immuables, pas des tags mutables. Applique
+  depuis `S1-T4` sur `apps/smoke`.
 - La CI ne doit pas appliquer directement les manifests comme chemin durable :
   elle met a jour Git, puis Argo CD synchronise.
 
