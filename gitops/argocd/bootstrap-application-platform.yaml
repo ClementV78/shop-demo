@@ -15,9 +15,11 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
+  # Synchronisation MANUELLE volontaire. Ce chemin porte les ressources
+  # transverses du cluster, dont le namespace argocd : une erreur appliquee
+  # automatiquement ici pourrait couper Argo CD de son propre depot Git, donc
+  # de sa capacite a recevoir le correctif. La porte humaine rend ce scenario
+  # impossible. Voir docs/sprints/sprint-1-gitops-local.md.
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=false

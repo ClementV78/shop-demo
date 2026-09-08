@@ -16,6 +16,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: shopdemo-staging
+  # Synchronisation AUTOMATIQUE. Ce chemin ne contient que des workloads
+  # applicatifs, confines a leur propre namespace : une erreur y provoque une
+  # panne de service recuperable par un commit, jamais un verrouillage
+  # d'Argo CD. C'est le comportement GitOps cible, un commit suffit a deployer.
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=false

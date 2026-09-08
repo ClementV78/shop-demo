@@ -16,6 +16,10 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: shopdemo-prod
+  # Synchronisation MANUELLE, en attendant S1-T6. Prod suit encore la branche
+  # main : l'automatiser maintenant enverrait chaque commit directement en
+  # production et supprimerait la frontiere avec staging. L'automatisation
+  # viendra avec une source differente, les tags semver.
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
