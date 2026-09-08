@@ -57,25 +57,35 @@ cluster.
 
 Dans ce repertoire, `platform/` decrit ce qui appartient au cluster lui-meme.
 Aujourd'hui, c'est minimal : les namespaces techniques `argocd` et
-`gateway-system`. Plus tard, ce sera aussi l'endroit naturel pour Argo CD,
-Gateway API, Kyverno, External Secrets Operator ou l'observabilite.
+`gateway-system`. Plus tard, ce sera aussi l'endroit naturel pour Gateway API,
+Kyverno, External Secrets Operator ou l'observabilite.
+
+Argo CD, lui, vit dans `argocd/` plutot que dans `platform/`, car il n'est pas
+une ressource comme les autres : c'est le composant qui applique toutes les
+autres. Son manifeste d'installation et ses objets `Application` y sont
+regroupes.
 
 Les dossiers `environments/staging/` et `environments/prod/` racontent une
 autre histoire : ils representent ce que l'on veut pour un environnement
-applicatif donne. En `S1-T1`, ils ne creent encore que les namespaces
-`shopdemo-staging` et `shopdemo-prod`, mais ils preparent l'endroit ou l'on
-ajoutera les workloads, les routes, les replicas et les references d'images.
+applicatif donne. Depuis `S1-T5`, ils portent le **socle** de l'environnement,
+son namespace et ses `NetworkPolicy`. Les applications qui tournent dedans ne
+sont plus assemblees ici : elles sont generees depuis `apps/` par un
+`ApplicationSet`.
 
 La boite `kubectl kustomize` du schema est une etape de verification. Elle ne
 deploie rien. Elle permet juste de poser la question : "si Argo CD ou kubectl
 rendait ce dossier maintenant, quel YAML Kubernetes sortirait ?". C'est pour
 cela qu'on peut valider `S1-T1` sans modifier le cluster.
 
-La partie Argo CD est volontairement dessinee comme une etape suivante par
-rapport a `S1-T1`. Depuis `S1-T2` (termine le 2026-09-07), Argo CD observe
-reellement Git, rend les manifests, compare le resultat avec l'etat reel du
-cluster `k3s`, et synchronise selon la politique choisie (sync automatise +
-self-heal pour l'`Application` `platform`).
+Depuis `S1-T2`, Argo CD observe reellement Git, rend les manifests, compare le
+resultat avec l'etat reel du cluster `k3s`, et synchronise selon la politique
+propre a chaque chemin.
+
+Ces politiques ont ete alignees sur le risque le 2026-09-08 : `staging` est
+synchronise automatiquement avec `prune` et `selfHeal`, car une erreur y reste
+une panne recuperable ; `platform` est en manuel, car c'est le seul chemin
+capable de couper Argo CD de son propre depot ; `prod` est en manuel tant qu'il
+suit `main` plutot que des tags.
 
 ### Git, Argo CD et Kustomize : qui fait quoi
 
@@ -139,7 +149,7 @@ Kustomize lit `gitops/environments/staging/kustomization.yaml`, charge
 `namespace.yaml`, puis produit un YAML Kubernetes final. Cette commande ne
 modifie pas le cluster : elle affiche seulement ce qui serait applique.
 
-Plus tard, Argo CD fera conceptuellement la meme chose :
+Argo CD fait conceptuellement la meme chose, en continu :
 
 ```text
 1. lire un chemin Git
@@ -156,9 +166,10 @@ La valeur de Kustomize ici est de garder une structure progressive :
 
 ### Exemple concret : d'ou viennent les namespaces
 
-Quand on dit que `S1-T1` configure seulement des namespaces, il faut lire cela
-de facon tres concrete : les fichiers GitOps actuels ne contiennent presque que
-des objets Kubernetes `kind: Namespace`.
+`S1-T1` ne configurait que des namespaces. L'exemple ci-dessous garde cette
+lecture volontairement simple, car c'est le chemin le plus court pour
+comprendre comment Kustomize resout une arborescence. Les workloads decrits
+depuis `S1-T4` suivent exactement le meme mecanisme.
 
 Le point d'entree plateforme est
 [`../gitops/platform/kustomization.yaml`](../gitops/platform/kustomization.yaml) :
@@ -338,7 +349,8 @@ bouge" en production-like. On veut pointer vers un digest immuable, par exemple
 
 Le premier endroit ou ce digest arrive est staging. La CI mettra a jour le repo
 GitOps avec un commit du type "staging utilise maintenant ce digest". Argo CD
-staging verra ce changement et synchronisera l'environnement de validation.
+staging synchronise deja automatiquement depuis `S1-T5`, donc ce commit suffira
+a deployer, sans action supplementaire.
 
 La prod ne doit pas suivre staging automatiquement par accident. Le schema met
 donc un gate de promotion entre les deux : tag semver, validation manuelle, ou

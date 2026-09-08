@@ -47,10 +47,11 @@ GitOps veut dire que Git porte l'etat desire du systeme.
 Dans ce projet :
 
 - les manifests Kubernetes vivent dans `gitops/` ;
-- Argo CD lira Git ;
-- Kubernetes sera mis en conformite avec ce qui est versionne ;
-- une derive manuelle pourra etre detectee, puis corrigee selon la politique
-  choisie.
+- Argo CD lit Git en continu ;
+- Kubernetes est mis en conformite avec ce qui est versionne ;
+- une derive manuelle est detectee, puis corrigee selon la politique choisie.
+  Sur `staging`, `selfHeal` annule une modification faite a la main en moins de
+  quinze secondes.
 
 La phrase a retenir :
 
@@ -119,10 +120,16 @@ Dans Argo CD :
 - une `Application` decrit une source Git et une destination Kubernetes ;
 - un `ApplicationSet` genere plusieurs `Application` a partir d'une regle.
 
-Pour ShopDemo, la cible est :
+Pour ShopDemo :
 
-- un flux `staging` qui se synchronise automatiquement ;
-- un flux `prod` active par promotion explicite.
+- le flux `staging` se synchronise automatiquement depuis `S1-T5`, et ses
+  `Application` sont **generees** par un `ApplicationSet` qui scanne
+  `gitops/apps/*/overlays/staging` ;
+- le flux `prod` attend une promotion explicite par tag semver, sujet de
+  `S1-T6`.
+
+Consequence a connaitre : la disparition d'une `Application` generee supprime
+ses ressources, car `preserveResourcesOnDeletion` vaut `false` par defaut.
 
 ## 7. Promotion
 
@@ -146,15 +153,14 @@ Modele cible :
 
 Une `NetworkPolicy` limite qui peut parler a qui dans Kubernetes.
 
-Dans ce projet, elle servira a montrer :
+Dans ce projet, `S1-T3` a pose une premiere isolation en entree sur les
+namespaces applicatifs : tout refuser, puis rouvrir le trafic venant du meme
+namespace. L'egress n'est volontairement pas restreint, pour ne pas fragiliser
+le chemin pod vers GitLab.
 
-- default deny par namespace ;
-- autorisations explicites vers CoreDNS ;
-- autorisations explicites entre gateway et services ;
-- autorisations explicites vers les dependances externes necessaires.
-
-Les NetworkPolicies ne sont pas dans `S1-T1`. Elles arrivent en `S1-T3`, apres
-le cadrage GitOps.
+Restent a venir, quand les composants concernes existeront : les autorisations
+explicites entre gateway et services, et l'egress par nom de domaine, qui
+relevera d'une `CiliumNetworkPolicy` ([`ADR-008`](adr/ADR-008-standard-networkpolicy-by-default.md)).
 
 ## 9. Sync Wave
 
@@ -183,9 +189,11 @@ Ce modele est plus lisible qu'une suite de commandes manuelles parce que :
 
 ## A retenir
 
-- `S1-T1` ne cherche pas a tout deployer.
-- Le vrai produit technique du sprint est le flux GitOps lisible.
-- Git porte l'intention ; Argo CD portera la reconciliation.
-- Les tests de ce premier lot doivent etre locaux et sans effet de bord.
-- Les objets plus risques, comme Argo CD et les policies, arrivent ensuite.
+- Le vrai produit technique du sprint est le flux GitOps lisible, pas le
+  workload deploye.
+- Git porte l'intention, Argo CD porte la reconciliation.
+- La progression a ete deliberement graduelle : rendu local sans effet de bord
+  en `S1-T1`, puis installation, puis policies, puis workload, puis generation.
+- Chaque lot a ete valide par une mesure sur le cluster, pas par une
+  affirmation.
 
