@@ -40,9 +40,14 @@ la meme forme, et `smoke` restera utile comme test de bout en bout.
 - `PodDisruptionBudget`, avec au moins deux repliques pour qu'il ne bloque pas
   les evictions volontaires.
 
-Detail a ne pas oublier dans un overlay : ajouter un label avec
-`includeSelectors: false`. Le selecteur d'un `Deployment` est immuable apres
-creation, l'y injecter rendrait toute mise a jour ulterieure impossible.
+Detail a ne pas oublier dans un overlay qui ajoute un label : utiliser
+`includeSelectors: false` **et** `includeTemplates: true`.
+
+Le premier protege le selecteur du `Deployment`, immuable apres creation : y
+graver un label rendrait tout renommage ulterieur impossible sans supprimer et
+recreer l'objet. Le second garantit que le label atteint quand meme les pods,
+sans quoi ils ne seraient filtrables ni pour du debug, ni pour l'attribution
+de cout, ni par une `NetworkPolicy` selectionnant par environnement.
 
 ## Structure cible
 

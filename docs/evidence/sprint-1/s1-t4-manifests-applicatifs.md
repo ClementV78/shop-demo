@@ -25,7 +25,11 @@ gitops/apps/smoke/
 
 L'assemblage se fait dans `gitops/environments/staging/kustomization.yaml`, qui reference l'overlay plutot que de dupliquer les manifests. La base ne sait pas dans quel environnement elle atterrira, l'overlay ne porte que le namespace et le label d'environnement.
 
-Un detail qui merite d'etre explicite : l'overlay ajoute son label avec `includeSelectors: false`. Le selecteur d'un `Deployment` est immuable apres creation, donc y injecter un label rendrait toute mise a jour ulterieure impossible.
+Un detail qui merite d'etre explicite, car il se joue sur trois reglages et non deux. Le selecteur d'un `Deployment` est immuable apres creation : y injecter le label d'environnement graverait ce label dans le critere de propriete des pods, et le moindre renommage ulterieur deviendrait impossible sans supprimer puis recreer le `Deployment`.
+
+Mais se contenter de `includeSelectors: false` a un cout : le label n'atteint alors que les objets, pas les pods. `kubectl get pods -l shopdemo.io/environment=staging` ne retourne rien, l'attribution de cout par environnement passe a cote, et une `NetworkPolicy` qui selectionnerait les pods par environnement ne matche aucun pod.
+
+La combinaison retenue est donc `includeSelectors: false` avec `includeTemplates: true`, qui pose le label sur les objets et sur les pods sans jamais l'ecrire dans le selecteur.
 
 ## Conventions respectees
 
