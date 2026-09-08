@@ -12,3 +12,13 @@ labels:
       shopdemo.io/environment: prod
     includeSelectors: false
     includeTemplates: true
+
+# Changement de test : passe a 3 repliques. Il ne doit atteindre prod qu'au
+# prochain tag, jamais par un simple merge dans main.
+patches:
+  - target:
+      kind: Deployment
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 3
