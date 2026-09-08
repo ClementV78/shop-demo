@@ -47,44 +47,34 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S1-T4 | Creer les manifests applicatifs minimaux | Planifie | Poser une base applicative simple dans `gitops/apps`, puis l'assembler dans staging |
+| S1-T5 | Ajouter ApplicationSet staging | Planifie | Remplacer les Application declarees une par une, sans repasser en sync automatique |
 
 Objectif de reprise :
 
-- creer une base applicative minimale et reutilisable dans `gitops/apps` ;
-- l'assembler dans `gitops/environments/staging` sans dupliquer les manifests ;
-- garder la synchronisation manuelle sur `staging` et `prod` tant que le
-  modele n'est pas stabilise ;
-- respecter les conventions attendues sur un workload : probes, requests et
-  limits, ServiceAccount dedie, pas d'image en tag flottant.
+- remplacer les `Application` declarees une par une par un `ApplicationSet`
+  pour staging ;
+- garder la synchronisation manuelle, un `ApplicationSet` en mode automatique
+  reintroduirait le risque d'auto-verrouillage evite depuis `S1-T3` ;
+- s'appuyer sur la base applicative posee en `S1-T4`, sans la modifier.
 
-Piege connu, a anticiper des le debut de `S1-T4` :
+Validation de non-regression attendue pendant `S1-T5` :
 
-`default-deny-ingress` est desormais actif dans `shopdemo-staging`. Un premier
-workload y sera donc **injoignable depuis l'exterieur du namespace** tant
-qu'aucune autorisation ciblee n'aura ete ajoutee. C'est le fonctionnement
-normal des policies posees en `S1-T3`, pas une regression : voir
-[`docs/evidence/sprint-1/s1-t3-networkpolicies-validation.md`](evidence/sprint-1/s1-t3-networkpolicies-validation.md).
-
-Validation de non-regression attendue pendant `S1-T4` :
-
-- les trois `Application` restent `Synced` / `Healthy` ;
+- les trois `Application` existantes restent `Synced` / `Healthy` ;
+- le workload `smoke` reste 2/2 disponible dans `shopdemo-staging` ;
 - l'egress et le DNS depuis `shopdemo-staging` continuent de fonctionner ;
-- aucun secret n'est versionne ;
-- Cloudflare reste hors scope tant que l'acces local suffit.
+- aucun secret n'est versionne.
 
 Point de cadrage :
 
-Ne pas transformer `S1-T4` en application complete. Le but MVP est un workload
-minimal, correctement decrit, qui prouve le chemin `base applicative ->
-assemblage par environnement -> synchronisation Argo CD`.
+Ne pas etendre l'`ApplicationSet` a prod dans le meme lot. La promotion vers
+prod est le sujet de `S1-T6`, avec son modele de tags.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
 `S0-T9`, `S0-T10`, `S0-T11`, `S0-T12`, `S0-T13`.
 
 Taches terminees du Sprint 1 :
-`S1-T1`, `S1-T2`, `S1-T3`.
+`S1-T1`, `S1-T2`, `S1-T3`, `S1-T4`.
 
 ## Blocages
 
@@ -228,6 +218,21 @@ Points de vigilance non bloquants :
   - `ADR-008` acte NetworkPolicy standard par defaut et `CiliumNetworkPolicy`
     par exception ; aucune `CiliumNetworkPolicy` n'existe encore.
 
+- `S1-T4` termine (2026-09-08) :
+  - base applicative reutilisable dans
+    [`gitops/apps/smoke/base/`](../gitops/apps/smoke/base/), assemblee par
+    l'overlay staging et referencee depuis `gitops/environments/staging` ;
+  - conventions respectees : image epinglee par digest, `ServiceAccount`
+    dedie sans token monte, execution non-root uid 101 avec capabilities
+    retirees et racine en lecture seule, requests et limits, probes,
+    `PodDisruptionBudget` ;
+  - deux repliques volontaires, un PDB `minAvailable: 1` sur une replique
+    unique interdirait tout drain de noeud ;
+  - `deployment.apps/smoke` 2/2 disponibles apres synchronisation manuelle ;
+  - smoke test HTTP concluant depuis le namespace, et requete depuis `default`
+    bloquee, ce qui eprouve les policies de `S1-T3` sur un vrai workload ;
+  - preuve : [`docs/evidence/sprint-1/s1-t4-manifests-applicatifs.md`](evidence/sprint-1/s1-t4-manifests-applicatifs.md).
+
 ## Documents de reference immediats
 
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
@@ -251,6 +256,14 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- `S1-T4` est termine : une base applicative complete est deployee par le
+  chemin GitOps, avec les conventions de securite et de disponibilite
+  attendues. Le workload est un substitut, `smoke`, en attendant les services
+  Go.
+- Quatre skills ont ete ajoutes a la table de routage d'`AGENTS.md` :
+  `git-forge-engineer`, `k8s-network-troubleshooter`, `doc-coherence-reviewer`
+  et `common-rules`, pour trois domaines qui n'avaient aucun proprietaire.
 
 - `S1-T3` est termine : les namespaces applicatifs existent enfin dans le
   cluster, avec une isolation en entree et une porte de synchronisation
@@ -366,15 +379,13 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S1-T4` : creer les manifests applicatifs minimaux dans
-   `gitops/apps`, puis les assembler dans `gitops/environments/staging`.
-2. Se rappeler que `default-deny-ingress` est actif : un premier workload sera
-   injoignable depuis l'exterieur de son namespace tant qu'aucune autorisation
-   ciblee n'aura ete ajoutee. C'est attendu, pas une regression.
-3. Garder la synchronisation manuelle sur `staging` et `prod`, et ne pas
-   passer ces Applications en `automated` sans decision explicite.
-4. Ne pas conserver de regle iptables manuelle comme configuration cible :
-   Cilium doit rester responsable du datapath et du masquerade.
+1. Demarrer `S1-T5` : remplacer les `Application` par un `ApplicationSet`
+   pour staging.
+2. Ne pas passer l'`ApplicationSet` en synchronisation automatique sans
+   decision explicite. La porte manuelle protege Argo CD d'un
+   auto-verrouillage, et elle a deja servi trois fois.
+3. Ne pas modifier la base applicative de `S1-T4` dans ce lot, seul le
+   mecanisme de declaration change.
 
 ## Rappel de maintenance
 

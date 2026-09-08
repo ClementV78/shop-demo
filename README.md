@@ -105,10 +105,10 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 Règles de progression : un seul sprint `En cours` à la fois ; le prochain sprint est détaillé pendant la clôture du courant ; un sprint passe à `Terminé` lorsque ses livrables et validations obligatoires sont documentés dans son fichier de suivi.
 
 **Focus courant** : `Sprint 1` est demarre. `S1-T1` a pose la structure
-GitOps locale, `S1-T2` a installe Argo CD et valide une premiere
-synchronisation depuis GitLab, et `S1-T3` a fait exister les namespaces
-applicatifs avec une premiere isolation reseau en entree. La prochaine action
-est `S1-T4` : creer les manifests applicatifs minimaux.
+GitOps locale, `S1-T2` a installe Argo CD, `S1-T3` a fait exister les
+namespaces applicatifs avec une isolation reseau en entree, et `S1-T4` a
+deploye une premiere base applicative par le chemin GitOps complet. La
+prochaine action est `S1-T5` : ajouter un `ApplicationSet` pour staging.
 
 ## Démarrer ici
 

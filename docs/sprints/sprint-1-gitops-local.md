@@ -16,7 +16,7 @@ Conception cible :
 | S1-T1 | Cadrer la structure GitOps locale | Termine | S0 |
 | S1-T2 | Installer Argo CD sur le lab local | Termine | S1-T1 |
 | S1-T3 | Definir les namespaces et NetworkPolicies de base | Termine | S1-T1 |
-| S1-T4 | Creer les manifests applicatifs minimaux | Planifie | S1-T1 |
+| S1-T4 | Creer les manifests applicatifs minimaux | Termine | S1-T1 |
 | S1-T5 | Ajouter ApplicationSet staging | Planifie | S1-T2, S1-T4 |
 | S1-T6 | Ajouter ApplicationSet prod base sur tags | Planifie | S1-T5 |
 | S1-T7 | Documenter usage, rollback et depannage GitOps | Planifie | S1-T5 |
@@ -89,6 +89,12 @@ objets qui modifient le cluster arrivent a partir de `S1-T2`.
 | Trafic intra-namespace preserve | Verifie | `probe-in` joint `web.shopdemo-staging` avant et apres application des policies |
 | Non-regression egress et DNS | Verifie | Resolution `gitlab.com` et `https://gitlab.com` OK depuis `shopdemo-staging` apres policies |
 | Validation NetworkPolicies | Verifie | `yamllint`, `kubeconform -strict`, `kubectl apply --dry-run=server` sur les rendus des deux environnements |
+| Base applicative reutilisable | Verifie | `gitops/apps/smoke/base`, rendu 7 ressources valides, `kubeconform` et dry-run serveur OK |
+| Assemblage par environnement | Verifie | `gitops/environments/staging` reference l'overlay sans dupliquer les manifests |
+| Conventions de workload | Verifie | Digest, ServiceAccount dedie, non-root uid 101, capabilities retirees, requests/limits, probes, PDB |
+| Deploiement effectif | Verifie | `deployment.apps/smoke` 2/2 disponibles, `Synced` / `Healthy` apres sync manuelle |
+| Smoke test HTTP | Verifie | Reponse nginx obtenue depuis le namespace, voir [`../evidence/sprint-1/s1-t4-manifests-applicatifs.md`](../evidence/sprint-1/s1-t4-manifests-applicatifs.md) |
+| Isolation eprouvee sur un vrai workload | Verifie | Requete depuis `default` bloquee par `default-deny-ingress` |
 | Rollback GitOps | Planifie | A renseigner |
 
 ## Decisions et ecarts
@@ -192,10 +198,47 @@ Dette assumee : securiser le namespace `argocd` avec un egress `toFQDNs` vers
 `gitlab.com`, accompagne d'un `AppProject` dedie et d'une procedure de rollback
 manuel connue avant d'y toucher.
 
+## S1-T4 - Creer les manifests applicatifs minimaux
+
+Etat : `Termine`.
+
+Objectif : poser une base applicative reutilisable et prouver le chemin
+`base -> overlay -> Application Argo CD -> workload en cours d'execution`.
+
+Livrables :
+
+- base [`../../gitops/apps/smoke/base/`](../../gitops/apps/smoke/base/) avec
+  `ServiceAccount`, `Deployment`, `Service` et `PodDisruptionBudget` ;
+- overlay [`../../gitops/apps/smoke/overlays/staging/`](../../gitops/apps/smoke/overlays/staging/)
+  qui n'ajoute que le namespace et le label d'environnement ;
+- assemblage dans `gitops/environments/staging`, par reference et non par
+  duplication ;
+- preuve detaillee dans
+  [`../evidence/sprint-1/s1-t4-manifests-applicatifs.md`](../evidence/sprint-1/s1-t4-manifests-applicatifs.md).
+
+Decisions notables :
+
+- le workload est un substitut. Aucun service Go n'existe encore dans le
+  depot, donc `smoke` sert a valider la structure et les conventions qui
+  accueilleront les vrais services ;
+- deux repliques plutot qu'une, parce qu'un PDB `minAvailable: 1` sur une
+  replique unique interdirait toute eviction volontaire, y compris un drain de
+  noeud ;
+- image `nginx-unprivileged` plutot que `nginx`, la variante standard demarrant
+  en root sur le port 80, ce qui entre en conflit direct avec `runAsNonRoot` ;
+- limite de largeur `yamllint` portee a 160 caracteres, une reference d'image
+  epinglee par digest ne pouvant pas etre coupee proprement en YAML.
+
+Ce qui n'a volontairement pas ete fait :
+
+- pas de route d'entree, Gateway API n'etant pas installe ;
+- pas d'`ApplicationSet`, sujet de `S1-T5` et `S1-T6` ;
+- pas d'overlay `prod`, coherent avec un modele de promotion explicite ;
+- pas de HPA, la charge d'un substitut ne le justifiant pas.
+
 ## Prochaine etape
 
-`S1-T4` : creer les manifests applicatifs minimaux. Attention au moment ou les
-premiers workloads arriveront dans `shopdemo-staging` : `default-deny-ingress`
-refusera toute entree tant qu'une autorisation ciblee, typiquement depuis la
-gateway, n'aura pas ete ajoutee. Ce refus sera le comportement normal des
-policies posees en `S1-T3`, pas une regression.
+`S1-T5` : ajouter un `ApplicationSet` pour staging, afin de remplacer les
+`Application` declarees une par une. Garder en tete que la synchronisation est
+volontairement manuelle depuis `S1-T3` : basculer un `ApplicationSet` en
+automatique reintroduirait le risque d'auto-verrouillage evite jusqu'ici.
