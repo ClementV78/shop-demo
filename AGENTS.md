@@ -36,6 +36,10 @@ Lorsqu'une tache correspond a un skill, lisez son `SKILL.md` avant d'agir.
 | Go, Lambda, PostgreSQL, SNS/SQS, idempotence, HMAC, logs et Bruno | `shopdemo-go-engineer` |
 | Prometheus, Grafana, Loki, Kubecost, CloudWatch, alertes et runbooks | `idp-observability-engineer` |
 | Documentation, ADR, guides, preuves, API et preparation aux entretiens | `idp-documentation-engineer` |
+| Depots et forges Git : branches par defaut, protections, roles de tokens, mirroring, credentials | `git-forge-engineer` |
+| Pannes reseau sous Kubernetes : datapath CNI, masquerade, iptables, CoreDNS, pare-feu hote | `k8s-network-troubleshooter` |
+| Revue de coherence documentaire apres cloture d une tache ou d un sprint | `doc-coherence-reviewer` |
+| Regles transverses d ecriture, de documentation et de commit | `common-rules` |
 
 Si plusieurs skills s'appliquent, utilisez le plus petit ensemble pertinent, annoncez-le et coordonnez ses instructions.
 
