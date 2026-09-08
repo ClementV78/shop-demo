@@ -1,0 +1,50 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prod-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    shopdemo.io/environment: prod
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    # Le generateur decouvre les applications a deployer. Il scanne la branche
+    # main, donc un nouveau service devient candidat des son merge. Ce qu'il
+    # deploie reellement reste toutefois fige au dernier tag, voir le template.
+    - git:
+        repoURL: https://gitlab.com/ClementV78/shopdemo.git
+        revision: main
+        directories:
+          - path: gitops/apps/*/overlays/prod
+  template:
+    metadata:
+      name: 'prod-{{index .path.segments 2}}'
+      labels:
+        app.kubernetes.io/name: '{{index .path.segments 2}}'
+        app.kubernetes.io/part-of: shopdemo
+        shopdemo.io/environment: prod
+    spec:
+      project: default
+      source:
+        repoURL: https://gitlab.com/ClementV78/shopdemo.git
+        # Contrainte semver, evaluee uniquement sur les tags et jamais sur les
+        # branches. Argo CD retient donc le tag le plus recent qui correspond.
+        # C'est ce qui separe prod de staging : un merge dans main ne change
+        # rien ici, seul un nouveau tag declenche un deploiement.
+        targetRevision: 'v*'
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: shopdemo-prod
+      # Automatique, mais la porte de promotion existe en amont : c'est la pose
+      # du tag qui est l'acte delibere, pas la synchronisation.
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
