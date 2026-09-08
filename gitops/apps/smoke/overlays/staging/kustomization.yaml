@@ -4,9 +4,15 @@ kind: Kustomization
 namespace: shopdemo-staging
 resources:
   - ../../base
-# includeSelectors reste a false : le selecteur d un Deployment est immuable,
-# l ajouter apres coup casserait toute mise a jour ulterieure.
+# Le label d'environnement va sur les objets et sur les pods, mais jamais dans
+# le selecteur du Deployment, qui est immuable apres creation : l'y injecter
+# rendrait impossible tout renommage ulterieur de ce label.
+# includeTemplates permet justement d'avoir l'un sans l'autre. Sans lui, les
+# pods ne porteraient pas le label et ne seraient pas filtrables par
+# environnement, ni pour du debug, ni pour l'attribution de cout, ni pour une
+# NetworkPolicy qui selectionnerait par environnement.
 labels:
   - pairs:
       shopdemo.io/environment: staging
     includeSelectors: false
+    includeTemplates: true
