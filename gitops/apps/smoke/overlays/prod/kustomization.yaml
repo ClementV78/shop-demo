@@ -12,4 +12,3 @@ labels:
       shopdemo.io/environment: prod
     includeSelectors: false
     includeTemplates: true
-
