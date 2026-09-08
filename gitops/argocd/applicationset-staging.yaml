@@ -1,0 +1,48 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: staging-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: shopdemo
+    shopdemo.io/environment: staging
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    # Le generateur scanne les overlays staging et cree une Application par
+    # application trouvee. Ajouter un service revient donc a creer un
+    # repertoire, sans jamais declarer d'Application a la main.
+    - git:
+        repoURL: https://gitlab.com/ClementV78/shopdemo.git
+        revision: main
+        directories:
+          - path: gitops/apps/*/overlays/staging
+  template:
+    metadata:
+      # segments = [gitops, apps, <nom-app>, overlays, staging], donc l'index 2
+      # porte le nom de l'application.
+      name: 'staging-{{index .path.segments 2}}'
+      labels:
+        app.kubernetes.io/name: '{{index .path.segments 2}}'
+        app.kubernetes.io/part-of: shopdemo
+        shopdemo.io/environment: staging
+    spec:
+      project: default
+      source:
+        repoURL: https://gitlab.com/ClementV78/shopdemo.git
+        targetRevision: main
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: shopdemo-staging
+      # Automatique, conformement a la decision du 2026-09-08 : un workload
+      # applicatif confine a son namespace ne peut pas verrouiller Argo CD.
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
