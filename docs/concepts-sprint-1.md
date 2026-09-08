@@ -22,12 +22,16 @@ Avant : lancer des commandes pour changer le cluster
 Apres : changer Git, puis laisser Argo CD reconcilier le cluster
 ```
 
-Dans `S1-T1`, on ne deploie pas encore Argo CD. On prepare le terrain :
+`S1-T1` a commence par preparer le terrain, sans deployer Argo CD :
 
 - une arborescence GitOps claire ;
 - des namespaces Kubernetes declaratifs ;
 - des validations locales sans effet de bord ;
 - une separation entre plateforme, applications et environnements.
+
+Le schema ci-dessous montre l'etat atteint depuis, une fois les lots suivants
+livres : Argo CD installe, un `ApplicationSet` qui genere les `Application`
+applicatives, et staging synchronise automatiquement.
 
 <p align="center">
   <img src="diagrams/s1-gitops-local-overview.svg" alt="Vue d'ensemble GitOps locale Sprint 1" width="1050">

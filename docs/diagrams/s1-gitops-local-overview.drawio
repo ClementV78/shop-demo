@@ -14,7 +14,7 @@
         <mxCell id="4" value="CI plus tard&#xa;tests, scans, digest" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#8fb8ff;strokeWidth=2;" vertex="1" parent="2">
           <mxGeometry x="35" y="170" width="180" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="5" value="S1-T1&#xa;validation locale uniquement" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="2">
+        <mxCell id="5" value="Merge dans main&#xa;staging deploie automatiquement" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="2">
           <mxGeometry x="35" y="260" width="180" height="52" as="geometry" />
         </mxCell>
         <mxCell id="6" value="2. Etat desire GitOps" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="1">
@@ -23,7 +23,7 @@
         <mxCell id="7" value="gitops/platform&#xa;argocd + gateway-system" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
           <mxGeometry x="45" y="70" width="220" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="8" value="gitops/apps&#xa;bases applicatives futures" style="rounded=1;arcSize=18;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
+        <mxCell id="8" value="gitops/apps&#xa;base smoke deployee" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
           <mxGeometry x="45" y="160" width="220" height="64" as="geometry" />
         </mxCell>
         <mxCell id="9" value="gitops/environments&#xa;staging + prod" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#f0b44c;strokeWidth=2;" vertex="1" parent="6">
@@ -38,11 +38,11 @@
         <mxCell id="12" value="Argo CD&#xa;observe Git" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
           <mxGeometry x="40" y="75" width="200" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="13" value="ApplicationSet&#xa;staging/prod plus tard" style="rounded=1;arcSize=18;dashed=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
+        <mxCell id="13" value="ApplicationSet staging&#xa;genere une Application par app" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#43d3c2;strokeWidth=2;" vertex="1" parent="11">
           <mxGeometry x="40" y="175" width="200" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="14" value="S1-T2+&#xa;pas installe en S1-T1" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#fff7cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="11">
-          <mxGeometry x="55" y="260" width="170" height="52" as="geometry" />
+        <mxCell id="14" value="Argo CD v3.5.2 installe&#xa;prod encore manuel, tags en S1-T6" style="shape=note;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="800" y="580" width="280" height="60" as="geometry" />
         </mxCell>
         <mxCell id="15" value="4. Cluster local k3s + Cilium" style="swimlane;startSize=34;rounded=1;arcSize=12;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="1170" y="80" width="300" height="460" as="geometry" />
@@ -71,7 +71,7 @@
         <mxCell id="23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="9" target="12">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="24" value="sync plus tard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="12" target="16">
+        <mxCell id="24" value="sync auto staging" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#43d3c2;strokeWidth=2;fontFamily=Helvetica;fontSize=11;" edge="1" parent="1" source="12" target="16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

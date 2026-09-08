@@ -23,21 +23,25 @@ ensuite le cluster.
 
 ## Vue d'ensemble
 
-Le schema se lit comme une histoire de deploiement, mais volontairement
-incomplete a ce stade du sprint.
+Le schema se lit comme une histoire de deploiement, de gauche a droite.
 
 ```text
 Git contient l'intention
 Kustomize assemble les YAML
-Argo CD comparera Git avec le cluster
+Argo CD compare Git avec le cluster
 Kubernetes applique l'etat reel
 ```
 
-Pour l'instant, dans `S1-T1`, on pose surtout les deux premieres pieces :
-**Git** et **Kustomize**. Git contient les fichiers qui disent ce que l'on veut
-voir exister dans Kubernetes. Kustomize sert a prendre ces fichiers et a les
-assembler en manifests Kubernetes finaux. On peut donc verifier localement ce
-qui serait envoye au cluster, sans encore rien appliquer.
+Chaque piece a un role distinct. Git contient les fichiers qui disent ce que
+l'on veut voir exister dans Kubernetes. Kustomize prend ces fichiers et les
+assemble en manifests finaux, ce qui permet aussi de verifier localement ce qui
+serait envoye au cluster, sans rien appliquer. Argo CD compare ce resultat a
+l'etat reel et le corrige.
+
+La chaine complete fonctionne depuis `S1-T5` : un merge dans `main` est
+deploye automatiquement en staging, tandis que `platform` et `prod` restent en
+synchronisation manuelle, pour des raisons differentes detaillees dans le
+fichier de sprint.
 
 <p align="center">
   <img src="diagrams/s1-gitops-local-overview.svg" alt="Vue d'ensemble GitOps locale Sprint 1" width="1050">
