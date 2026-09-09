@@ -70,7 +70,7 @@
 spec:
   generators:
     - git:
-        repoURL: https://gitlab.com/shopdemo/shopdemo-gitops.git
+        repoURL: https://gitlab.com/ClementV78/shopdemo.git
         revision: staging
         directories:
           - path: k8s/staging/*
@@ -181,7 +181,7 @@ spec:
     # ansible-pull — le node se configure lui-même au boot,
     # pas de connexion SSH sortante depuis le control node
     dnf install -y ansible-core
-    ansible-pull -U https://gitlab.com/shopdemo/shopdemo-platform.git \
+    ansible-pull -U https://gitlab.com/ClementV78/shopdemo.git \
       ansible/playbooks/harden.yml \
       -i localhost,
 ```
@@ -401,8 +401,8 @@ update-gitops-tag:
   image: mikefarah/yq@sha256:<digest>   # yq pinné par digest
   script:
     - DIGEST=$(cat digest.txt)
-    - git clone https://gitops-bot:$GITOPS_TOKEN@gitlab.com/shopdemo/shopdemo-gitops.git
-    - cd shopdemo-gitops
+    - git clone https://gitops-bot:$GITOPS_TOKEN@gitlab.com/ClementV78/shopdemo.git
+    - cd shopdemo
     # yq avec chemin explicite — robuste aux variations d'indentation/structure,
     # contrairement à sed -i sur du YAML
     - yq -i ".image = \"${ECR_REGISTRY}/${SERVICE_NAME}@${DIGEST}\"" \
@@ -455,7 +455,7 @@ resource "aws_iam_role" "gitlab_ci_staging" {
         StringEquals = { "gitlab.com:aud" = "https://sts.amazonaws.com" }
         StringLike   = {
           # ✅ Scopé projet + branche — aucun autre projet ne peut assumer ce rôle
-          "gitlab.com:sub" = "project_path:monorg/idp-platform:ref_type:branch:ref:staging"
+          "gitlab.com:sub" = "project_path:ClementV78/shopdemo:ref_type:branch:ref:main"
         }
       }
     }]
@@ -463,7 +463,7 @@ resource "aws_iam_role" "gitlab_ci_staging" {
 }
 ```
 
-> **Thumbprint statique** : AWS valide le certificat TLS racine de l'IdP via ce thumbprint SHA-1. Il change rarement (changement d'autorité de certification racine de gitlab.com), mais **change quand même** — sans rotation automatique, l'OIDC casse silencieusement à la prochaine rotation de certificat root. À documenter dans `platform/docs/oidc-maintenance.md` : vérification annuelle via `openssl s_client -connect gitlab.com:443 | openssl x509 -fingerprint -sha1 -noout`, ou utiliser le thumbprint générique AWS pour les IdP publics (`aws_iam_openid_connect_provider` sans `thumbprint_list` depuis le provider AWS récent, qui dérive automatiquement le thumbprint).
+> **Thumbprint statique** : AWS valide le certificat TLS racine de l'IdP via ce thumbprint SHA-1. Il change rarement (changement d'autorité de certification racine de gitlab.com), mais **change quand même** — sans rotation automatique, l'OIDC casse silencieusement à la prochaine rotation de certificat root. À documenter dans `docs/oidc-maintenance.md` : vérification annuelle via `openssl s_client -connect gitlab.com:443 | openssl x509 -fingerprint -sha1 -noout`, ou utiliser le thumbprint générique AWS pour les IdP publics (`aws_iam_openid_connect_provider` sans `thumbprint_list` depuis le provider AWS récent, qui dérive automatiquement le thumbprint).
 
 **Permissions IAM minimales par Component** — chaque rôle OIDC (staging/prod) n'a que les permissions nécessaires à son Component :
 
@@ -503,7 +503,7 @@ resource "aws_eks_access_policy_association" "gitlab_ci" {
 - `aws s3 sync` vers S3
 - Invalidation CloudFront `aws cloudfront create-invalidation`
 
-**Procédure upgrade EKS** (`platform/docs/eks-upgrade.md`) :
+**Procédure upgrade EKS** (`docs/eks-upgrade.md`) :
 
 EKS est managé pour le control plane — AWS gère HA et patches. Nodes, addons et composants tiers restent sous responsabilité de l'opérateur.
 

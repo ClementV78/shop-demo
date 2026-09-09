@@ -338,9 +338,15 @@ Points de vigilance non bloquants :
   prefixe, d'ou la ligne de negation dans le `.gitignore`. Il fige les
   empreintes des providers pour que la CI installe les memes binaires que le
   poste local.
-- Ecart de chemin resolu : `docs/sprint-planning.md` parlait de
-  `platform/terraform/`, le depot pose `terraform/` a la racine et le planning
-  a ete aligne.
+- Deux ecarts de `docs/sprint-planning.md` resolus : le repertoire `platform/`
+  suppose a la racine, remplace par `terraform/`, et l'organisation
+  multi-depots supposee, `shopdemo-gitops` et `shopdemo-platform`, alors que la
+  realite est le mono-depot `gitlab.com/ClementV78/shopdemo` acte par
+  [`ADR-007`](adr/ADR-007-gitlab-source-of-truth-github-mirror.md).
+- A retenir pour `S2-T7` : la condition de confiance OIDC du planning etait un
+  placeholder, `project_path:monorg/idp-platform`. Elle doit valoir
+  `project_path:ClementV78/shopdemo`, sinon n'importe quel projet GitLab.com
+  peut assumer le role AWS.
 
 - Sprint 2 cadre le 2026-09-09, huit taches, aucune ressource AWS creee.
   Quatre choix ont ete arretes au cadrage : le compte AWS existant devient
