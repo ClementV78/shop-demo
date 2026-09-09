@@ -89,7 +89,9 @@ spec:
 **Durée estimée :** 2 semaines | **Coût AWS :** ~5$/mois (permanent)  
 **Lacunes adressées :** Landing Zone AWS, Terraform modules custom, SCPs, IAM Identity Center, FinOps posture-toggle
 
-**Objectif :** déployer une Landing Zone AWS complète depuis le management account, avec un coût permanent minimal. Toutes les SCPs sont testées en compte sandbox avant d'être appliquées aux OUs.
+**Objectif :** déployer une Landing Zone AWS complète depuis le management account, avec un coût permanent minimal, et livrer dans le même sprint le state Terraform `bootstrap` dont dépendent tous les sprints suivants. Toutes les SCPs sont testées en compte sandbox avant d'être appliquées aux OUs.
+
+> **Séquencement imposé** : le bucket S3 qui héberge les states ne peut pas être décrit dans un state qui y vit déjà, et le rôle OIDC GitLab n'existe pas au démarrage. Les premiers `apply` se font donc depuis le poste local sur un state local, qui est migré vers S3 dès qu'il existe, puis supprimé. Le state local est un artefact de bootstrap, jamais une cible, et n'est jamais commité.
 
 **Livrables :**
 
@@ -103,11 +105,14 @@ spec:
   - `deny-iam-longterm-keys`
 - Module `aws-sso` — IAM Identity Center, permission sets `AdminAccess` (break-glass uniquement) / `DevAccess` / `ReadOnly`
 - Module `aws-baseline` — **posture à deux niveaux** via `enable_full_posture` :
-  - **Toujours actif (~5$/mois)** : 1 CloudTrail multi-région (management account), AWS Config limité aux règles `required-tags` + `cloudtrail-enabled`, S3 logs, Budget Alert 20$/compte, Cost Anomaly Detection
+  - **Toujours actif (~5$/mois)** : 1 CloudTrail multi-région (management account), AWS Config limité aux règles `required-tags` + `cloudtrail-enabled`, S3 logs, deux budgets (`cout-reel` hors crédits pour le signal FinOps, `cout-facture` crédits inclus comme détecteur d'épuisement des crédits), Cost Anomaly Detection. Budgets par compte reportés au Sprint 3, l'attribution passant d'ici là par les tags obligatoires et Cost Explorer
   - **`enable_full_posture = true` (sessions Sprint 3+, ~+4$/jour)** : GuardDuty sur les 4 comptes, règles AWS Config CIS complètes — activé via `terraform apply -target=module.aws_baseline` en début de session, désactivé en fin de session
-- Override MiniStack pour validation locale avant apply réel
+- State Terraform `bootstrap` : bucket S3 versionné et chiffré, verrouillage de state, migration depuis le state local, conformément à [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md)
+- Rôle OIDC GitLab vers AWS : provider OIDC, condition de trust restreinte au projet GitLab, zéro clé IAM longue durée. L'EC2 runner `bootstrap` reste hors scope du sprint, il n'a d'utilité qu'avec le VPC du Sprint 3
 - `docs/account-vending.md` — procédure de création d'un nouveau compte
 - `docs/scp-global-services.md` — services globaux exclus de `deny-regions-outside-eu`
+
+> **Validation locale : pas de MiniStack**. `Organizations` et les `SCPs` sont hors périmètre de MiniStack et exigent AWS réel, cf. [`decouverte-ministack.md`](decouverte-ministack.md). Le garde-fou du Sprint 2 est donc la relecture de plan et le test en compte `sandbox`, pas l'émulation locale.
 
 #### Hors scope — Landing Zone enterprise
 

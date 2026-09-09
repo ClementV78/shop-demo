@@ -398,7 +398,8 @@ sur des manifests plutot que sur un digest d'image faute de CI.
 
 ## Prochaine etape
 
-`Sprint 2` : Landing Zone AWS avec Terraform. Conformement a la regle de
-progression du README, son fichier de suivi doit etre cree avant demarrage.
-Premier sprint engageant des couts AWS reels, ce qui change la nature des
-precautions a prendre.
+`Sprint 2` : Landing Zone AWS avec Terraform, cadre le 2026-09-09 dans
+[`sprint-2-landing-zone.md`](sprint-2-landing-zone.md). Premier sprint
+engageant des couts AWS reels, ce qui change la nature des precautions a
+prendre : une SCP peut verrouiller un compte et un compte AWS ne se supprime
+pas comme un namespace Kubernetes.

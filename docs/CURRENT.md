@@ -4,11 +4,15 @@
 
 Sprint 0 - Ansible et fondations bootstrap : `Termine`.
 Sprint 1 - Argo CD et base GitOps locale : `Termine` le 2026-09-08.
-Sprint 2 - Landing Zone AWS : `A cadrer`, fichier de suivi a creer.
+Sprint 2 - Landing Zone AWS : `En cours`, cadre le 2026-09-09.
 
 Suivi detaille :
-[`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
-[`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md).
+[`docs/sprints/sprint-2-landing-zone.md`](sprints/sprint-2-landing-zone.md),
+[`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md) et
+[`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md).
+
+Aucune ressource AWS n'existe a ce jour. Aucun `terraform apply` n'a ete
+execute.
 
 ## Etat du depot Git (a lire avant toute action git)
 
@@ -48,17 +52,20 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S2-T0 | Cadrer le Sprint 2 | A faire | Creer le fichier de suivi avant tout `terraform apply`, et chiffrer les couts attendus |
+| S2-T1 | Poser la structure Terraform du depot et les conventions | Planifie | Creer `terraform/` avec `modules/` et `bootstrap/`, les tags obligatoires, le pinning des providers et le `.gitignore` des states, sans creer aucune ressource |
+| S2-T2 | Creer le state `bootstrap` | Planifie | Bucket S3 versionne et chiffre, verrou, puis migration du state local vers S3 et suppression du state local |
+| S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
 
 Objectif de reprise :
 
-- creer `docs/sprints/sprint-2-landing-zone.md` avant toute action Terraform,
-  conformement a la regle de progression du README ;
-- chiffrer les couts AWS attendus et la procedure de destruction avant
-  d'engager quoi que ce soit. C'est le premier sprint qui coute de l'argent
-  reel, ce qui change la nature des precautions ;
+- `S2-T1` ne cree aucune ressource AWS, exactement comme `S1-T1` n'avait rien
+  applique sur le cluster. C'est la bonne facon de demarrer un sprint qui
+  coute de l'argent ;
+- rien ne part sur AWS avant que la structure Terraform soit relue et que
+  `terraform fmt`, `validate` et `tflint` passent ;
 - respecter la separation `bootstrap` permanent et `workload` ephemere posee
-  par [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md).
+  par [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md). Le
+  state `workload` n'est pas ouvert dans ce sprint.
 
 Ce qui reste utilisable tel quel du Sprint 1 :
 
@@ -66,11 +73,28 @@ Ce qui reste utilisable tel quel du Sprint 1 :
 - le guide d'exploitation [`docs/exploitation-gitops.md`](exploitation-gitops.md) ;
 - le modele de promotion par tags, transposable a des environnements AWS.
 
-Point de cadrage :
+Points de vigilance propres au Sprint 2 :
 
-Ne pas lancer de `terraform apply` sans avoir cadre le sprint, chiffre les
-couts et documente le nettoyage. Les regles du depot l'interdisent sans demande
-explicite.
+- **la creation d'un compte AWS est difficilement reversible**. Une erreur
+  d'email ou de nom se ferme depuis la console, avec 90 jours de periode
+  suspendue. Le plan de `S2-T3` merite une relecture ligne a ligne ;
+- **une SCP peut verrouiller un compte**. Aucune SCP n'est attachee a la
+  racine de l'Organization, et chacune est eprouvee dans le compte `sandbox`
+  avant d'atteindre une OU utile ;
+- **le state local intermediaire ne doit jamais etre commite**. Le
+  `.gitignore` est pose en `S2-T1`, avant que le premier state existe ;
+- MiniStack ne peut pas valider `Organizations` ni les `SCPs`. Le garde-fou
+  est la relecture de plan et le compte `sandbox`, pas l'emulation locale ;
+- **le risque du bootstrap n'est pas la rejouabilite mais le remplacement**.
+  Rejouer un `apply` inchange ne fait rien, cela se prouve avec
+  `terraform plan -detailed-exitcode` qui retourne `0`. En revanche, renommer
+  le bucket de state ou changer l'email d'un compte declenche un
+  destroy/create. D'ou `prevent_destroy` sur ces ressources et la recherche
+  systematique de `-/+` et `# forces replacement` dans les plans ;
+- **les credits AWS masquent le cout reel**. `S2-T6` livre donc deux budgets :
+  `cout-reel` hors credits, qui porte le signal FinOps, et `cout-facture`
+  credits inclus, qui sert de detecteur d'epuisement des credits en sortant
+  de zero. Pas de budget par compte avant le Sprint 3.
 
 Taches terminees du Sprint 0 :
 `S0-T1`, `S0-T2`, `S0-T3`, `S0-T4`, `S0-T5`, `S0-T6`, `S0-T7`, `S0-T8`,
@@ -279,6 +303,7 @@ Points de vigilance non bloquants :
 - Architecture cible : [`ARCHITECTURE.md`](../ARCHITECTURE.md)
 - Sprint 0 detaille : [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md)
 - Sprint 1 detaille : [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md)
+- Sprint 2 detaille : [`docs/sprints/sprint-2-landing-zone.md`](sprints/sprint-2-landing-zone.md)
 - Comment ca marche techniquement : [`docs/comment-ca-marche.md`](comment-ca-marche.md)
 - Recit narratif de `S1-T2` avec schemas : [`docs/evidence/sprint-1/recit-s1-t2.md`](evidence/sprint-1/recit-s1-t2.md)
 - Structure GitOps : [`docs/gitops-structure.md`](gitops-structure.md)
@@ -299,6 +324,19 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- Sprint 2 cadre le 2026-09-09, huit taches, aucune ressource AWS creee.
+  Quatre choix ont ete arretes au cadrage : le compte AWS existant devient
+  management account, quatre comptes enfants dont un `sandbox` sans ressource,
+  le state `bootstrap` et le role OIDC entrent dans ce sprint plutot que dans
+  le Sprint 3, et la posture couteuse reste derriere `enable_full_posture`.
+- L'EC2 runner `bootstrap` n'est volontairement pas cree au Sprint 2 : il n'a
+  d'utilite qu'avec le VPC du Sprint 3 et couterait une instance permanente
+  entre temps.
+- Ecart corrige dans `docs/sprint-planning.md` : le planning annoncait une
+  validation MiniStack des SCPs, que `docs/decouverte-ministack.md` exclut
+  explicitement. Le garde-fou devient la relecture de plan et le compte
+  `sandbox`.
 
 - Sprint 1 est clos : sept taches livrees, trois ADR actes, et la chaine
   complete `merge -> staging` puis `tag -> prod` fonctionne et a ete eprouvee
@@ -441,10 +479,14 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Cadrer le Sprint 2 dans un fichier de suivi dedie avant toute action.
-2. Chiffrer les couts AWS et ecrire la procedure de destruction avant le
-   premier `terraform apply`.
-3. Reprendre les dettes du Sprint 1 quand elles bloqueront : `AppProject`
+1. Demarrer `S2-T1` : structure Terraform, conventions et `.gitignore`, sans
+   aucune ressource creee.
+2. Enchainer sur `S2-T2`, le state `bootstrap`, pour sortir du state local le
+   plus tot possible. Verifier d'abord la version de Terraform installee : a
+   partir de la 1.10 le verrou S3 natif remplace la table DynamoDB.
+3. Ne lancer `S2-T3` qu'apres relecture du plan, les emails des quatre comptes
+   restant hors du depot.
+4. Reprendre les dettes du Sprint 1 quand elles bloqueront : `AppProject`
    dedie, securisation du namespace `argocd`, webhook GitLab vers Argo CD.
 
 ## Rappel de maintenance

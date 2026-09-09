@@ -85,18 +85,18 @@ Les roles `cloudflare-tunnel` et `gitlab-runner` existent aussi, mais demandent 
 
 Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
-![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Terminé-green?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-Planifié-lightgrey?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
+![Sprint 0](https://img.shields.io/badge/S0_Ansible-Terminé-green?style=flat-square) ![Sprint 1](https://img.shields.io/badge/S1_ArgoCD_%2B_GitOps_local-Terminé-green?style=flat-square) ![Sprint 2](https://img.shields.io/badge/S2_Landing_Zone-En_cours-blue?style=flat-square) ![Sprint 3](https://img.shields.io/badge/S3_EKS-Planifié-lightgrey?style=flat-square) ![Sprint 4](https://img.shields.io/badge/S4_Observabilité-Planifié-lightgrey?style=flat-square) ![Sprint 5](https://img.shields.io/badge/S5_DevSecOps-Planifié-lightgrey?style=flat-square) ![Sprint 6](https://img.shields.io/badge/S6_CI%2FCD-Planifié-lightgrey?style=flat-square)
 
 | | |
 |---|---|
-| Sprint actif | Aucun. `Sprint 1` est terminé, `Sprint 2` reste à cadrer |
+| Sprint actif | `Sprint 2` : Landing Zone AWS, cadré le 2026-09-09, aucune ressource AWS créée à ce jour |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
 |---|---|---|---|
 | 0 | Ansible et fondations bootstrap | Terminé | [`sprint-0-ansible.md`](docs/sprints/sprint-0-ansible.md) |
 | 1 | Argo CD et base GitOps locale | Terminé | [`sprint-1-gitops-local.md`](docs/sprints/sprint-1-gitops-local.md) |
-| 2 | Landing Zone AWS | Planifié | À créer avant démarrage |
+| 2 | Landing Zone AWS | En cours | [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md) |
 | 3 | Plateforme AWS et EKS | Planifié | À créer avant démarrage |
 | 4 | Observabilité | Planifié | À créer avant démarrage |
 | 5 | DevSecOps | Planifié | À créer avant démarrage |
@@ -110,9 +110,7 @@ staging, et seule la pose d'un tag semver promeut en production. Le rollback a
 été exécuté sur un incident réel, pas seulement décrit. Voir le
 [guide d'exploitation](docs/exploitation-gitops.md).
 
-La prochaine étape est le `Sprint 2`, Landing Zone AWS avec Terraform. Son
-fichier de suivi reste à créer, et c'est le premier sprint qui engagera des
-coûts AWS réels.
+Le `Sprint 2` est cadré : Landing Zone AWS multi-comptes, plus le state Terraform `bootstrap`. Un compte AWS existant devient management account, trois OUs et quatre comptes enfants sont créés, six SCPs sont éprouvées en compte `sandbox` avant d'être appliquées, et l'authentification de la CI passe par OIDC sans aucune clé IAM. C'est le premier sprint qui engage des coûts AWS réels, cible d'environ 5$ par mois avec la posture forte derrière un interrupteur. Le détail, les coûts estimés et les limites de réversibilité vivent dans [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md).
 
 ## Démarrer ici
 
