@@ -18,9 +18,31 @@ import sys
 REFERENCE_SVG = 'docs/diagrams/organisation-aws.svg'
 BACKGROUND = '<rect width="100%" height="100%" class="c-bg-rect"/>'
 
+VARIABLE = re.compile(r'(--[a-zA-Z0-9-]+)\s*:')
+
 
 def style_block(path=REFERENCE_SVG):
     return re.search(r'<style>.*?</style>', io.open(path, encoding='utf-8').read(), re.S).group(0)
+
+
+def check_variables(style, html):
+    """Refuse d'exporter si le template a gagne des variables de theme.
+
+    L'export officiel resout les variables CSS avec getComputedStyle, donc
+    dans un navigateur. Ce script recopie a la place un bloc de style deja
+    resolu, ce qui suppose que le template n'a pas change. Cette hypothese
+    doit echouer bruyamment plutot que silencieusement : le commentaire du
+    template rapporte que --lane-fill et --lane-stroke avaient deja ete
+    oubliees une fois par le pipeline d'export.
+    """
+    missing = sorted(set(VARIABLE.findall(html)) - set(VARIABLE.findall(style)))
+    if missing:
+        sys.exit(
+            "Le template Archify declare des variables absentes du bloc de style de\n"
+            "reference (%s) :\n  %s\n\n"
+            "Le raccourci de ce script n'est plus valable. Reexporter un schema\n"
+            "depuis le menu SVG du HTML dans un navigateur, remplacer le fichier de\n"
+            "reference, puis relancer." % (REFERENCE_SVG, ', '.join(missing)))
 
 
 def build(html_path, svg_path):
@@ -39,8 +61,11 @@ def build(html_path, svg_path):
     body = re.sub(r'^\s*<style>.*?</style>', '', body, count=1, flags=re.S)
     body = re.sub(r'\s+/>', '/>', body)
 
+    style = style_block()
+    check_variables(style, html)
+
     io.open(svg_path, 'w', encoding='utf-8').write(
-        open_tag + style_block() + BACKGROUND + body + close_tag)
+        open_tag + style + BACKGROUND + body + close_tag)
 
 
 if __name__ == '__main__':

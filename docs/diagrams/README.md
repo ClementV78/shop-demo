@@ -107,7 +107,20 @@ donc il faut corriger le JSON et relancer, jamais modifier le renderer.
 
 [`export-svg.py`](export-svg.py) reproduit hors navigateur le menu d'export du
 HTML. La methode a ete validee en regenerant un schema inchange et en
-comparant l'octet pres au SVG deja commite.
+comparant a l'octet pres au SVG deja commite.
+
+C'est un raccourci assume, pas une reimplementation. L'export officiel resout
+les variables CSS avec `getComputedStyle`, donc dans un navigateur ; ce script
+recopie a la place un bloc de style deja resolu, identique pour tous les
+schemas du projet. Le script compare donc a chaque appel les variables
+declarees par le HTML fraichement rendu a celles du bloc de reference, et
+refuse d'ecrire si le template en a gagne. Le cas est reel : le code d'Archify
+rapporte que `--lane-fill` et `--lane-stroke` avaient deja ete oubliees une
+fois par son propre pipeline d'export.
+
+Si ce garde-fou se declenche, la marche a suivre est d'ouvrir un schema dans un
+navigateur, d'utiliser son menu "Download SVG", de remplacer le fichier de
+reference, puis de relancer.
 
 Les cartes explicatives latterales n'apparaissent que dans le rendu HTML
 interactif. Le `.svg` utilise dans la documentation ne contient que le schema
