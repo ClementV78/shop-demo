@@ -786,14 +786,66 @@ spec:
         - podSelector: {}   # seulement les pods du meme namespace
 ```
 
-Le mecanisme est contre-intuitif au depart. Une `NetworkPolicy` sans regle
-`ingress` n'autorise rien : elle bascule le namespace en refus par defaut.
-La seconde policy rouvre ensuite un chemin precis. Les policies s'additionnent,
-elles ne se remplacent pas : le trafic passe si **au moins une** l'autorise.
+### Le mecanisme reel, et une redondance assumee
+
+L'API `NetworkPolicy` ne sait pas refuser. Il n'existe aucune regle `deny` :
+on ne peut qu'autoriser. Le refus est un **effet de bord de la selection**.
+
+La regle exacte est celle-ci. Un pod devient *isole* en entree des qu'au moins
+une `NetworkPolicy` le selectionne avec `Ingress` dans ses `policyTypes`. A
+partir de la, seule l'union des regles `ingress` des policies qui le
+selectionnent est autorisee, et tout le reste tombe. Un pod que personne ne
+selectionne reste, lui, entierement ouvert.
+
+Une consequence merite d'etre vue tout de suite, parce qu'elle surprend :
+`allow-ingress-same-namespace` **suffirait a elle seule**. Elle selectionne
+tous les pods avec `policyTypes: [Ingress]`, donc elle isole, puis elle rouvre
+le chemin intra-namespace. `default-deny-ingress` ajoute a l'union un ensemble
+de regles vide, ce qui ne change rien au resultat.
+
+Alors pourquoi la garder ? Pas pour le trafic d'aujourd'hui, mais contre une
+modification de demain. Si quelqu'un restreint plus tard
+`allow-ingress-same-namespace` a un sous-ensemble de pods, par exemple
+`podSelector: {matchLabels: {app: web}}` pour affiner les autorisations, les
+pods sans ce label ne sont plus selectionnes par aucune policy. Ils cessent
+d'etre isoles et redeviennent joignables depuis n'importe quel namespace. Un
+durcissement apparent aurait ouvert un trou.
+
+`default-deny-ingress`, qui garde `podSelector: {}`, reste alors la couverture
+de tous les pods. Le filet de securite est ainsi decouple du cycle de vie de la
+regle d'autorisation. C'est aussi la convention que cherchent les controles
+d'audit et les policies Kyverno, qui rendent la posture d'un namespace lisible
+sans avoir a raisonner sur l'union des regles.
+
+La redondance est donc deliberee, et c'est une redondance de robustesse, pas un
+mecanisme necessaire. La distinction compte : croire que le refus vient de
+l'objet nomme `default-deny` amene a mal raisonner des qu'on modifie l'autre.
 
 Point important souvent mal compris : `policyTypes: [Ingress]` ne touche pas
 l'egress. Un pod continue donc de joindre l'exterieur, ce qui a ete verifie
 apres application en resolvant `gitlab.com` depuis `shopdemo-staging`.
+
+Pour s'en convaincre sans toucher aux namespaces geres par Argo CD, il suffit
+de creer un namespace jetable ne portant que la policy d'autorisation, et de
+constater qu'un appel venant d'ailleurs echoue quand meme :
+
+```bash
+kubectl create namespace np-test
+kubectl -n np-test run web --image=nginxinc/nginx-unprivileged:1.27-alpine --port=8080
+kubectl -n np-test expose pod web --port=8080
+kubectl -n np-test apply -f - <<'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-same-ns}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress: [{from: [{podSelector: {}}]}]
+EOF
+kubectl -n default run probe --rm -it --image=curlimages/curl --restart=Never -- \
+  curl -m 5 -s -o /dev/null -w '%{http_code}\n' http://web.np-test:8080
+kubectl delete namespace np-test
+```
 
 Le namespace `argocd` reste volontairement hors perimetre. Lui appliquer un
 refus par defaut sans avoir d'abord cartographie ses flux reviendrait a

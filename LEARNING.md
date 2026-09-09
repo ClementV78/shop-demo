@@ -38,6 +38,7 @@ Les niveaux `Autonome` et `Maitrise` exigent une demonstration pratique. Une exp
 | 2026-06-13 | Kubernetes / kubeconfig | Pourquoi `k3s` installe et `kubectl` pointant ailleurs peuvent coexister ? | Compris | Aucun |
 | 2026-06-13 | Kubeconfig / usages | Pourquoi garder source root + copie utilisateur ? | Compris | Aucun |
 | 2026-06-14 | Molecule / conteneur | Pourquoi le test Docker avait-il besoin de `--snapshotter=native` ? | Compris | Aucun |
+| 2026-09-09 | Kubernetes / NetworkPolicy | Pourquoi garder `default-deny-ingress` si `allow-ingress-same-namespace` suffit ? | Compris | Redondance identifiee par le proprietaire. L'isolation vient de la selection, pas d'un objet nomme deny : conservee comme filet decouple si la regle d'autorisation est un jour restreinte |
 
 ## Prochains Objectifs
 

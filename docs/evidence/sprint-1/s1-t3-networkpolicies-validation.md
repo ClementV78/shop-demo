@@ -58,6 +58,10 @@ flowchart LR
 
 Deux `NetworkPolicy` standard par environnement suffisent a ce modele. La premiere, `default-deny-ingress`, selectionne tous les pods du namespace avec `policyTypes: [Ingress]` et aucune regle, ce qui refuse toute entree. La seconde, `allow-ingress-same-namespace`, rouvre le trafic venant des pods du meme namespace. Les autorisations de plusieurs `NetworkPolicy` s'additionnent, donc le resultat net est : tout est refuse en entree sauf ce qui vient du meme namespace.
 
+> **Precision ajoutee le 2026-09-09.** `allow-ingress-same-namespace` suffirait techniquement a elle seule. L'isolation vient de la selection, pas d'un objet nomme `default-deny` : un pod est isole en entree des qu'au moins une `NetworkPolicy` le selectionne avec `Ingress` dans ses `policyTypes`, et cette policy le fait deja avec `podSelector: {}`. `default-deny-ingress` ajoute a l'union un ensemble de regles vide.
+>
+> Elle est conservee comme filet de securite decouple : si la regle d'autorisation est un jour restreinte a un sous-ensemble de pods, les pods restants cesseraient d'etre selectionnes et redeviendraient joignables depuis tout namespace. La redondance protege contre cette modification, pas contre le trafic d'aujourd'hui. Elle est aussi la convention attendue par les controles d'audit et les policies Kyverno.
+
 L'egress n'apparait dans aucune des deux policies. C'est deliberé : ne pas declarer `policyTypes: Egress` laisse la sortie totalement intacte, donc le chemin pod vers GitLab repare pendant `S1-T2` n'est pas remis en cause.
 
 ## Commandes executees
