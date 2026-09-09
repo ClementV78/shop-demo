@@ -14,7 +14,7 @@ Ce sprint est le premier a engager des couts AWS reels et a manipuler des contro
 
 | ID | Tache | Etat | Depend de |
 |---|---|---|---|
-| S2-T1 | Poser la structure Terraform du depot et les conventions | Planifie | S1 |
+| S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | S1 |
 | S2-T2 | Creer le state `bootstrap` : backend S3, verrou, chiffrement | Planifie | S2-T1 |
 | S2-T3 | Module `aws-organization` : Organization, OUs, comptes enfants | Planifie | S2-T2 |
 | S2-T4 | Module `aws-scp` : six SCPs, testees en sandbox avant les OUs | Planifie | S2-T3 |
@@ -158,19 +158,38 @@ Le point a retenir avant le premier apply : **la creation d'un compte AWS est di
 
 ### S2-T1 - Poser la structure Terraform du depot et les conventions
 
-Etat : `Planifie`.
+Etat : `Termine` le 2026-09-09.
 
 Objectif : rendre le code Terraform lisible et validable avant qu'une seule ressource n'existe, sur le meme principe que `S1-T1` qui avait pose la structure GitOps sans rien appliquer.
 
 Livrables :
 
-- arborescence `terraform/` a la racine, coherente avec `ansible/` et `gitops/` ;
-- separation `terraform/modules/` et `terraform/bootstrap/`, le repertoire `terraform/envs/` restant vide jusqu'au Sprint 3 ;
-- conventions de nommage, tags obligatoires et version des providers epinglee ;
-- entrees `.gitignore` pour `.terraform/`, `*.tfstate`, `*.tfstate.backup` et `*.tfvars` ;
-- fichier d'exemple `terraform.tfvars.example` sans aucune valeur reelle.
+- arborescence [`../../terraform/`](../../terraform/) a la racine, coherente avec `ansible/` et `gitops/` ;
+- `terraform/bootstrap/` comme state racine, `terraform/modules/` pour les modules internes, `terraform/envs/` vide jusqu'au Sprint 3 avec un README expliquant pourquoi ;
+- conventions documentees dans [`../../terraform/README.md`](../../terraform/README.md) : region, nommage, tags obligatoires, epinglage, secrets ;
+- cinq tags obligatoires appliques par `default_tags` sur le provider plutot que repetes ressource par ressource, avec les memes cles que la future regle AWS Config `required-tags` de `S2-T6` ;
+- validations sur les variables : `aws_region` refuse toute region hors d'Europe, `project` impose un format compatible avec le nommage des buckets S3, `environment` est contraint a une liste fermee ;
+- configuration `tflint` versionnee dans `terraform/.tflint.hcl`, ruleset AWS `0.46.0` epingle ;
+- section Terraform ajoutee au `.gitignore`, avec une exception explicite pour `.terraform.lock.hcl` ;
+- `terraform/bootstrap/terraform.tfvars.example` sans aucune valeur reelle.
 
-Criteres d'acceptation : `terraform fmt -check`, `terraform validate` et `tflint` passent. Aucune ressource creee.
+Deux points meritent d'etre releves.
+
+Le backend n'est volontairement pas declare. Un commentaire dans `versions.tf` explique pourquoi et annonce ce que `S2-T2` y ajoutera, plutot que de laisser un lecteur croire a un oubli.
+
+Le fichier `.terraform.lock.hcl` est **committe volontairement**, contre l'intuition qui pousse a ignorer tout ce qui commence par `.terraform`. Il fige les empreintes des providers et garantit que la CI installera exactement les memes binaires que le poste local. C'est le seul fichier `.terraform*` qui entre dans Git, d'ou la ligne de negation dans le `.gitignore`.
+
+Resultats de validation :
+
+| Commande | Resultat |
+|---|---|
+| `terraform -chdir=terraform/bootstrap init -backend=false` | AWS provider `v6.63.0` installe, lock file genere |
+| `terraform fmt -recursive -check terraform/` | Aucun fichier a reformater |
+| `terraform -chdir=terraform/bootstrap validate` | `Success! The configuration is valid.` |
+| `tflint --chdir=terraform/bootstrap --config=.../terraform/.tflint.hcl` | Sortie vide, code de retour `0` |
+| `git check-ignore` sur state, tfvars et `.terraform/` | Ignores. `.terraform.lock.hcl` et le fichier d'exemple restent suivis |
+
+Aucune ressource AWS creee, aucun appel a AWS. `init -backend=false` ne fait que telecharger les providers et n'ecrit aucun state.
 
 ### S2-T2 - Creer le state bootstrap
 
@@ -286,7 +305,8 @@ Livrables :
 
 | Controle | Etat | Preuve |
 |---|---|---|
-| Structure Terraform | A produire | `terraform fmt -check`, `terraform validate`, `tflint` |
+| Structure Terraform | Verifie | `terraform fmt -recursive -check`, `validate` et `tflint` passent, aucune ressource creee |
+| State et secrets hors de Git | Verifie | `git check-ignore` : state, `*.tfvars` et `.terraform/` ignores, `.terraform.lock.hcl` suivi |
 | Backend S3 operationnel | A produire | `terraform plan` depuis un environnement vierge |
 | Verrouillage de state | A produire | Deux executions concurrentes, la seconde bloquee |
 | Organization et comptes | A produire | Plan relu avant apply, comptes rattaches aux bonnes OUs |
@@ -308,8 +328,10 @@ Livrables :
 - Decision : le state `bootstrap` entre dans ce sprint plutot que dans le Sprint 3, pour eviter une migration de state ulterieure et pour que l'OIDC existe avant le premier besoin de la CI.
 - Decision : l'EC2 runner `bootstrap` n'est pas cree dans ce sprint. Il n'a d'utilite qu'avec un VPC, qui arrive au Sprint 3, et il couterait une instance permanente entre temps.
 - Ecart avec [`docs/sprint-planning.md`](../sprint-planning.md) : le planning annonce un « Override MiniStack pour validation locale avant apply reel ». Cette validation n'est pas realisable. [`docs/decouverte-ministack.md`](../decouverte-ministack.md) indique que `Organizations` et les `SCPs` sont hors perimetre de MiniStack et exigent AWS reel. Le garde-fou du Sprint 2 est donc la relecture de plan et le test en compte `sandbox`, pas l'emulation locale. Le planning doit etre corrige sur ce point.
-- Ecart de chemin a trancher : le planning utilise `platform/terraform/envs/staging` dans ses extraits CI du Sprint 6, alors que ce sprint pose `terraform/` a la racine par coherence avec `ansible/` et `gitops/`. Un des deux doit etre aligne avant le Sprint 6.
+- Ecart resolu en `S2-T1` : le planning utilisait `platform/terraform/envs/staging` dans ses extraits CI du Sprint 6. Le depot pose `terraform/` a la racine, par coherence avec `ansible/` et `gitops/`, et `docs/sprint-planning.md` a ete aligne dans la meme passe. Le repertoire `platform/` n'aurait porte qu'un seul enfant.
 - Decision : `prevent_destroy` sur le bucket de state et sur les comptes enfants. Le risque du bootstrap n'est pas la rejouabilite, qui est acquise par la nature convergente de Terraform, mais le remplacement declenche par un attribut immuable.
 - Decision : deux budgets plutot qu'un. `cout-reel` exclut credits et remises et porte le signal FinOps du projet ; `cout-facture` les inclut et sert de detecteur d'epuisement des credits. Un seul des deux ne repond qu'a la moitie de la question.
 - Decision : pas de budget par compte dans ce sprint. L'attribution passe par les tags obligatoires et Cost Explorer ; les budgets par compte arrivent au Sprint 3, quand les comptes de workload depenseront.
-- Point ouvert : le mecanisme de verrouillage du state depend de la version de Terraform utilisee, verrou natif S3 ou table DynamoDB. A trancher en `S2-T2` apres verification de la version.
+- Tranche en `S2-T1` : la version installee est Terraform `1.15.5`, largement au dessus de la `1.10` qui introduit le verrou S3 natif. `S2-T2` utilisera donc `use_lockfile = true` et **aucune table DynamoDB**. Le point ouvert du cadrage est ferme.
+- Tranche en `S2-T1` : region `eu-west-1`, deja implicite dans le depot et desormais explicite, avec une validation de variable qui refuse toute region hors d'Europe par coherence avec la SCP `deny-regions-outside-eu`.
+- Observation hors perimetre : `docs/sprint-planning.md` reference encore des URL de depot fictives, `shopdemo/shopdemo-platform.git` et `shopdemo/shopdemo-gitops.git`, alors que la source de verite est le depot GitLab reel actee par [`ADR-007`](../adr/ADR-007-gitlab-source-of-truth-github-mirror.md). A corriger quand ces extraits deviendront du code, aux Sprints 3 et 6.

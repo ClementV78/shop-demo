@@ -1,0 +1,16 @@
+# Copier vers terraform.tfvars, qui n'est jamais commite.
+# Aucune valeur reelle, aucun email, aucun identifiant de compte ici.
+
+aws_region  = "eu-west-1"
+project     = "shopdemo"
+environment = "bootstrap"
+owner       = "shopdemo"
+
+# Les emails des comptes enfants arrivent en S2-T3 et restent hors du depot.
+# Exemple de forme attendue, a ne pas renseigner ici :
+# account_emails = {
+#   security_audit   = "REMPLACER"
+#   workload_staging = "REMPLACER"
+#   workload_prod    = "REMPLACER"
+#   sandbox          = "REMPLACER"
+# }

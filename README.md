@@ -89,7 +89,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 2` : Landing Zone AWS, cadré le 2026-09-09, aucune ressource AWS créée à ce jour |
+| Sprint actif | `Sprint 2` : Landing Zone AWS. `S2-T1` terminé, aucune ressource AWS créée à ce jour |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |

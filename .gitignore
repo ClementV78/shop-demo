@@ -33,3 +33,30 @@ go.work.sum
 
 # Claude Code local session settings
 .claude/
+
+# Terraform
+# Le state ne doit jamais entrer dans Git : il contient l'etat reel de
+# l'infrastructure et parfois des valeurs sensibles en clair.
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfplan
+
+# Les variables reelles restent hors du depot, seuls les exemples sont versionnes.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Exception volontaire : le lock file EST commite. Il fige les empreintes des
+# providers et garantit que la CI installe les memes binaires que le poste local.
+!.terraform.lock.hcl

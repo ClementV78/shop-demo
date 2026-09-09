@@ -329,11 +329,11 @@ Menaces STRIDE par composant : Cognito, API Gateway, Lambda webhook, services Go
 # Exemple de répartition par tags
 terraform-workload-apply:
   tags: [gitlab-shared]      # state workload — shared runner
-  script: [terraform -chdir=platform/terraform/envs/staging apply -auto-approve]
+  script: [terraform -chdir=terraform/envs/staging apply -auto-approve]
 
 terraform-workload-destroy:
   tags: [gitlab-shared]      # idem — le runner qui détruit n'est jamais celui détruit
-  script: [terraform -chdir=platform/terraform/envs/staging destroy -auto-approve]
+  script: [terraform -chdir=terraform/envs/staging destroy -auto-approve]
 
 deploy-shopdemo:
   tags: [ec2-runner]         # kubectl apply — nécessite réseau privé VPC

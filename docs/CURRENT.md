@@ -52,17 +52,19 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S2-T1 | Poser la structure Terraform du depot et les conventions | Planifie | Creer `terraform/` avec `modules/` et `bootstrap/`, les tags obligatoires, le pinning des providers et le `.gitignore` des states, sans creer aucune ressource |
-| S2-T2 | Creer le state `bootstrap` | Planifie | Bucket S3 versionne et chiffre, verrou, puis migration du state local vers S3 et suppression du state local |
+| S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | Livre le 2026-09-09, `fmt`, `validate` et `tflint` passent, aucune ressource creee |
+| S2-T2 | Creer le state `bootstrap` | Planifie | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
 | S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
 
 Objectif de reprise :
 
-- `S2-T1` ne cree aucune ressource AWS, exactement comme `S1-T1` n'avait rien
-  applique sur le cluster. C'est la bonne facon de demarrer un sprint qui
-  coute de l'argent ;
-- rien ne part sur AWS avant que la structure Terraform soit relue et que
-  `terraform fmt`, `validate` et `tflint` passent ;
+- `S2-T2` est la premiere tache qui cree des ressources AWS. Rien ne doit
+  partir sans demande explicite ;
+- deux points ont ete tranches en `S2-T1` et n'ont plus a etre rediscutes :
+  region `eu-west-1`, et verrou S3 natif via `use_lockfile = true` puisque la
+  version installee est Terraform `1.15.5`. Aucune table DynamoDB ;
+- `prevent_destroy` sur le bucket de state fait partie des livrables de
+  `S2-T2`, pas d'un durcissement ulterieur ;
 - respecter la separation `bootstrap` permanent et `workload` ephemere posee
   par [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md). Le
   state `workload` n'est pas ouvert dans ce sprint.
@@ -324,6 +326,21 @@ Points de vigilance non bloquants :
 - Delivery / GitOps : [`docs/architecture/05-delivery-gitops.md`](architecture/05-delivery-gitops.md)
 
 ## Dernieres actions utiles
+
+- `S2-T1` est termine : [`terraform/`](../terraform/) existe a la racine avec
+  `bootstrap/`, `modules/` et `envs/`, les conventions sont documentees dans
+  [`terraform/README.md`](../terraform/README.md), et `fmt`, `validate` et
+  `tflint` passent. Aucune ressource AWS creee, aucun appel a AWS.
+- `tflint 0.64.0` a ete installe dans `~/.local/bin`, avec le ruleset AWS
+  `0.46.0` epingle dans `terraform/.tflint.hcl`. La premiere utilisation sur
+  une machine neuve demande `tflint --init`.
+- Piege a connaitre : `.terraform.lock.hcl` **doit** etre commite malgre son
+  prefixe, d'ou la ligne de negation dans le `.gitignore`. Il fige les
+  empreintes des providers pour que la CI installe les memes binaires que le
+  poste local.
+- Ecart de chemin resolu : `docs/sprint-planning.md` parlait de
+  `platform/terraform/`, le depot pose `terraform/` a la racine et le planning
+  a ete aligne.
 
 - Sprint 2 cadre le 2026-09-09, huit taches, aucune ressource AWS creee.
   Quatre choix ont ete arretes au cadrage : le compte AWS existant devient
