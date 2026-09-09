@@ -64,6 +64,10 @@ Ordre retenu :
 5. bascule CI   -> a partir du Sprint 3, la CI s'authentifie par OIDC
 ```
 
+<p align="center"><img src="../diagrams/s2-bootstrap-state-sequence.svg" alt="Amorcage du state bootstrap" width="720"></p>
+
+> Rendu interactif : [`../diagrams/s2-bootstrap-state-sequence.html`](../diagrams/s2-bootstrap-state-sequence.html).
+
 Le state local intermediaire est un artefact de bootstrap, pas une cible. Il est supprime apres migration et ne doit jamais etre commite.
 
 ### Rejouabilite du bootstrap
@@ -306,6 +310,8 @@ Livrables :
 | Controle | Etat | Preuve |
 |---|---|---|
 | Structure Terraform | Verifie | `terraform fmt -recursive -check`, `validate` et `tflint` passent, aucune ressource creee |
+| Coherence documentaire | Verifie | Arborescences, schemas AWS et chapitres pedagogiques alignes sur l'etat reel le 2026-09-09 |
+| Schemas regenerables | Verifie | `render-architecture.mjs` puis `export-svg.py`, methode validee en reproduisant a l'octet pres un SVG deja commite |
 | State et secrets hors de Git | Verifie | `git check-ignore` : state, `*.tfvars` et `.terraform/` ignores, `.terraform.lock.hcl` suivi |
 | Backend S3 operationnel | A produire | `terraform plan` depuis un environnement vierge |
 | Verrouillage de state | A produire | Deux executions concurrentes, la seconde bloquee |
@@ -332,6 +338,8 @@ Livrables :
 - Decision : `prevent_destroy` sur le bucket de state et sur les comptes enfants. Le risque du bootstrap n'est pas la rejouabilite, qui est acquise par la nature convergente de Terraform, mais le remplacement declenche par un attribut immuable.
 - Decision : deux budgets plutot qu'un. `cout-reel` exclut credits et remises et porte le signal FinOps du projet ; `cout-facture` les inclut et sert de detecteur d'epuisement des credits. Un seul des deux ne repond qu'a la moitie de la question.
 - Decision : pas de budget par compte dans ce sprint. L'attribution passe par les tags obligatoires et Cost Explorer ; les budgets par compte arrivent au Sprint 3, quand les comptes de workload depenseront.
+- Passe de coherence documentaire du 2026-09-09, declenchee par `S2-T1`. Deux schemas publies etaient devenus faux : `organisation-aws` montrait `Control Tower` alors que le planning le place hors scope et n'avait aucun compte dans l'OU `Sandbox` ; `terraform-states` annoncait un verrou DynamoDB abandonne. Les deux arborescences du depot, dans `README.md` et `docs/architecture/07-repo-learning-path.md`, ignoraient `terraform/`. La dette pedagogique du Sprint 1 a ete soldee au passage : `docs/comment-ca-marche.md` s'arretait a `S1-T2` et couvre desormais `S1-T3` a `S1-T7` puis `S2-T1`.
+- Decision : les schemas Archify se regenerent en ligne de commande via [`../diagrams/export-svg.py`](../diagrams/export-svg.py), qui reproduit hors navigateur le menu d'export du HTML. La methode a ete validee en regenerant un schema inchange et en comparant a l'octet pres au SVG deja commite, ce qui rend les schemas verifiables comme du code.
 - Tranche en `S2-T1` : la version installee est Terraform `1.15.5`, largement au dessus de la `1.10` qui introduit le verrou S3 natif. `S2-T2` utilisera donc `use_lockfile = true` et **aucune table DynamoDB**. Le point ouvert du cadrage est ferme.
 - Tranche en `S2-T1` : region `eu-west-1`, deja implicite dans le depot et desormais explicite, avec une validation de variable qui refuse toute region hors d'Europe par coherence avec la SCP `deny-regions-outside-eu`.
 - Ecart resolu en `S2-T1` : `docs/sprint-planning.md` supposait une organisation multi-depots, un groupe GitLab `shopdemo` contenant `shopdemo-gitops` et `shopdemo-platform`. La realite actee par [`ADR-007`](../adr/ADR-007-gitlab-source-of-truth-github-mirror.md) et implementee au Sprint 1 est un mono-depot, `gitlab.com/ClementV78/shopdemo`, ou `gitops/` est un repertoire. Les six manifests Argo CD de `gitops/argocd/` le confirment. Les URL du planning ont ete corrigees.

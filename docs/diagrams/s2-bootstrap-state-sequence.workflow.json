@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDP Platform — Amorçage du state bootstrap",
+    "subtitle": "Le state local crée le bucket, puis migre dedans (S2-T2)",
+    "output": "s2-bootstrap-state-sequence.html"
+  },
+  "lanes": [
+    {
+      "id": "cmd",
+      "label": "Commande jouée"
+    },
+    {
+      "id": "aws",
+      "label": "Ressource AWS"
+    },
+    {
+      "id": "state",
+      "label": "Où vit le state"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "c1",
+      "lane": "cmd",
+      "col": 0,
+      "type": "backend",
+      "label": "Amorçage",
+      "sublabel": "terraform apply, backend local"
+    },
+    {
+      "id": "c2",
+      "lane": "cmd",
+      "col": 2,
+      "type": "backend",
+      "label": "Migration",
+      "sublabel": "terraform init -migrate-state"
+    },
+    {
+      "id": "c3",
+      "lane": "cmd",
+      "col": 5,
+      "type": "backend",
+      "label": "Contrôle",
+      "sublabel": "terraform plan",
+      "tag": "exitcode 0"
+    },
+    {
+      "id": "r1",
+      "lane": "aws",
+      "col": 1,
+      "type": "database",
+      "label": "Bucket S3",
+      "sublabel": "versioning + chiffrement",
+      "tag": "prevent_destroy"
+    },
+    {
+      "id": "s1",
+      "lane": "state",
+      "col": 0,
+      "type": "external",
+      "label": "State local",
+      "sublabel": "./terraform.tfstate"
+    },
+    {
+      "id": "s2",
+      "lane": "state",
+      "col": 2,
+      "type": "database",
+      "label": "State distant",
+      "sublabel": "S3 + use_lockfile"
+    }
+  ],
+  "edges": [
+    {
+      "from": "c1",
+      "to": "r1",
+      "label": "crée le bucket",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop"
+    },
+    {
+      "from": "c1",
+      "to": "s1",
+      "label": "state en local",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop"
+    },
+    {
+      "from": "c1",
+      "to": "c2",
+      "variant": "default"
+    },
+    {
+      "from": "s1",
+      "to": "s2",
+      "label": "migration",
+      "variant": "emphasis",
+      "labelDy": -16
+    },
+    {
+      "from": "c2",
+      "to": "s2",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop"
+    },
+    {
+      "from": "c2",
+      "to": "c3",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Pourquoi cette gymnastique",
+      "items": [
+        "Le bucket qui héberge le state ne peut pas être décrit",
+        "dans un state qui vit déjà dedans",
+        "Le state local est un artefact d'amorçage, jamais une cible",
+        "Le fichier local est supprimé juste après la migration"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Ce qui ne doit jamais arriver",
+      "items": [
+        "Le state local commité : il contient l'état réel de l'infra",
+        "Le .gitignore est posé en S2-T1, avant que le state existe",
+        "Renommer le bucket détruirait le state qu'il contient"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Preuves attendues en S2-T2",
+      "items": [
+        "Un plan depuis un poste vierge retrouve le state dans S3",
+        "Deux exécutions concurrentes se bloquent mutuellement",
+        "plan -detailed-exitcode rejoué retourne 0"
+      ]
+    }
+  ]
+}

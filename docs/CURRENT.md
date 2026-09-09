@@ -331,6 +331,23 @@ Points de vigilance non bloquants :
   `bootstrap/`, `modules/` et `envs/`, les conventions sont documentees dans
   [`terraform/README.md`](../terraform/README.md), et `fmt`, `validate` et
   `tflint` passent. Aucune ressource AWS creee, aucun appel a AWS.
+- Passe de coherence documentaire du 2026-09-09 : deux schemas publies etaient
+  devenus faux et ont ete corriges puis regeneres, `organisation-aws`
+  (`Control Tower` hors scope, compte `sandbox` manquant) et
+  `terraform-states` (verrou DynamoDB abandonne). Les arborescences de
+  `README.md` et de `docs/architecture/07-repo-learning-path.md` ignoraient
+  `terraform/`.
+- Nouveau schema [`s2-bootstrap-state-sequence`](diagrams/s2-bootstrap-state-sequence.svg)
+  pour l'amorcage du state, le concept le plus contre-intuitif du sprint.
+- Les schemas Archify se regenerent desormais en ligne de commande avec
+  [`docs/diagrams/export-svg.py`](diagrams/export-svg.py), sans navigateur.
+  Commande complete dans [`docs/diagrams/README.md`](diagrams/README.md).
+- Dette pedagogique du Sprint 1 soldee : `docs/comment-ca-marche.md`
+  s'arretait a `S1-T2`, il couvre maintenant `S1-T3` a `S1-T7` puis `S2-T1`,
+  et gagne un sommaire cliquable.
+- Reste a faire cote schemas : le diagramme d'intersection SCP et IAM, a
+  produire en `S2-T4` quand les SCPs existeront, et `docs/concepts-sprint-2.md`
+  a remplir tache par tache plutot qu'a ecrire au futur.
 - `tflint 0.64.0` a ete installe dans `~/.local/bin`, avec le ruleset AWS
   `0.46.0` epingle dans `terraform/.tflint.hcl`. La premiere utilisation sur
   une machine neuve demande `tflint --init`.

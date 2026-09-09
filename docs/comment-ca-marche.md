@@ -1,5 +1,7 @@
 # Comment ca marche techniquement
 
+[Pourquoi ce document](#pourquoi-ce-document-existe) · [Vue d'ensemble](#vue-densemble-actuelle) · [Sprint 0](#sprint-0---comment-le-lab-local-est-construit) · [S1-T1](#s1-t1---comment-la-base-gitops-commence) · [S1-T2](#s1-t2---comment-argo-cd-est-installe-et-synchronise) · [S1-T3](#s1-t3---comment-les-namespaces-applicatifs-et-lisolation-arrivent) · [S1-T4](#s1-t4---comment-une-application-est-decrite-une-fois) · [S1-T5](#s1-t5---comment-les-applications-cessent-detre-ecrites-a-la-main) · [S1-T6](#s1-t6---comment-la-production-se-separe-de-staging) · [S1-T7](#s1-t7---comment-on-revient-en-arriere) · [S2-T1](#s2-t1---comment-linfrastructure-aws-commence) · [En entretien](#ce-quil-faut-savoir-raconter-en-entretien) · [Ou aller ensuite](#ou-aller-ensuite)
+
 ## Pourquoi ce document existe
 
 Les documents d'architecture expliquent **ce que le projet veut construire**.
@@ -39,12 +41,16 @@ mettre l'etat Kubernetes desire dans [`../gitops/`](../gitops/). A ce stade,
 Kustomize sert seulement a rendre les YAML localement pour verifier ce qui
 serait applique plus tard.
 
-Mise a jour `S1-T2` (2026-09-07) : Argo CD est desormais reellement installe
-et synchronise depuis GitLab. La section `S1-T1` ci-dessous decrit
-volontairement l'etat d'avant Argo CD, pour expliquer la progression pas a
-pas ; la suite se trouve dans le chapitre
-["S1-T2 - Comment Argo CD est installe et synchronise"](#s1-t2---comment-argo-cd-est-installe-et-synchronise)
-plus bas dans ce document.
+Les chapitres qui suivent sont ecrits dans l'ordre du projet et chacun decrit
+l'etat au moment de la tache. La section `S1-T1` decrit donc volontairement
+l'etat d'avant Argo CD : la progression fait partie de l'explication, et lire
+la suite corrige d'elle meme ce qui n'etait alors pas encore vrai.
+
+Etat au 2026-09-09 : le Sprint 1 est clos, la chaine complete fonctionne. Un
+merge dans `main` deploie staging automatiquement, seule la pose d'un tag
+semver promeut en production, et le retour arriere a ete execute sur un
+incident reel plutot que decrit. Le Sprint 2 a commence par `S2-T1`, qui pose
+la structure Terraform sans creer la moindre ressource AWS.
 
 ## Sprint 0 - Comment le lab local est construit
 
@@ -733,6 +739,351 @@ kubectl get application platform -n argocd \
 La preuve attendue est `Synced / Healthy`, sans qu'aucun secret n'ait ete
 committe dans Git a aucun moment de ce lot.
 
+## S1-T3 - Comment les namespaces applicatifs et l'isolation arrivent
+
+### Le probleme qu'on resout
+
+`S1-T2` a branche Argo CD sur `gitops/platform`. Mais `gitops/environments/`
+existait depuis `S1-T1` et personne ne le lisait. Les namespaces
+`shopdemo-staging` et `shopdemo-prod` etaient decrits dans Git sans jamais
+atteindre le cluster.
+
+### Deux Applications de plus, volontairement manuelles
+
+[`../gitops/argocd/application-staging.yaml`](../gitops/argocd/application-staging.yaml)
+et [`../gitops/argocd/application-prod.yaml`](../gitops/argocd/application-prod.yaml)
+prennent enfin en charge `gitops/environments/`. Les deux demarrent en
+synchronisation **manuelle**, ce qui merite une explication.
+
+Une `Application` automatisee applique immediatement ce qu'elle trouve. Or ces
+Applications posent des `NetworkPolicy`. Une policy trop large appliquee sans
+verification peut couper un chemin reseau dont Argo CD lui meme depend. La
+porte manuelle sert donc a observer l'ecart avant de le fermer : les policies
+sont poussees sur GitLab, l'`Application` passe `OutOfSync`, et
+`kubectl get networkpolicies` reste vide tant que la synchronisation n'est pas
+declenchee.
+
+### Ce que font les deux policies
+
+```yaml
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}        # tous les pods du namespace
+  policyTypes:
+    - Ingress            # aucune regle ingress -> tout est refuse
+---
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-same-namespace
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}   # seulement les pods du meme namespace
+```
+
+Le mecanisme est contre-intuitif au depart. Une `NetworkPolicy` sans regle
+`ingress` n'autorise rien : elle bascule le namespace en refus par defaut.
+La seconde policy rouvre ensuite un chemin precis. Les policies s'additionnent,
+elles ne se remplacent pas : le trafic passe si **au moins une** l'autorise.
+
+Point important souvent mal compris : `policyTypes: [Ingress]` ne touche pas
+l'egress. Un pod continue donc de joindre l'exterieur, ce qui a ete verifie
+apres application en resolvant `gitlab.com` depuis `shopdemo-staging`.
+
+Le namespace `argocd` reste volontairement hors perimetre. Lui appliquer un
+refus par defaut sans avoir d'abord cartographie ses flux reviendrait a
+risquer de couper l'outil qui applique les policies.
+[`ADR-008`](adr/ADR-008-standard-networkpolicy-by-default.md) acte par ailleurs
+l'usage de la `NetworkPolicy` standard plutot que de la `CiliumNetworkPolicy`,
+gardee pour les cas que le standard ne couvre pas.
+
+## S1-T4 - Comment une application est decrite une fois
+
+### Le probleme qu'on resout
+
+Les namespaces existent et sont isoles, mais rien ne tourne dedans. Il faut un
+workload reel pour eprouver les policies, et une facon de le decrire qui ne
+duplique pas les manifests entre staging et prod.
+
+### Base et overlays
+
+```text
+gitops/apps/smoke/
+  base/                  # la description commune
+    deployment.yaml
+    service.yaml
+    serviceaccount.yaml
+    poddisruptionbudget.yaml
+    kustomization.yaml
+  overlays/staging/      # ce qui change pour staging
+  overlays/prod/         # ce qui change pour prod
+```
+
+L'overlay ne recopie pas la base, il la reference et la modifie. C'est le
+principe de Kustomize : une seule verite, des variations declarees.
+
+### Les conventions posees, et leur raison
+
+```yaml
+image: nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85d...
+```
+
+L'image est epinglee par **digest**, pas par tag. Un tag comme `1.27-alpine`
+peut pointer vers un contenu different demain ; un digest designe un contenu
+exact et immuable. Sans cela, deux synchronisations du meme commit Git
+pourraient deployer deux images differentes, ce qui ruine la promesse GitOps.
+
+```yaml
+automountServiceAccountToken: false
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+containers:
+  - securityContext:
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
+```
+
+Chaque ligne ferme une porte. Le token de `ServiceAccount` n'est pas monte,
+donc un pod compromis ne peut pas parler a l'API Kubernetes. L'execution est
+non-root avec un uid explicite. La racine est en lecture seule. Toutes les
+capabilities Linux sont retirees.
+
+```yaml
+replicas: 2
+strategy:
+  rollingUpdate:
+    maxUnavailable: 0
+```
+
+Deux repliques, et non une. Le `PodDisruptionBudget` fixe `minAvailable: 1` :
+sur une replique unique, il interdirait tout drain de noeud, donc toute
+maintenance. Un PDB mal dimensionne bloque les operations qu'il est cense
+proteger.
+
+`maxUnavailable: 0` interdit a Kubernetes de retirer un pod sain avant qu'un
+nouveau soit pret. Ce reglage aura une consequence inattendue en `S1-T7`.
+
+## S1-T5 - Comment les Applications cessent d'etre ecrites a la main
+
+### Le probleme qu'on resout
+
+A ce stade, ajouter un service imposerait d'ecrire une `Application` Argo CD de
+plus. Avec quatre microservices Go a venir et deux environnements, cela fait
+huit objets a maintenir a la main, qui divergeront.
+
+### Le generateur
+
+[`../gitops/argocd/applicationset-staging.yaml`](../gitops/argocd/applicationset-staging.yaml)
+remplace la declaration par une regle :
+
+```yaml
+generators:
+  - git:
+      repoURL: https://gitlab.com/ClementV78/shopdemo.git
+      revision: main
+      directories:
+        - path: gitops/apps/*/overlays/staging
+template:
+  metadata:
+    name: 'staging-{{index .path.segments 2}}'
+```
+
+Argo CD scanne le depot, trouve chaque repertoire correspondant au motif, et
+fabrique une `Application` par resultat. Le chemin
+`gitops/apps/smoke/overlays/staging` se decoupe en segments, et l'index `2`
+porte le nom de l'application. Ajouter un service revient desormais a creer un
+repertoire.
+
+### Ce que le transfert de propriete a montre
+
+L'`Application` `staging-smoke` generee reprend un `Deployment` qui existait
+deja, cree par l'ancienne `Application` ecrite a la main. Argo CD identifie ce
+qu'il gere par l'annotation `argocd.argoproj.io/tracking-id`. Le transfert
+consiste donc a changer un proprietaire, pas a recreer une ressource : l'age du
+`Deployment` est reste inchange, preuve qu'aucune interruption n'a eu lieu.
+
+Le piege a connaitre : la suppression d'une `Application` generee detruit ses
+ressources par defaut. C'est voulu pour une mise hors service, mais cela
+transforme une erreur de motif en suppression reelle. Une `Application`
+supprimee a la main a d'ailleurs ete recreee par l'`ApplicationSet` en moins de
+dix secondes, ce qui montre qui possede vraiment le cycle de vie.
+
+## S1-T6 - Comment la production se separe de staging
+
+### Le probleme qu'on resout
+
+Staging et prod lisaient tous les deux `main`. Un merge partait donc
+simultanement dans les deux environnements : il n'y avait pas de frontiere, ce
+qui rend le mot production trompeur.
+
+### La contrainte semver
+
+```yaml
+source:
+  targetRevision: 'v*'
+```
+
+Cette ligne fait tout le travail. Argo CD traite `v*` comme une **contrainte
+semver**, et une contrainte semver ne s'evalue que sur les tags, jamais sur les
+branches. Prod suit donc le tag le plus recent qui correspond, et un merge dans
+`main` ne le concerne pas.
+
+Le generateur prod scanne lui aussi le tag et non la branche :
+
+```yaml
+generators:
+  - git:
+      revision: 'v*'
+      directories:
+        - path: gitops/apps/*/overlays/prod
+```
+
+Scanner `main` creerait une `Application` des le merge, qui echouerait ensuite a
+trouver son chemin dans un tag anterieur a sa creation.
+
+### Ce qui a ete prouve
+
+La frontiere a ete verifiee dans les deux sens : un merge dans `main` laisse
+prod `Synced` sur l'ancien tag, sans meme signaler d'ecart, et un tag pose est
+repris automatiquement en 150 secondes sans aucune intervention. Ce delai vient
+de l'absence de webhook entre GitLab et Argo CD, qui interroge le depot
+periodiquement.
+
+Un premier essai a ete ecarte parce qu'un rafraichissement force coincidait
+avec la reprise automatique : le resultat n'etait pas attribuable. Refaire une
+mesure propre plutot que garder un resultat ambigu fait partie de la methode.
+
+[`ADR-009`](adr/ADR-009-promotion-par-chemin-plutot-que-par-branche.md) acte ce
+modele et ecarte les branches d'environnement prevues au plan initial.
+
+## S1-T7 - Comment on revient en arriere
+
+### Le probleme qu'on resout
+
+Une procedure de rollback ecrite mais jamais executee n'est pas une procedure,
+c'est une hypothese. `S1-T7` l'a donc executee sur un incident provoque.
+
+### L'exercice
+
+Une release volontairement defectueuse, portant un digest d'image inexistant, a
+ete promue en production par un tag. La correction a consiste a poser un tag
+superieur pointant sur un commit anterieur, sain. Le retour a `Healthy` a pris
+72 secondes.
+
+Poser un tag superieur plutot que supprimer le mauvais tag est deliberé :
+l'historique reste lisible, et la contrainte semver retient de toute facon le
+plus recent.
+
+### Le resultat inattendu
+
+Le service a repondu pendant tout l'incident. Le `maxUnavailable: 0` pose en
+`S1-T4` a empeche Kubernetes de retirer un pod sain avant qu'un nouveau soit
+pret. Une mauvaise release a donc produit un **deploiement bloque**, pas une
+panne.
+
+C'est une bonne nouvelle et un piege. Le signal a reconnaitre n'est pas une
+erreur utilisateur, puisqu'il n'y en a pas : c'est Argo CD affichant
+`Progressing` et le `Deployment` montrant moins de pods a jour que de repliques.
+Un incident silencieux se detecte par la supervision, pas par les plaintes.
+
+Le guide qui en est issu vit dans
+[`exploitation-gitops.md`](exploitation-gitops.md).
+
+## S2-T1 - Comment l'infrastructure AWS commence
+
+### Le probleme qu'on resout
+
+Le Sprint 2 est le premier a couter de l'argent et a creer des ressources
+difficiles a defaire. Commencer par un `terraform apply` serait la mauvaise
+facon d'ouvrir un tel sprint.
+
+`S2-T1` reprend donc exactement la logique de `S1-T1` : poser la structure et
+les conventions, tout valider, et ne creer strictement rien.
+
+### Ce qui existe apres la tache
+
+```text
+terraform/
+  bootstrap/   state permanent : Organization, SCPs, Identity Center, backend, OIDC
+  modules/     modules internes, encore vides
+  envs/        state ephemere, volontairement vide jusqu'au Sprint 3
+```
+
+### Les tags passent par le provider
+
+```hcl
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = local.common_tags
+  }
+}
+```
+
+`default_tags` applique les cinq tags obligatoires a toutes les ressources
+supportees, sans les repeter une seule fois dans le code. La regle AWS Config
+`required-tags` prevue en `S2-T6` verifiera ces memes cles : la conformite est
+donc obtenue par construction plutot que par discipline.
+
+### Une validation qui refuse une region
+
+```hcl
+variable "aws_region" {
+  type    = string
+  default = "eu-west-1"
+
+  validation {
+    condition     = startswith(var.aws_region, "eu-")
+    error_message = "La region doit etre europeenne."
+  }
+}
+```
+
+Ce garde-fou double la SCP `deny-regions-outside-eu` a venir, mais du cote du
+code. La difference compte : l'erreur apparait au `plan`, avec un message
+lisible, au lieu d'un refus AWS au `apply`.
+
+### Le fichier qu'il faut committer malgre son nom
+
+Le `.gitignore` ignore tout ce qui touche au state, puis fait une exception :
+
+```gitignore
+*.tfstate
+*.tfvars
+**/.terraform/*
+!.terraform.lock.hcl
+```
+
+`.terraform.lock.hcl` **doit** entrer dans Git. Il fige les empreintes
+cryptographiques des providers, ce qui garantit que la CI installera exactement
+les memes binaires que le poste local. Sans lui, le meme code pourrait produire
+deux plans differents selon la machine.
+
+### Ce qui vient ensuite, et pourquoi c'est contre-intuitif
+
+Le backend n'est volontairement pas declare. Il ne peut pas l'etre : le bucket
+S3 qui heberge le state n'existe pas encore, et il sera cree par Terraform lui
+meme. Le state vit donc d'abord en local, cree le bucket, puis migre dedans.
+
+<p align="center">
+  <img src="diagrams/s2-bootstrap-state-sequence.svg" alt="Amorcage du state bootstrap" width="720">
+</p>
+
+> Rendu interactif :
+> [`diagrams/s2-bootstrap-state-sequence.html`](diagrams/s2-bootstrap-state-sequence.html).
+
+Le state local est un artefact d'amorcage, jamais une cible. Il est supprime
+apres migration, et le `.gitignore` a ete pose avant qu'il existe, ce qui est
+l'ordre correct.
+
 ## Ce qu'il faut savoir raconter en entretien
 
 Le discours court :
@@ -769,6 +1120,12 @@ Pour approfondir :
 - [`concepts-sprint-1.md`](concepts-sprint-1.md) pour les concepts GitOps ;
 - [`evidence/sprint-1/recit-s1-t2.md`](evidence/sprint-1/recit-s1-t2.md) pour le recit narratif de `S1-T2`, avec
   schemas commentes et l'histoire de l'incident reseau ;
-- [`sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md) et
-  [`sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md) pour
+- [`exploitation-gitops.md`](exploitation-gitops.md) pour l'usage, le rollback
+  et le depannage GitOps ;
+- [`promotion-par-tags.md`](promotion-par-tags.md) pour le modele de promotion ;
+- [`../terraform/README.md`](../terraform/README.md) pour les conventions
+  Terraform du Sprint 2 ;
+- [`sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md),
+  [`sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md) et
+  [`sprints/sprint-2-landing-zone.md`](sprints/sprint-2-landing-zone.md) pour
   les preuves detaillees.

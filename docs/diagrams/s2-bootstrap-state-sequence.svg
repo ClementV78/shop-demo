@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1000 560" role="img" aria-label="IDP Platform — 2 states Terraform séparés — bootstrap (permanent) vs workload (éphémère) (architecture diagram)" width="1000" height="560" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+<svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local crée le bucket, puis migre dedans (S2-T2) (workflow diagram)" width="720" height="528" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 600; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
@@ -64,76 +64,78 @@ rect.c-bg-rect { fill: var(--bg); }
         <!-- Background Grid -->
         <rect width="100%" height="100%" fill="url(#grid)"/>
 
-        <!-- Boundaries (behind everything) -->
-        <rect x="270" y="60" width="230" height="350" rx="12" class="c-region" stroke-width="1"/>
-        <text x="278" y="78" class="t-cloud" font-size="9" font-weight="600">State bootstrap — permanent, jamais détruit</text>
+        <!-- Swimlanes -->
+        <rect x="40" y="52" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / Commande jouée</text>
 
-        <rect x="620" y="60" width="250" height="270" rx="12" class="c-region" stroke-width="1"/>
-        <text x="628" y="78" class="t-cloud" font-size="9" font-weight="600">State workload — détruit après chaque session</text>
+        <rect x="40" y="176" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="198" class="t-dim" font-size="10" font-weight="600">02 / Ressource AWS</text>
 
-        <!-- Connection paths (before components for correct z-order) -->
-        <path d="M 115 210 L 199.5 210 Q 207.5 210 207.5 202 L 207.5 128 Q 207.5 120 215.5 120 L 300 120" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 115 270 L 374.5 270 Q 382.5 270 382.5 262 L 382.5 128 Q 382.5 120 390.5 120 L 650 120" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 470 120 L 650 120" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <rect x="40" y="300" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="322" class="t-dim" font-size="10" font-weight="600">03 / Où vit le state</text>
 
-        <!-- Components -->
-        <rect x="30" y="210" width="170" height="60" rx="6" class="c-mask"/>
-        <rect x="30" y="210" width="170" height="60" rx="6" class="c-external" stroke-width="1.5"/>
-        <text x="115" y="238" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">GitLab shared runners</text>
-        <text x="115" y="254" class="t-muted" font-size="9" text-anchor="middle">tier gratuit, 400 min/mois</text>
+        <!-- Edge paths -->
+        <path d="M 88 145 L 88 166 L 220 166 L 220 209" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 88 145 L 88 228 L 88 228 L 88 341" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 119 L 254 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 367 L 254 367" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 300 145 L 300 228 L 300 228 L 300 341" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 119 L 579 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
 
-        <rect x="300" y="90" width="170" height="60" rx="6" class="c-mask"/>
-        <rect x="300" y="90" width="170" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="385" y="118" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">EC2 runner</text>
-        <text x="385" y="134" class="t-muted" font-size="9" text-anchor="middle">Ubuntu t3.micro + GitLab runner</text>
+        <!-- Nodes -->
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="88" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amorçage</text>
+        <text x="88" y="131" class="t-muted" font-size="8" text-anchor="middle">terraform apply, backend local</text>
 
-        <rect x="300" y="170" width="170" height="60" rx="6" class="c-mask"/>
-        <rect x="300" y="170" width="170" height="60" rx="6" class="c-database" stroke-width="1.5"/>
-        <text x="385" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">S3 tfstate workload</text>
-        <text x="385" y="214" class="t-muted" font-size="9" text-anchor="middle">verrou natif use_lockfile</text>
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="300" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Migration</text>
+        <text x="300" y="131" class="t-muted" font-size="8" text-anchor="middle">terraform init -migrate-state</text>
 
-        <rect x="300" y="250" width="170" height="60" rx="6" class="c-mask"/>
-        <rect x="300" y="250" width="170" height="60" rx="6" class="c-security" stroke-width="1.5"/>
-        <text x="385" y="278" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Provider OIDC</text>
-        <text x="385" y="294" class="t-muted" font-size="9" text-anchor="middle">GitLab → AWS, rôle IAM scopé</text>
+        <rect x="579" y="85" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="579" y="85" width="92" height="68" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="625" y="106" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Contrôle</text>
+        <text x="625" y="123" class="t-muted" font-size="8" text-anchor="middle">terraform plan</text>
+        <text x="625" y="141" class="t-backend" font-size="7" text-anchor="middle">exitcode 0</text>
 
-        <rect x="650" y="90" width="190" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="90" width="190" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="745" y="118" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">VPC + EKS + Karpenter</text>
-        <text x="745" y="134" class="t-muted" font-size="9" text-anchor="middle">Amazon Linux 2023</text>
+        <rect x="174" y="209" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="174" y="209" width="92" height="68" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="220" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bucket S3</text>
+        <text x="220" y="247" class="t-muted" font-size="8" text-anchor="middle">versioning + chiffrement</text>
+        <text x="220" y="265" class="t-database" font-size="7" text-anchor="middle">prevent_destroy</text>
 
-        <rect x="650" y="170" width="190" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="170" width="190" height="60" rx="6" class="c-database" stroke-width="1.5"/>
-        <text x="745" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">RDS · SNS/SQS</text>
-        <text x="745" y="214" class="t-muted" font-size="9" text-anchor="middle">CloudFront/WAF</text>
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="88" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">State local</text>
+        <text x="88" y="379" class="t-muted" font-size="8" text-anchor="middle">./terraform.tfstate</text>
 
-        <rect x="650" y="250" width="190" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="250" width="190" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
-        <text x="745" y="284" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cognito · API GW · Lambda</text>
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="300" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">State distant</text>
+        <text x="300" y="379" class="t-muted" font-size="8" text-anchor="middle">S3 + use_lockfile</text>
 
-        <rect x="300" y="330" width="170" height="60" rx="6" class="c-mask"/>
-        <rect x="300" y="330" width="170" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
-        <text x="385" y="358" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Organization · SCPs</text>
-        <text x="385" y="374" class="t-muted" font-size="9" text-anchor="middle">IAM Identity Center · baseline</text>
+        <!-- Edge labels -->
+        <rect x="115.4" y="146" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="154" y="156" class="t-backend" font-size="8" text-anchor="middle">crée le bucket</text>
+        <rect x="49.4" y="208" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="88" y="218" class="t-muted" font-size="8" text-anchor="middle">state en local</text>
 
-        <!-- Connection labels -->
-        <rect x="201.4" y="10" width="197.2" height="14" rx="3" class="c-mask"/>
-        <text x="300" y="20" class="t-messagebus" font-size="8" text-anchor="middle">apply/destroy bootstrap/ (rare, manuel)</text>
-        <rect x="267.8" y="390" width="264.4" height="14" rx="3" class="c-mask"/>
-        <text x="400" y="400" class="t-backend" font-size="8" text-anchor="middle">apply/destroy envs/staging/ (début et fin de session)</text>
-        <rect x="478.2" y="100" width="163.6" height="14" rx="3" class="c-mask"/>
-        <text x="560" y="110" class="t-muted" font-size="8" text-anchor="middle">kubectl apply, jobs réseau privé</text>
+        <rect x="167.4" y="331" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+        <text x="194" y="341" class="t-backend" font-size="8" text-anchor="middle">migration</text>
+
+
 
         <!-- Legend -->
-        <text x="40" y="531" class="t-primary" font-size="9" font-weight="600">Legend</text>
-        <rect x="40" y="536" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
-        <text x="60" y="544" class="t-muted" font-size="8">External</text>
-        <rect x="138" y="536" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
-        <text x="158" y="544" class="t-muted" font-size="8">Backend</text>
-        <rect x="231" y="536" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
-        <text x="251" y="544" class="t-muted" font-size="8">Database</text>
-        <rect x="329" y="536" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
-        <text x="349" y="544" class="t-muted" font-size="8">Security</text>
-        <rect x="427" y="536" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
-        <text x="447" y="544" class="t-muted" font-size="8">Cloud</text>
+        <text x="175" y="428" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <rect x="175" y="440" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
+        <text x="195" y="448" class="t-muted" font-size="7">User UI</text>
+        <rect x="260" y="440" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="280" y="448" class="t-muted" font-size="7">Agent logic</text>
+        <rect x="370" y="440" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="390" y="448" class="t-muted" font-size="7">Policy</text>
+        <rect x="455" y="440" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
+        <text x="475" y="448" class="t-muted" font-size="7">Tool action</text>
+        <rect x="565" y="440" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="585" y="448" class="t-muted" font-size="7">Context / trace</text>
       </svg>

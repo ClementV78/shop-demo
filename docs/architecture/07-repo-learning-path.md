@@ -5,14 +5,17 @@
 ## Structure du repo
 
 ```text
-ansible/          -> provisioning local, roles, playbooks, Molecule
-bootstrap/        -> state Terraform permanent
-landing-zone/     -> Organizations, SCPs, baseline AWS
-platform/         -> EKS, VPC, RDS, k8s, monitoring
-devsecops/        -> controles, policies, threat model
-ci/               -> GitLab CI, components, OIDC
-apps/shopdemo/    -> frontend, services Go, Bruno, compose
+ansible/                -> provisioning local, roles, playbooks, Molecule
+terraform/bootstrap/    -> state permanent : Organization, SCPs, Identity Center, backend, OIDC
+terraform/modules/      -> modules internes appeles par les states racine
+terraform/envs/         -> state ephemere : VPC, EKS, RDS (Sprint 3)
+gitops/                 -> etat Kubernetes desire, lu par Argo CD
+docs/                   -> suivi, ADR, preuves, schemas
 ```
+
+Etat au 2026-09-09 : `ansible/`, `gitops/`, `docs/` et `terraform/` existent. `terraform/envs/` est volontairement vide jusqu'au Sprint 3.
+
+Trois repertoires prevus au cadrage initial n'ont pas ete retenus sous cette forme. `landing-zone/`, `ci/` et `devsecops/` auraient decoupe l'infrastructure par sujet plutot que par cycle de vie du state, ce qui aurait masque la separation `bootstrap` permanent / `workload` ephemere posee par [`ADR-003`](../adr/ADR-003-separate-bootstrap-and-workload-states.md). Les SCPs et la baseline vivent donc dans `terraform/modules/`, appelees depuis `terraform/bootstrap/`. Le code applicatif Go et la configuration CI arriveront a la racine quand ils existeront, aux Sprints 3 et 6.
 
 ## Sprints
 

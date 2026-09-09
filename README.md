@@ -134,13 +134,16 @@ Le `Sprint 2` est cadré : Landing Zone AWS multi-comptes, plus le state Terrafo
 
 ```text
 .
-├── ansible/   # Provisioning et configuration des hôtes (k3s, Cilium, runners, hardening)
-├── docs/      # Suivi de projet : sprints, ADR, preuves
-├── gitops/    # Etat Kubernetes desire, synchronise plus tard par Argo CD
+├── ansible/     # Provisioning et configuration des hôtes (k3s, Cilium, runners, hardening)
+├── terraform/   # Infrastructure AWS : state bootstrap permanent, modules, state workload éphémère
+├── gitops/      # État Kubernetes désiré, synchronisé par Argo CD
+├── docs/        # Suivi de projet : sprints, ADR, preuves, schémas
 ├── AGENTS.md
 ├── ARCHITECTURE.md
 └── LEARNING.md
 ```
+
+Les trois répertoires d'infrastructure suivent la même règle : `terraform/` provisionne, `ansible/` configure, `gitops/` décrit l'état désiré du cluster. Aucun ne fait le travail d'un autre.
 
 ---
 

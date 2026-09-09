@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 2.6.0">
-  <title>IDP Platform — Organisation AWS Diagram</title>
+  <title>IDP Platform — Amorçage du state bootstrap Diagram</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -494,14 +494,14 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>IDP Platform — Organisation AWS</h1>
+        <h1>IDP Platform — Amorçage du state bootstrap</h1>
       </div>
-      <p class="subtitle">Management account, OUs, quatre comptes et SCPs appliquées</p>
+      <p class="subtitle">Le state local crée le bucket, puis migre dedans (S2-T2)</p>
     </div>
 
     <!-- Main Diagram -->
     <div class="diagram-container">
-      <svg viewBox="0 0 900 500" role="img" aria-label="IDP Platform — Organisation AWS — Management account, OUs, quatre comptes et SCPs appliquées (architecture diagram)">
+      <svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local crée le bucket, puis migre dedans (S2-T2) (workflow diagram)">
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -524,73 +524,80 @@
         <!-- Background Grid -->
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Boundaries (behind everything) -->
+        <!-- Swimlanes -->
+        <rect x="40" y="52" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / Commande jouée</text>
 
+        <rect x="40" y="176" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="198" class="t-dim" font-size="10" font-weight="600">02 / Ressource AWS</text>
 
-        <!-- Connection paths (before components for correct z-order) -->
-        <path d="M 220 225 L 262 225 Q 270 225 270 217 L 270 96 Q 270 88 278 88 L 320 88" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 220 225 L 266.5 225 Q 270 225 270 221.5 L 270 221.5 Q 270 218 273.5 218 L 320 218" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 220 225 L 262 225 Q 270 225 270 233 L 270 350 Q 270 358 278 358 L 320 358" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 470 88 L 515 88 L 515 88 L 560 88" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 470 218 L 507 218 Q 515 218 515 210 L 515 191 Q 515 183 523 183 L 560 183" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 470 218 L 507 218 Q 515 218 515 226 L 515 270 Q 515 278 523 278 L 560 278" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 470 358 L 515 358 L 515 358 L 560 358" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <rect x="40" y="300" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="322" class="t-dim" font-size="10" font-weight="600">03 / Où vit le state</text>
 
-        <!-- Components -->
-        <rect x="30" y="190" width="190" height="70" rx="6" class="c-mask"/>
-        <rect x="30" y="190" width="190" height="70" rx="6" class="c-cloud" stroke-width="1.5"/>
-        <text x="125" y="223" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Management account</text>
-        <text x="125" y="239" class="t-muted" font-size="9" text-anchor="middle">Organization · SCPs · Identity Center · Billing · state bootstrap</text>
+        <!-- Edge paths -->
+        <path d="M 88 145 L 88 166 L 220 166 L 220 209" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 88 145 L 88 228 L 88 228 L 88 341" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 119 L 254 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 367 L 254 367" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 300 145 L 300 228 L 300 228 L 300 341" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 119 L 579 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
 
-        <rect x="320" y="60" width="150" height="56" rx="6" class="c-mask"/>
-        <rect x="320" y="60" width="150" height="56" rx="6" class="c-security" stroke-width="1.5"/>
-        <text x="395" y="92" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OU: Security</text>
+        <!-- Nodes -->
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="88" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amorçage</text>
+        <text x="88" y="131" class="t-muted" font-size="8" text-anchor="middle">terraform apply, backend local</text>
 
-        <rect x="320" y="190" width="150" height="56" rx="6" class="c-mask"/>
-        <rect x="320" y="190" width="150" height="56" rx="6" class="c-security" stroke-width="1.5"/>
-        <text x="395" y="222" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OU: Workloads</text>
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="300" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Migration</text>
+        <text x="300" y="131" class="t-muted" font-size="8" text-anchor="middle">terraform init -migrate-state</text>
 
-        <rect x="320" y="330" width="150" height="56" rx="6" class="c-mask"/>
-        <rect x="320" y="330" width="150" height="56" rx="6" class="c-security" stroke-width="1.5"/>
-        <text x="395" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OU: Sandbox</text>
+        <rect x="579" y="85" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="579" y="85" width="92" height="68" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="625" y="106" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Contrôle</text>
+        <text x="625" y="123" class="t-muted" font-size="8" text-anchor="middle">terraform plan</text>
+        <text x="625" y="141" class="t-backend" font-size="7" text-anchor="middle">exitcode 0</text>
 
-        <rect x="560" y="60" width="170" height="56" rx="6" class="c-mask"/>
-        <rect x="560" y="60" width="170" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="645" y="86" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">security-audit</text>
-        <text x="645" y="102" class="t-muted" font-size="9" text-anchor="middle">CloudTrail · Config · logs</text>
+        <rect x="174" y="209" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="174" y="209" width="92" height="68" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="220" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bucket S3</text>
+        <text x="220" y="247" class="t-muted" font-size="8" text-anchor="middle">versioning + chiffrement</text>
+        <text x="220" y="265" class="t-database" font-size="7" text-anchor="middle">prevent_destroy</text>
 
-        <rect x="560" y="155" width="170" height="56" rx="6" class="c-mask"/>
-        <rect x="560" y="155" width="170" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="645" y="181" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">workload-staging</text>
-        <text x="645" y="197" class="t-muted" font-size="9" text-anchor="middle">VPC · EKS · RDS (Sprint 3)</text>
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="88" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">State local</text>
+        <text x="88" y="379" class="t-muted" font-size="8" text-anchor="middle">./terraform.tfstate</text>
 
-        <rect x="560" y="250" width="170" height="56" rx="6" class="c-mask"/>
-        <rect x="560" y="250" width="170" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="645" y="276" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">workload-prod</text>
-        <text x="645" y="292" class="t-muted" font-size="9" text-anchor="middle">VPC · EKS · RDS (Sprint 3)</text>
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="300" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">State distant</text>
+        <text x="300" y="379" class="t-muted" font-size="8" text-anchor="middle">S3 + use_lockfile</text>
 
-        <rect x="560" y="330" width="170" height="56" rx="6" class="c-mask"/>
-        <rect x="560" y="330" width="170" height="56" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="645" y="356" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">sandbox</text>
-        <text x="645" y="372" class="t-muted" font-size="9" text-anchor="middle">aucune ressource, banc d&#39;essai SCP</text>
+        <!-- Edge labels -->
+        <rect x="115.4" y="146" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="154" y="156" class="t-backend" font-size="8" text-anchor="middle">crée le bucket</text>
+        <rect x="49.4" y="208" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="88" y="218" class="t-muted" font-size="8" text-anchor="middle">state en local</text>
 
-        <!-- Connection labels -->
-
-
-
-
-
+        <rect x="167.4" y="331" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+        <text x="194" y="341" class="t-backend" font-size="8" text-anchor="middle">migration</text>
 
 
 
         <!-- Legend -->
-        <text x="40" y="471" class="t-primary" font-size="9" font-weight="600">Legend</text>
-        <rect x="40" y="476" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
-        <text x="60" y="484" class="t-muted" font-size="8">Cloud</text>
-        <rect x="123" y="476" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
-        <text x="143" y="484" class="t-muted" font-size="8">Security</text>
-        <rect x="221" y="476" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
-        <text x="241" y="484" class="t-muted" font-size="8">Backend</text>
+        <text x="175" y="428" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <rect x="175" y="440" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
+        <text x="195" y="448" class="t-muted" font-size="7">User UI</text>
+        <rect x="260" y="440" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="280" y="448" class="t-muted" font-size="7">Agent logic</text>
+        <rect x="370" y="440" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="390" y="448" class="t-muted" font-size="7">Policy</text>
+        <rect x="455" y="440" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
+        <text x="475" y="448" class="t-muted" font-size="7">Tool action</text>
+        <rect x="565" y="440" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="585" y="448" class="t-muted" font-size="7">Context / trace</text>
       </svg>
     </div>
 
@@ -598,48 +605,45 @@
     <div class="cards">
       <div class="card">
         <div class="card-header">
-          <div class="card-dot rose"></div>
-          <h3>SCPs appliquées</h3>
+          <div class="card-dot cyan"></div>
+          <h3>Pourquoi cette gymnastique</h3>
         </div>
         <ul>
-          <li>&bull; deny-root-usage</li>
-          <li>&bull; deny-regions-outside-eu ¹</li>
-          <li>&bull; enforce-cloudtrail</li>
-          <li>&bull; deny-public-s3</li>
-          <li>&bull; require-mfa-for-console</li>
-          <li>&bull; deny-iam-longterm-keys</li>
+          <li>&bull; Le bucket qui héberge le state ne peut pas être décrit</li>
+          <li>&bull; dans un state qui vit déjà dedans</li>
+          <li>&bull; Le state local est un artefact d&#39;amorçage, jamais une cible</li>
+          <li>&bull; Le fichier local est supprimé juste après la migration</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-dot cyan"></div>
-          <h3>Règles d&#39;application</h3>
+          <div class="card-dot rose"></div>
+          <h3>Ce qui ne doit jamais arriver</h3>
         </div>
         <ul>
-          <li>&bull; ¹ deny-regions-outside-eu exclut les services globaux</li>
-          <li>&bull; (iam, route53, cloudfront, sts, support, s3 control plane)</li>
-          <li>&bull; Chaque SCP est éprouvée dans sandbox avant d&#39;atteindre une OU</li>
-          <li>&bull; Aucune SCP n&#39;est attachée à la racine de l&#39;Organization</li>
+          <li>&bull; Le state local commité : il contient l&#39;état réel de l&#39;infra</li>
+          <li>&bull; Le .gitignore est posé en S2-T1, avant que le state existe</li>
+          <li>&bull; Renommer le bucket détruirait le state qu&#39;il contient</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Hors scope assumé</h3>
+          <h3>Preuves attendues en S2-T2</h3>
         </div>
         <ul>
-          <li>&bull; AWS Control Tower : les concepts sont reconstruits en Terraform</li>
-          <li>&bull; Compte log-archive dédié : logs conservés dans security-audit</li>
-          <li>&bull; Compte network / Transit Gateway : un VPC par environnement suffit</li>
+          <li>&bull; Un plan depuis un poste vierge retrouve le state dans S3</li>
+          <li>&bull; Deux exécutions concurrentes se bloquent mutuellement</li>
+          <li>&bull; plan -detailed-exitcode rejoué retourne 0</li>
         </ul>
       </div>
     </div>
 
     <!-- Footer -->
     <p class="footer">
-      Architecture diagram &bull; Built with Archify<span class="no-print"> &bull; Press <kbd>T</kbd> for theme and <kbd>E</kbd> for export</span>
+      Workflow diagram &bull; Built with Archify<span class="no-print"> &bull; Press <kbd>T</kbd> for theme and <kbd>E</kbd> for export</span>
     </p>
   </div>
 

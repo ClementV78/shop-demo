@@ -45,6 +45,18 @@ Regle de lecture :
 | Structure du repo GitOps | [`s1-gitops-repo-structure.svg`](s1-gitops-repo-structure.svg) | [`s1-gitops-repo-structure.drawio`](s1-gitops-repo-structure.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md`, `docs/comment-ca-marche.md` |
 | Modele de promotion GitOps | [`s1-gitops-promotion-model.svg`](s1-gitops-promotion-model.svg) | [`s1-gitops-promotion-model.drawio`](s1-gitops-promotion-model.drawio) | `docs/gitops-structure.md`, `docs/concepts-sprint-1.md` |
 
+## Sprint 2 et Landing Zone AWS
+
+| Schema | Rendu principal | Source | Rendu interactif |
+|---|---|---|---|
+| Amorcage du state bootstrap | [`s2-bootstrap-state-sequence.svg`](s2-bootstrap-state-sequence.svg) | [`s2-bootstrap-state-sequence.workflow.json`](s2-bootstrap-state-sequence.workflow.json) | [`s2-bootstrap-state-sequence.html`](s2-bootstrap-state-sequence.html) |
+
+Les schemas `organisation-aws` et `terraform-states`, listes plus bas dans
+"Architecture cible", couvrent aussi le Sprint 2 et ont ete corriges le
+2026-09-09 : retrait de `Control Tower` place hors scope par le planning,
+ajout du compte `sandbox` manquant, remplacement du verrou DynamoDB par le
+verrou S3 natif, et ajout de la Landing Zone dans le state `bootstrap`.
+
 ## Architecture cible
 
 | Schema | Rendu principal | Source | Rendu interactif |
@@ -72,11 +84,43 @@ Regle de lecture :
 | Webhook paiement async | [`webhook-paiement-async.svg`](webhook-paiement-async.svg) | [`webhook-paiement-async.workflow.json`](webhook-paiement-async.workflow.json) | [`webhook-paiement-async.html`](webhook-paiement-async.html) |
 | Promotion par tags | [`s1-t6-promotion-tags.svg`](s1-t6-promotion-tags.svg) | [`s1-t6-promotion-tags.drawio`](s1-t6-promotion-tags.drawio) | `docs/promotion-par-tags.md` |
 
+## Regenerer un schema Archify
+
+Les schemas Archify se regenerent entierement en ligne de commande, sans
+navigateur :
+
+```bash
+ARCHIFY=~/.claude/skills/archify/renderers
+node $ARCHIFY/architecture/render-architecture.mjs \
+  docs/diagrams/<nom>.architecture.json docs/diagrams/<nom>.html
+python3 docs/diagrams/export-svg.py \
+  docs/diagrams/<nom>.html docs/diagrams/<nom>.svg
+```
+
+Remplacer `architecture` par `workflow`, `sequence`, `dataflow` ou `lifecycle`
+selon le `diagram_type` de la source.
+
+Le renderer refuse de produire un schema mal dispose : chevauchement de
+noeuds, label plus large que sa boite, arete trop courte, legende hors du
+cadre. Ses messages d'erreur nomment le noeud fautif et le reglage a changer,
+donc il faut corriger le JSON et relancer, jamais modifier le renderer.
+
+[`export-svg.py`](export-svg.py) reproduit hors navigateur le menu d'export du
+HTML. La methode a ete validee en regenerant un schema inchange et en
+comparant l'octet pres au SVG deja commite.
+
+Les cartes explicatives latterales n'apparaissent que dans le rendu HTML
+interactif. Le `.svg` utilise dans la documentation ne contient que le schema
+lui meme : une information importante ne doit donc pas vivre uniquement dans
+une carte.
+
 ## A nettoyer plus tard
 
 - Harmoniser progressivement les noms historiques suffixes `-drawio` ou
   `-sequence`.
-- Decider si les `.png` generes par Archify doivent rester versionnes ou etre
-  traites comme exports regenerables.
+- Tranche le 2026-09-09 pour deux schemas : les `.png` d'`organisation-aws` et
+  de `terraform-states` ont ete supprimes, aucun document ne les referencait et
+  ils etaient devenus faux apres correction des sources. Les autres `.png`
+  restent versionnes en attendant la meme verification.
 - Eviter de deplacer massivement les fichiers tant que les documents Markdown
   pointent vers des chemins stables.

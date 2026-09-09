@@ -3,18 +3,19 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "IDP Platform — Organisation AWS",
-    "subtitle": "Management account, OUs, comptes et SCPs appliquées",
+    "subtitle": "Management account, OUs, quatre comptes et SCPs appliquées",
     "output": "organisation-aws.html",
-    "viewBox": [900, 460]
+    "viewBox": [900, 500]
   },
   "components": [
-    { "id": "mgmt", "type": "cloud", "label": "Management account", "sublabel": "Control Tower · SCPs · Billing · IAM Identity Center", "pos": [30, 190], "size": [190, 70] },
+    { "id": "mgmt", "type": "cloud", "label": "Management account", "sublabel": "Organization · SCPs · Identity Center · Billing · state bootstrap", "pos": [30, 190], "size": [190, 70] },
     { "id": "sec", "type": "security", "label": "OU: Security", "pos": [320, 60], "size": [150, 56] },
     { "id": "wrk", "type": "security", "label": "OU: Workloads", "pos": [320, 190], "size": [150, 56] },
-    { "id": "sbx", "type": "security", "label": "OU: Sandbox", "pos": [320, 320], "size": [150, 56] },
-    { "id": "audit", "type": "backend", "label": "audit account", "pos": [560, 60], "size": [150, 56] },
-    { "id": "staging", "type": "backend", "label": "staging account", "pos": [560, 155], "size": [150, 56] },
-    { "id": "prod", "type": "backend", "label": "prod account", "pos": [560, 250], "size": [150, 56] }
+    { "id": "sbx", "type": "security", "label": "OU: Sandbox", "pos": [320, 330], "size": [150, 56] },
+    { "id": "audit", "type": "backend", "label": "security-audit", "sublabel": "CloudTrail · Config · logs", "pos": [560, 60], "size": [170, 56] },
+    { "id": "staging", "type": "backend", "label": "workload-staging", "sublabel": "VPC · EKS · RDS (Sprint 3)", "pos": [560, 155], "size": [170, 56] },
+    { "id": "prod", "type": "backend", "label": "workload-prod", "sublabel": "VPC · EKS · RDS (Sprint 3)", "pos": [560, 250], "size": [170, 56] },
+    { "id": "sandbox", "type": "backend", "label": "sandbox", "sublabel": "aucune ressource, banc d'essai SCP", "pos": [560, 330], "size": [170, 56] }
   ],
   "connections": [
     { "from": "mgmt", "to": "sec", "route": "orthogonal-h" },
@@ -22,10 +23,12 @@
     { "from": "mgmt", "to": "sbx", "route": "orthogonal-h" },
     { "from": "sec", "to": "audit", "route": "orthogonal-h" },
     { "from": "wrk", "to": "staging", "route": "orthogonal-h" },
-    { "from": "wrk", "to": "prod", "route": "orthogonal-h" }
+    { "from": "wrk", "to": "prod", "route": "orthogonal-h" },
+    { "from": "sbx", "to": "sandbox", "route": "orthogonal-h" }
   ],
   "cards": [
     { "dot": "rose", "title": "SCPs appliquées", "items": ["deny-root-usage", "deny-regions-outside-eu ¹", "enforce-cloudtrail", "deny-public-s3", "require-mfa-for-console", "deny-iam-longterm-keys"] },
-    { "dot": "cyan", "title": "Note", "items": ["¹ deny-regions-outside-eu exclut les services globaux", "(iam, route53, cloudfront, sts, support, s3 control plane)", "Testé en compte sandbox avant déploiement prod OU"] }
+    { "dot": "cyan", "title": "Règles d'application", "items": ["¹ deny-regions-outside-eu exclut les services globaux", "(iam, route53, cloudfront, sts, support, s3 control plane)", "Chaque SCP est éprouvée dans sandbox avant d'atteindre une OU", "Aucune SCP n'est attachée à la racine de l'Organization"] },
+    { "dot": "emerald", "title": "Hors scope assumé", "items": ["AWS Control Tower : les concepts sont reconstruits en Terraform", "Compte log-archive dédié : logs conservés dans security-audit", "Compte network / Transit Gateway : un VPC par environnement suffit"] }
   ]
 }

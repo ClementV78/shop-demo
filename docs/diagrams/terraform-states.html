@@ -501,7 +501,7 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container">
-      <svg viewBox="0 0 1000 480" role="img" aria-label="IDP Platform — 2 states Terraform séparés — bootstrap (permanent) vs workload (éphémère) (architecture diagram)">
+      <svg viewBox="0 0 1000 560" role="img" aria-label="IDP Platform — 2 states Terraform séparés — bootstrap (permanent) vs workload (éphémère) (architecture diagram)">
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -525,7 +525,7 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-        <rect x="270" y="60" width="230" height="270" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="270" y="60" width="230" height="350" rx="12" class="c-region" stroke-width="1"/>
         <text x="278" y="78" class="t-cloud" font-size="9" font-weight="600">State bootstrap — permanent, jamais détruit</text>
 
         <rect x="620" y="60" width="250" height="270" rx="12" class="c-region" stroke-width="1"/>
@@ -550,7 +550,7 @@
         <rect x="300" y="170" width="170" height="60" rx="6" class="c-mask"/>
         <rect x="300" y="170" width="170" height="60" rx="6" class="c-database" stroke-width="1.5"/>
         <text x="385" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">S3 tfstate workload</text>
-        <text x="385" y="214" class="t-muted" font-size="9" text-anchor="middle">+ DynamoDB lock</text>
+        <text x="385" y="214" class="t-muted" font-size="9" text-anchor="middle">verrou natif use_lockfile</text>
 
         <rect x="300" y="250" width="170" height="60" rx="6" class="c-mask"/>
         <rect x="300" y="250" width="170" height="60" rx="6" class="c-security" stroke-width="1.5"/>
@@ -571,6 +571,11 @@
         <rect x="650" y="250" width="190" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
         <text x="745" y="284" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cognito · API GW · Lambda</text>
 
+        <rect x="300" y="330" width="170" height="60" rx="6" class="c-mask"/>
+        <rect x="300" y="330" width="170" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="385" y="358" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Organization · SCPs</text>
+        <text x="385" y="374" class="t-muted" font-size="9" text-anchor="middle">IAM Identity Center · baseline</text>
+
         <!-- Connection labels -->
         <rect x="201.4" y="10" width="197.2" height="14" rx="3" class="c-mask"/>
         <text x="300" y="20" class="t-messagebus" font-size="8" text-anchor="middle">apply/destroy bootstrap/ (rare, manuel)</text>
@@ -580,17 +585,17 @@
         <text x="560" y="110" class="t-muted" font-size="8" text-anchor="middle">kubectl apply, jobs réseau privé</text>
 
         <!-- Legend -->
-        <text x="40" y="451" class="t-primary" font-size="9" font-weight="600">Legend</text>
-        <rect x="40" y="456" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
-        <text x="60" y="464" class="t-muted" font-size="8">External</text>
-        <rect x="138" y="456" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
-        <text x="158" y="464" class="t-muted" font-size="8">Backend</text>
-        <rect x="231" y="456" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
-        <text x="251" y="464" class="t-muted" font-size="8">Database</text>
-        <rect x="329" y="456" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
-        <text x="349" y="464" class="t-muted" font-size="8">Security</text>
-        <rect x="427" y="456" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
-        <text x="447" y="464" class="t-muted" font-size="8">Cloud</text>
+        <text x="40" y="531" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="536" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="60" y="544" class="t-muted" font-size="8">External</text>
+        <rect x="138" y="536" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="158" y="544" class="t-muted" font-size="8">Backend</text>
+        <rect x="231" y="536" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="251" y="544" class="t-muted" font-size="8">Database</text>
+        <rect x="329" y="536" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="349" y="544" class="t-muted" font-size="8">Security</text>
+        <rect x="427" y="536" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="447" y="544" class="t-muted" font-size="8">Cloud</text>
       </svg>
     </div>
 
@@ -605,6 +610,18 @@
           <li>&bull; bootstrap contient l&#39;EC2 runner + bucket S3 du state workload</li>
           <li>&bull; un seul state détruirait le runner en train d&#39;exécuter le destroy</li>
           <li>&bull; apply ET destroy workload tournent sur les shared runners</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>Verrouillage du state</h3>
+        </div>
+        <ul>
+          <li>&bull; Terraform 1.10+ verrouille S3 nativement (use_lockfile)</li>
+          <li>&bull; La table DynamoDB historique n&#39;est plus necessaire</li>
+          <li>&bull; Une ressource de moins a payer et a maintenir</li>
         </ul>
       </div>
     </div>
