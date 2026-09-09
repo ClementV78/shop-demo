@@ -22,6 +22,118 @@ Le besoin concret qui force la question est le suivant. Argo CD doit joindre `gi
 
 Perimetre reel a la date de cet ADR : `S1-T3` n'utilise que l'API standard, et aucune `CiliumNetworkPolicy` n'existe encore dans le depot.
 
+## Ce que CiliumNetworkPolicy permet en plus
+
+Cette section documente l'ecart de capacite entre les deux API, pour que le choix reste comprehensible sans avoir a l'experimenter.
+
+Niveau de preuve, a lire avant de reutiliser ces exemples :
+
+| Element | Etat | Comment |
+|---|---|---|
+| Existence des champs cites | Verifie | `kubectl explain cnp.spec` sur la CRD `cilium.io/v2` livree par Cilium `v1.19.5`, Kubernetes `v1.33.1+k3s1` |
+| Validite des deux ressources completes | Verifie | `kubectl apply --dry-run=server`, acceptees par l'API serveur sans creation |
+| Comportement reseau reel | **Non verifie** | Aucune `CiliumNetworkPolicy` n'a jamais ete appliquee dans ce depot |
+
+Un manifest accepte par le serveur est syntaxiquement correct et conforme au schema. Cela ne dit rien de son effet sur le trafic, qui devra etre mesure avant/apres le jour ou une de ces policies sera reellement posee.
+
+### Le refus par defaut devient explicite
+
+Avec l'API standard, un pod devient isole en entree parce qu'une policy le selectionne. Le refus est un effet de bord de la selection, jamais une declaration. Cilium ajoute un champ qui le dit :
+
+```yaml
+spec:
+  enableDefaultDeny:
+    ingress: true
+    egress: false
+```
+
+Sans ce champ, la valeur par defaut vaut `true` pour chaque direction qui porte des regles, et `false` sinon, ce qui reproduit la semantique standard. Le rendre explicite retire l'ambiguite qui fait que l'on croit souvent le refus produit par un objet nomme `default-deny`.
+
+### Le refus devient une regle a part entiere
+
+`ingressDeny` et `egressDeny` sont evalues **avant** les autorisations et les emportent, quelle que soit la policy qui autorise par ailleurs :
+
+```yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: refuser-default
+  namespace: shopdemo-staging
+spec:
+  endpointSelector: {}
+  ingressDeny:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+```
+
+C'est ce que l'API standard ne sait pas faire. Le prix est reel : l'union des `NetworkPolicy` standard est commutative, donc ajouter une policy ne peut qu'ajouter une permission et deux equipes ne peuvent pas se casser mutuellement. Introduire du `deny` retire cette garantie et ramene le raisonnement par preseance des pare-feux classiques.
+
+### Les entites nommees
+
+L'API standard ne sait designer que des pods, des namespaces et des CIDR. Cilium ajoute des entites que le cluster resout lui meme :
+
+`all`, `cluster`, `health`, `host`, `ingress`, `init`, `kube-apiserver`, `none`, `remote-node`, `unmanaged`, `world`
+
+```yaml
+  ingress:
+    - fromEntities: [cluster]     # tout le cluster, sans lister les namespaces
+  egress:
+    - toEntities: [world]         # tout ce qui est hors du cluster
+```
+
+Exprimer "depuis l'exterieur du cluster" en API standard demanderait une liste de CIDR a maintenir, et `kube-apiserver` n'a tout simplement pas d'equivalent portable.
+
+### L'egress par nom de domaine
+
+C'est le cas d'usage deja anticipe plus bas dans cet ADR, et la vraie raison pour laquelle Cilium sera necessaire :
+
+```yaml
+  egress:
+    - toFQDNs:
+        - matchName: gitlab.com
+      toPorts:
+        - ports: [{port: "443", protocol: TCP}]
+```
+
+L'API standard ne connait que des adresses IP. Autoriser Argo CD vers GitLab y exigerait une liste de CIDR qui casserait silencieusement au prochain changement d'adresses.
+
+### Le niveau applicatif
+
+Cilium sait filtrer sur le contenu HTTP, ce qui sort completement du perimetre de l'API standard :
+
+```yaml
+      toPorts:
+        - ports: [{port: "8080", protocol: TCP}]
+          rules:
+            http:
+              - method: GET
+                path: "/api/catalogue.*"
+```
+
+### A quoi ressemblerait notre cas de S1-T3
+
+Par curiosite, l'isolation posee en `S1-T3` s'ecrirait ainsi en une seule ressource :
+
+```yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: isolation-namespace
+  namespace: shopdemo-staging
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - {}          # meme namespace : Cilium ajoute la contrainte implicitement
+```
+
+Une ressource au lieu de deux, mais le gain est illusoire. On perd la portabilite vers un autre CNI, on perd le filet decouple que constitue une policy de refus dont le cycle de vie est independant, et on introduit une API supplementaire pour un besoin que le standard couvre parfaitement. C'est exactement le raisonnement qui a conduit a la decision de cet ADR.
+
+### Piege de documentation
+
+`fromRequires`, presente dans de nombreux articles comme le moyen d'imposer une contrainte transverse, est marquee `Deprecated` dans la CRD de Cilium `v1.19.5`. Ne pas la reprendre depuis un exemple ancien sans verifier son statut sur la version installee.
+
 ## Alternatives considerees
 
 ### 1. Tout ecrire en NetworkPolicy standard
@@ -60,8 +172,15 @@ Negatives :
 - Le premier usage legitime de `CiliumNetworkPolicy` sera la securisation du namespace `argocd`, avec un egress `toFQDNs` vers `gitlab.com`. Ce lot est volontairement hors perimetre `S1-T3`, parce qu'une erreur y couperait Argo CD de son depot.
 - Si le projet finit par n'utiliser qu'une seule des deux API, cet ADR devra etre revu plutot que conserve tel quel.
 
+- Section "Ce que CiliumNetworkPolicy permet en plus" ajoutee le 2026-09-09, apres une question sur la possibilite d'exprimer un refus. Les champs sont verifies contre la CRD installee, le comportement runtime ne l'est pas.
+
 Validation de cet ADR :
 
 ```bash
 git diff --check
+kubectl explain cnp.spec              # champs cites dans la section Cilium
+kubectl explain cnp.spec.ingressDeny
+
+# Les deux ressources completes de la section Cilium, validees sans creation
+kubectl apply --dry-run=server -f <extrait>
 ```

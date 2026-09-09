@@ -854,6 +854,14 @@ risquer de couper l'outil qui applique les policies.
 l'usage de la `NetworkPolicy` standard plutot que de la `CiliumNetworkPolicy`,
 gardee pour les cas que le standard ne couvre pas.
 
+Si la question "et si je voulais vraiment ecrire un refus" se pose, la reponse
+est dans cet ADR. Cilium sait exprimer un `ingressDeny` qui prime sur les
+autorisations, un refus par defaut explicite via `enableDefaultDeny`, des
+entites nommees comme `world` ou `kube-apiserver`, un egress par nom de domaine
+et des regles HTTP. L'API standard ne sait rien de tout cela, et c'est
+volontaire : son union commutative garantit qu'ajouter une policy ne peut
+jamais retirer une permission accordee ailleurs.
+
 ## S1-T4 - Comment une application est decrite une fois
 
 ### Le probleme qu'on resout
