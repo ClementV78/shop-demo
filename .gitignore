@@ -57,6 +57,10 @@ tfplan
 *.tfvars.json
 !*.tfvars.example
 
+# Configuration de backend : contient le nom du bucket, donc l identifiant de
+# compte. Seul l exemple est versionne.
+backend.hcl
+
 # Exception volontaire : le lock file EST commite. Il fige les empreintes des
 # providers et garantit que la CI installe les memes binaires que le poste local.
 !.terraform.lock.hcl

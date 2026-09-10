@@ -36,3 +36,19 @@ variable "owner" {
   type        = string
   default     = "shopdemo"
 }
+
+variable "aws_account_id" {
+  description = "Identifiant du compte management. Volontairement sans valeur par defaut : il n'est jamais versionne et doit etre fourni par un terraform.tfvars local."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "Un identifiant de compte AWS compte exactement douze chiffres."
+  }
+}
+
+variable "aws_profile" {
+  description = "Profil AWS CLI a utiliser. Laisser null pour s'en remettre a la variable d'environnement AWS_PROFILE."
+  type        = string
+  default     = null
+}

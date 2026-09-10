@@ -1,5 +1,13 @@
 # Copier vers terraform.tfvars, qui n'est jamais commite.
-# Aucune valeur reelle, aucun email, aucun identifiant de compte ici.
+# Aucune valeur reelle ici : ni identifiant de compte, ni email.
+
+# Identifiant du compte management, douze chiffres. Sans valeur par defaut :
+# Terraform refusera de demarrer tant qu'il n'est pas fourni, et refusera
+# aussi de s'executer si les credentials resolus pointent ailleurs.
+aws_account_id = "000000000000"
+
+# Profil AWS CLI a utiliser. Laisser absent pour s'en remettre a AWS_PROFILE.
+aws_profile = "REMPLACER"
 
 aws_region  = "eu-west-1"
 project     = "shopdemo"
@@ -7,7 +15,6 @@ environment = "bootstrap"
 owner       = "shopdemo"
 
 # Les emails des comptes enfants arrivent en S2-T3 et restent hors du depot.
-# Exemple de forme attendue, a ne pas renseigner ici :
 # account_emails = {
 #   security_audit   = "REMPLACER"
 #   workload_staging = "REMPLACER"

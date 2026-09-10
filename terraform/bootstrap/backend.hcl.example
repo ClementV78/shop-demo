@@ -1,0 +1,10 @@
+# Copier vers backend.hcl, qui n'est jamais commite : le nom du bucket
+# contient l'identifiant du compte. Sa valeur est produite par la sortie
+# Terraform backend_config apres la creation du bucket en S2-T2.
+bucket = "shopdemo-bootstrap-tfstate-000000000000"
+region = "eu-west-1"
+
+# Le backend ne lit PAS le bloc provider : il resout ses credentials
+# independamment. Sans cette ligne, il part sur la chaine par defaut, et
+# allowed_account_ids ne le protege pas.
+profile = "REMPLACER"

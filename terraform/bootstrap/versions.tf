@@ -8,10 +8,15 @@ terraform {
     }
   }
 
-  # Le backend S3 est volontairement absent en S2-T1.
-  # Il ne peut pas exister avant le bucket qui l'heberge, cree en S2-T2.
-  # Jusque la, le state reste local et n'est jamais commite.
-  # S2-T2 ajoutera ici un bloc backend "s3" avec use_lockfile = true,
-  # le verrou natif disponible depuis Terraform 1.10, qui rend inutile
-  # la table DynamoDB historique.
+  # Configuration partielle et volontaire. Le nom du bucket contient
+  # l'identifiant du compte, qui n'est jamais versionne : il vit dans
+  # backend.hcl, ignore par git, passe via -backend-config a l'init.
+  #
+  # use_lockfile utilise le verrou S3 natif, disponible depuis Terraform 1.10,
+  # ce qui rend inutile la table DynamoDB historique.
+  backend "s3" {
+    key          = "bootstrap/terraform.tfstate"
+    encrypt      = true
+    use_lockfile = true
+  }
 }

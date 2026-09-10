@@ -15,7 +15,7 @@ Ce sprint est le premier a engager des couts AWS reels et a manipuler des contro
 | ID | Tache | Etat | Depend de |
 |---|---|---|---|
 | S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | S1 |
-| S2-T2 | Creer le state `bootstrap` : backend S3, verrou, chiffrement | Planifie | S2-T1 |
+| S2-T2 | Creer le state `bootstrap` : backend S3, verrou, chiffrement | Termine | S2-T1 |
 | S2-T3 | Module `aws-organization` : Organization, OUs, comptes enfants | Planifie | S2-T2 |
 | S2-T4 | Module `aws-scp` : six SCPs, testees en sandbox avant les OUs | Planifie | S2-T3 |
 | S2-T5 | Module `aws-sso` : IAM Identity Center et permission sets | Planifie | S2-T3 |
@@ -233,21 +233,47 @@ Aucune ressource AWS creee, aucun appel a AWS. `init -backend=false` ne fait que
 
 ### S2-T2 - Creer le state bootstrap
 
-Etat : `Planifie`.
+Etat : `Termine` le 2026-09-10.
 
 Objectif : sortir du state local le plus tot possible, avec un backend chiffre, versionne et verrouille.
 
-Livrables :
+Livrables realises, dans [`../../terraform/bootstrap/s3-state.tf`](../../terraform/bootstrap/s3-state.tf) :
 
-- bucket S3 dedie, versioning actif, chiffrement active, acces public bloque ;
-- verrouillage de state ;
-- migration effective du state local vers S3, puis suppression du state local ;
-- `lifecycle { prevent_destroy = true }` sur le bucket de state ;
-- documentation de la sequence, y compris de la partie qui ne peut pas etre reproduite par pipeline.
+- bucket S3 dedie, nomme `<project>-<environment>-tfstate-<compte>` ;
+- versioning actif, avec expiration des versions anciennes a 30 jours pour borner la croissance ;
+- chiffrement au repos `AES256`, et nettoyage des uploads multipart incomplets a 7 jours ;
+- blocage complet de l'acces public, quatre verrous poses ;
+- `object_ownership = BucketOwnerEnforced`, ce qui desactive les ACL et laisse la policy seule autorite ;
+- `lifecycle { prevent_destroy = true }` sur le bucket ;
+- verrou S3 natif via `use_lockfile = true`, **aucune table DynamoDB** ;
+- migration effective du state local vers S3, puis suppression du state local.
 
-Point technique a trancher pendant la tache : Terraform 1.10 et versions ulterieures savent verrouiller un state S3 nativement par fichier de verrou, ce qui rend la table DynamoDB historique inutile. C'est une brique de moins a payer et a maintenir. La version de Terraform utilisee doit etre verifiee avant de choisir, sinon le fallback DynamoDB reste necessaire.
+### Deux garde-fous poses pendant la tache
 
-Criteres d'acceptation : un `terraform plan` depuis un poste vierge retrouve le state depuis S3, deux executions concurrentes se bloquent mutuellement au lieu de corrompre le state, et un `terraform plan -detailed-exitcode` rejoue sans modification du code retourne `0`.
+`allowed_account_ids` sur le provider fait echouer Terraform si les credentials resolus ne pointent pas sur le compte attendu. Sans cela, un profil oublie enverrait un apply dans un compte voisin, et la creation d'une Organization en `S2-T3` se defait mal.
+
+Le bloc `backend` est en **configuration partielle**. Le nom du bucket contient l'identifiant du compte, qui ne doit pas etre versionne : `key`, `encrypt` et `use_lockfile` vivent dans le code, tandis que `bucket`, `region` et `profile` vivent dans un `backend.hcl` ignore par git, passe via `-backend-config`. Un [`backend.hcl.example`](../../terraform/bootstrap/backend.hcl.example) documente la forme attendue.
+
+### Ce que la migration a appris
+
+La premiere tentative de migration a echoue sur un `403 Forbidden` en lisant l'objet de state, alors que l'utilisateur porte `AdministratorAccess`.
+
+Cause racine : **le backend ne lit pas le bloc `provider`**. Il resout ses credentials independamment, par la chaine par defaut. Celle-ci pointait ici vers un compte sans rapport, verifie par un `aws sts get-caller-identity` sans profil. Le garde-fou `allowed_account_ids` ne protege donc que le provider, jamais le backend, et un backend mal credite echoue au moment le plus sensible de la sequence, celui ou le state quitte le poste.
+
+Correctif : `profile` ajoute a `backend.hcl`. La lecon vaut au dela de ce projet : provider et backend sont deux clients AWS distincts, configures separement.
+
+Criteres d'acceptation, tous verifies :
+
+| Critere | Resultat |
+|---|---|
+| Bucket conforme | `eu-west-1`, versioning `Enabled`, `AES256`, quatre verrous publics a `True`, `BucketOwnerEnforced`, retention 30 jours, cinq tags obligatoires presents |
+| State migre | `bootstrap/terraform.tfstate`, 12 077 octets dans S3, chiffre `AES256` |
+| State local supprime | Plus aucun `*.tfstate` dans le repertoire de travail |
+| Verrouillage effectif | Deux executions concurrentes : la premiere reussit, la seconde echoue avec `Error acquiring the state lock` |
+| Rejouabilite | `terraform plan -detailed-exitcode` rejoue retourne `0` |
+| Aucun identifiant versionne | `terraform.tfvars` et `backend.hcl` ignores, verifies par `git check-ignore` |
+
+Cout constate : le state pese 12 Ko. La facturation S3 Standard a 0,023 USD par Go et par mois rend ce poste negligeable, conformement a l'estimation du cadrage.
 
 ### S2-T3 - Module aws-organization
 
@@ -349,8 +375,9 @@ Livrables :
 | Coherence documentaire | Verifie | Arborescences, schemas AWS et chapitres pedagogiques alignes sur l'etat reel le 2026-09-09 |
 | Schemas regenerables | Verifie | `render-architecture.mjs` puis `export-svg.py`, methode validee en reproduisant a l'octet pres un SVG deja commite |
 | State et secrets hors de Git | Verifie | `git check-ignore` : state, `*.tfvars` et `.terraform/` ignores, `.terraform.lock.hcl` suivi |
-| Backend S3 operationnel | A produire | `terraform plan` depuis un environnement vierge |
-| Verrouillage de state | A produire | Deux executions concurrentes, la seconde bloquee |
+| Backend S3 operationnel | Verifie | State migre dans S3, chiffre `AES256`, `plan` rejoue sans ecart |
+| Verrouillage de state | Verifie | Deux executions concurrentes, la seconde rejetee avec `Error acquiring the state lock` |
+| Backend et provider distincts | Verifie | Migration en echec `403` tant que `backend.hcl` ne portait pas son propre `profile` |
 | Organization et comptes | A produire | Plan relu avant apply, comptes rattaches aux bonnes OUs |
 | Effet des SCPs | A produire | Mesure avant et apres attachement, par SCP, en `sandbox` |
 | Services globaux preserves | A produire | Appel a un service global reussi malgre `deny-regions-outside-eu` |

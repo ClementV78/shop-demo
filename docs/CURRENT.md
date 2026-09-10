@@ -53,8 +53,16 @@ prealable a la connexion Argo CD -> repo GitOps :
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
 | S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | Livre le 2026-09-09, `fmt`, `validate` et `tflint` passent, aucune ressource creee |
-| S2-T2 | Creer le state `bootstrap` | Prete | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
+| S2-T2 | Creer le state `bootstrap` | Termine | Livre le 2026-09-10. State dans S3, chiffre, verrouille, local supprime |
 | S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
+
+Commandes a connaitre pour toute action Terraform de ce sprint :
+
+```bash
+cd terraform/bootstrap
+terraform init -backend-config=backend.hcl   # backend.hcl n'est pas versionne
+terraform plan
+```
 
 Objectif de reprise :
 
@@ -77,8 +85,14 @@ Objectif de reprise :
   juillet, qui contourne la MFA par construction. Cette cle est necessaire pour
   amorcer `S2-T2` ; sa desactivation est prevue apres Identity Center en
   `S2-T5` et le role OIDC en `S2-T7` ;
-- `S2-T2` est la premiere tache qui cree des ressources AWS. Rien ne doit
-  partir sans demande explicite ;
+- `S2-T3` est la prochaine tache, et la plus difficile a defaire du sprint :
+  creer une Organization transforme le compte en management account
+  definitivement, et un compte enfant ne se supprime pas, il se ferme avec 90
+  jours de periode suspendue. Rien ne doit partir sans demande explicite ;
+- piege deja rencontre et a ne pas re-decouvrir : **le backend ne lit pas le
+  bloc `provider`**. Il resout ses credentials separement, d'ou le `profile`
+  dans `backend.hcl`. Le garde-fou `allowed_account_ids` ne protege que le
+  provider ;
 - deux points ont ete tranches en `S2-T1` et n'ont plus a etre rediscutes :
   region `eu-west-1`, et verrou S3 natif via `use_lockfile = true` puisque la
   version installee est Terraform `1.15.5`. Aucune table DynamoDB ;
