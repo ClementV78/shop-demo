@@ -65,12 +65,13 @@ Objectif de reprise :
   de juillet 2026 y dorment en `us-east-1`. Ils ne genent pas, les SCPs ne
   s'appliquant jamais au management account, mais ils fausseront l'attribution
   de cout si le POC redemarre ;
-- `S2-T2` est `Bloque` sur trois prerequis a faire hors Terraform : activer la
-  MFA sur l'utilisateur administrateur, definir un alias de compte, et creer un
-  profil AWS CLI dedie. Detail dans le fichier de sprint ;
-- la MFA est le point le plus urgent : compte porteur de credit, cle d'acces
-  statique admin active depuis juillet, aucune MFA, et `require-mfa-for-console`
-  ne protegera pas ce compte puisqu'il est exempt de SCP ;
+- deux prerequis sur trois sont faits le 2026-09-10 : MFA activee sur
+  l'utilisateur administrateur (cle U2F, root deja protege) et alias de compte
+  `shopdemo-mgmt` cree. Reste le profil AWS CLI dedie ;
+- la MFA protege la console, pas la cle d'acces statique admin active depuis
+  juillet, qui contourne la MFA par construction. Cette cle est necessaire pour
+  amorcer `S2-T2` ; sa desactivation est prevue apres Identity Center en
+  `S2-T5` et le role OIDC en `S2-T7` ;
 - `S2-T2` est la premiere tache qui cree des ressources AWS. Rien ne doit
   partir sans demande explicite ;
 - deux points ont ete tranches en `S2-T1` et n'ont plus a etre rediscutes :

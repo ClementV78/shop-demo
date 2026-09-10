@@ -54,12 +54,18 @@ Consequence structurante : le management account n'est jamais un compte de workl
 
 ### Prerequis avant S2-T2
 
-| Action | Pourquoi | Qui |
+| Action | Etat | Note |
 |---|---|---|
-| Activer la MFA sur l'utilisateur administrateur | Un compte portant du credit, avec une cle statique admin et sans MFA, est la cible la plus rentable qui soit. `require-mfa-for-console` livree en `S2-T4` ne protegera pas ce compte, exempt de SCP | Console AWS, proprietaire |
-| Definir un alias de compte | Rend l'URL de console lisible et le compte identifiable sans son numero | Console ou CLI |
-| Creer un profil AWS CLI dedie | Le profil actuel porte un nom herite d'un autre usage, ce qui invite a la confusion entre comptes | Poste local |
-| Statuer sur les residus du POC | Cout nul aujourd'hui, donc aucune urgence. A trancher avant que les budgets ne brouillent l'attribution | Proprietaire |
+| MFA sur l'utilisateur administrateur | `Fait` le 2026-09-10 | Cle U2F. La MFA du compte root etait deja active |
+| Alias de compte `shopdemo-mgmt` | `Fait` le 2026-09-10 | L'URL de console devient lisible sans le numero de compte |
+| Profil AWS CLI dedie | `A faire` | Le profil actuel porte un nom herite d'un autre usage, ce qui invite a la confusion entre comptes |
+| Statuer sur les residus du POC | `A faire`, sans urgence | Cout nul aujourd'hui. A trancher avant `S2-T6`, sans quoi une reprise du POC brouillerait l'attribution de cout |
+
+Nuance importante sur la MFA. Elle protege la connexion console, pas la cle d'acces statique de l'utilisateur administrateur, active depuis juillet 2026. Une cle d'acces contourne la MFA par construction, sauf policy exigeant explicitement `aws:MultiFactorAuthPresent`. Cette cle est necessaire pour amorcer `S2-T2` ; sa desactivation est prevue une fois Identity Center livre en `S2-T5` et le role OIDC en `S2-T7`.
+
+Contenu exact des residus, pour que la decision se prenne sur des faits : une stack CDK `CDKToolkit`, et une stack `AgentCore` portant un `Runtime`, une `Gateway` MCP avec sa cible, une Lambda avec son log group et quatre roles IAM. Detruire `CDKToolkit` obligerait a refaire un `cdk bootstrap` avant tout futur deploiement CDK sur ce compte et cette region.
+
+Point non verifie : l'exposition et le mode d'authentification de la `Gateway` AgentCore n'ont pas ete controles, le CLI installe ne connaissant pas l'API `bedrock-agentcore-control`.
 
 ### Comptes cibles
 
