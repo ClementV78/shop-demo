@@ -496,12 +496,12 @@
         <div class="pulse-dot"></div>
         <h1>IDP Platform — Amorçage du state bootstrap</h1>
       </div>
-      <p class="subtitle">Le state local crée le bucket, puis migre dedans (S2-T2)</p>
+      <p class="subtitle">Le state local cree le bucket, puis migre dedans (S2-T2, livre)</p>
     </div>
 
     <!-- Main Diagram -->
     <div class="diagram-container">
-      <svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local crée le bucket, puis migre dedans (S2-T2) (workflow diagram)">
+      <svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local cree le bucket, puis migre dedans (S2-T2, livre) (workflow diagram)">
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -631,12 +631,24 @@
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Preuves attendues en S2-T2</h3>
+          <h3>Preuves obtenues en S2-T2</h3>
         </div>
         <ul>
-          <li>&bull; Un plan depuis un poste vierge retrouve le state dans S3</li>
-          <li>&bull; Deux exécutions concurrentes se bloquent mutuellement</li>
-          <li>&bull; plan -detailed-exitcode rejoué retourne 0</li>
+          <li>&bull; Plan rejoue : -detailed-exitcode retourne 0</li>
+          <li>&bull; Concurrence : la seconde execution est rejetee</li>
+          <li>&bull; State de 12 Ko dans S3, chiffre AES256, plus rien en local</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>Piege rencontre</h3>
+        </div>
+        <ul>
+          <li>&bull; Le backend ne lit PAS le bloc provider</li>
+          <li>&bull; Il resout ses credentials separement, d ou un 403 a la migration</li>
+          <li>&bull; allowed_account_ids ne protege que le provider</li>
         </ul>
       </div>
     </div>

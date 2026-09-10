@@ -3,7 +3,7 @@
   "diagram_type": "workflow",
   "meta": {
     "title": "IDP Platform — Amorçage du state bootstrap",
-    "subtitle": "Le state local crée le bucket, puis migre dedans (S2-T2)",
+    "subtitle": "Le state local cree le bucket, puis migre dedans (S2-T2, livre)",
     "output": "s2-bootstrap-state-sequence.html"
   },
   "lanes": [
@@ -139,11 +139,20 @@
     },
     {
       "dot": "emerald",
-      "title": "Preuves attendues en S2-T2",
+      "title": "Preuves obtenues en S2-T2",
       "items": [
-        "Un plan depuis un poste vierge retrouve le state dans S3",
-        "Deux exécutions concurrentes se bloquent mutuellement",
-        "plan -detailed-exitcode rejoué retourne 0"
+        "Plan rejoue : -detailed-exitcode retourne 0",
+        "Concurrence : la seconde execution est rejetee",
+        "State de 12 Ko dans S3, chiffre AES256, plus rien en local"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Piege rencontre",
+      "items": [
+        "Le backend ne lit PAS le bloc provider",
+        "Il resout ses credentials separement, d ou un 403 a la migration",
+        "allowed_account_ids ne protege que le provider"
       ]
     }
   ]

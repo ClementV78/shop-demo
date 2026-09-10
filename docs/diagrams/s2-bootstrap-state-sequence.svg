@@ -1,4 +1,4 @@
-<svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local crée le bucket, puis migre dedans (S2-T2) (workflow diagram)" width="720" height="528" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+<svg viewBox="0 0 720 528" role="img" aria-label="IDP Platform — Amorçage du state bootstrap — Le state local cree le bucket, puis migre dedans (S2-T2, livre) (workflow diagram)" width="720" height="528" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 600; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }

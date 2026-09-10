@@ -1,6 +1,6 @@
 # Comment ca marche techniquement
 
-[Pourquoi ce document](#pourquoi-ce-document-existe) · [Vue d'ensemble](#vue-densemble-actuelle) · [Sprint 0](#sprint-0---comment-le-lab-local-est-construit) · [S1-T1](#s1-t1---comment-la-base-gitops-commence) · [S1-T2](#s1-t2---comment-argo-cd-est-installe-et-synchronise) · [S1-T3](#s1-t3---comment-les-namespaces-applicatifs-et-lisolation-arrivent) · [S1-T4](#s1-t4---comment-une-application-est-decrite-une-fois) · [S1-T5](#s1-t5---comment-les-applications-cessent-detre-ecrites-a-la-main) · [S1-T6](#s1-t6---comment-la-production-se-separe-de-staging) · [S1-T7](#s1-t7---comment-on-revient-en-arriere) · [S2-T1](#s2-t1---comment-linfrastructure-aws-commence) · [En entretien](#ce-quil-faut-savoir-raconter-en-entretien) · [Ou aller ensuite](#ou-aller-ensuite)
+[Pourquoi ce document](#pourquoi-ce-document-existe) · [Vue d'ensemble](#vue-densemble-actuelle) · [Sprint 0](#sprint-0---comment-le-lab-local-est-construit) · [S1-T1](#s1-t1---comment-la-base-gitops-commence) · [S1-T2](#s1-t2---comment-argo-cd-est-installe-et-synchronise) · [S1-T3](#s1-t3---comment-les-namespaces-applicatifs-et-lisolation-arrivent) · [S1-T4](#s1-t4---comment-une-application-est-decrite-une-fois) · [S1-T5](#s1-t5---comment-les-applications-cessent-detre-ecrites-a-la-main) · [S1-T6](#s1-t6---comment-la-production-se-separe-de-staging) · [S1-T7](#s1-t7---comment-on-revient-en-arriere) · [S2-T1](#s2-t1---comment-linfrastructure-aws-commence) · [S2-T2](#s2-t2---comment-le-state-sort-du-poste) · [En entretien](#ce-quil-faut-savoir-raconter-en-entretien) · [Ou aller ensuite](#ou-aller-ensuite)
 
 ## Pourquoi ce document existe
 
@@ -46,11 +46,12 @@ l'etat au moment de la tache. La section `S1-T1` decrit donc volontairement
 l'etat d'avant Argo CD : la progression fait partie de l'explication, et lire
 la suite corrige d'elle meme ce qui n'etait alors pas encore vrai.
 
-Etat au 2026-09-09 : le Sprint 1 est clos, la chaine complete fonctionne. Un
+Etat au 2026-09-10 : le Sprint 1 est clos, la chaine complete fonctionne. Un
 merge dans `main` deploie staging automatiquement, seule la pose d'un tag
 semver promeut en production, et le retour arriere a ete execute sur un
-incident reel plutot que decrit. Le Sprint 2 a commence par `S2-T1`, qui pose
-la structure Terraform sans creer la moindre ressource AWS.
+incident reel plutot que decrit. Le Sprint 2 a pose la structure Terraform en
+`S2-T1`, sans creer la moindre ressource, puis livre en `S2-T2` la premiere
+infrastructure AWS reelle du projet : le bucket qui heberge le state.
 
 ## Sprint 0 - Comment le lab local est construit
 
@@ -1143,6 +1144,98 @@ meme. Le state vit donc d'abord en local, cree le bucket, puis migre dedans.
 Le state local est un artefact d'amorcage, jamais une cible. Il est supprime
 apres migration, et le `.gitignore` a ete pose avant qu'il existe, ce qui est
 l'ordre correct.
+
+## S2-T2 - Comment le state sort du poste
+
+### Le probleme qu'on resout
+
+Tant que le state vit dans un fichier local, il est fragile et solitaire : un
+disque perdu emporte la connaissance de l'infrastructure, et deux executions
+simultanees le corrompent sans avertissement. Il doit donc partir vers un
+stockage partage, chiffre et verrouille.
+
+### Le bucket, et ce qui l'entoure
+
+Six ressources dans
+[`../terraform/bootstrap/s3-state.tf`](../terraform/bootstrap/s3-state.tf), une
+seule est le bucket. Les cinq autres le durcissent :
+
+| Ressource | Ce qu'elle apporte |
+|---|---|
+| `versioning` | Chaque revision du state conservee, filet en cas de corruption |
+| `lifecycle_configuration` | Versions anciennes expirees a 30 jours, sinon le bucket grossit sans fin |
+| `server_side_encryption` | `AES256` au repos |
+| `public_access_block` | Les quatre verrous d'acces public |
+| `ownership_controls` | `BucketOwnerEnforced`, les ACL sont desactivees |
+
+`AES256` plutot qu'une cle KMS : une cle geree couterait environ un dollar par
+mois plus les appels, pour un controle d'acces dont ce projet n'a pas l'usage.
+Le compromis est assume, pas subi.
+
+### Le verrou sans base de donnees
+
+```hcl
+backend "s3" {
+  key          = "bootstrap/terraform.tfstate"
+  encrypt      = true
+  use_lockfile = true
+}
+```
+
+`use_lockfile` fait poser a Terraform un objet de verrou dans le bucket lui
+meme. Jusqu'a la version 1.10, il fallait une table DynamoDB dediee pour cela.
+La plupart des tutoriels en ligne la decrivent encore comme obligatoire : elle
+ne l'est plus, et c'est une ressource de moins a payer et a maintenir.
+
+La preuve tient en une manipulation : deux executions lancees en parallele, la
+premiere reussit, la seconde echoue avec `Error acquiring the state lock`.
+
+### La configuration partielle, et pourquoi
+
+Le bloc ci-dessus ne dit pas dans quel bucket ecrire. C'est volontaire : le nom
+du bucket contient l'identifiant du compte AWS, qui ne doit pas etre versionne.
+Les valeurs vivent donc dans un `backend.hcl` ignore par Git, passe a l'init :
+
+```bash
+terraform init -backend-config=backend.hcl
+```
+
+Un `backend.hcl.example` versionne documente la forme attendue, sans aucune
+valeur reelle. C'est le meme principe que `terraform.tfvars.example`.
+
+### Le piege qui a coute la premiere migration
+
+La migration a echoue du premier coup, sur un `403 Forbidden` en lisant l'objet
+de state, alors que l'utilisateur porte pourtant `AdministratorAccess`.
+
+La cause n'est pas les droits. **Le backend ne lit pas le bloc `provider`.**
+Ce sont deux clients AWS distincts, configures separement : le `profile` du
+provider ne vaut pas pour le backend, et le backend part sur la chaine de
+credentials par defaut si on ne lui dit rien. Ici, cette chaine pointait vers
+un compte sans rapport, ce qu'un `aws sts get-caller-identity` sans profil a
+confirme en une commande.
+
+Consequence a retenir : le garde-fou `allowed_account_ids` pose sur le provider
+ne protege que le provider. Le backend a besoin de son propre `profile`.
+
+Et le moment ou cela se paie est le pire possible, celui ou le state quitte le
+poste. Terraform s'est heureusement arrete proprement, sans toucher ni a la
+source ni a la destination.
+
+### La sequence complete
+
+```text
+1. terraform apply         state local -> cree le bucket
+2. ajout du bloc backend   partiel, sans le nom du bucket
+3. terraform init          -migrate-state -backend-config=backend.hcl
+4. suppression du local    le fichier n'a plus de raison d'exister
+5. terraform plan          -detailed-exitcode doit retourner 0
+```
+
+L'etape 5 est l'equivalent exact du second passage a `changed=0` qui prouvait
+l'idempotence des roles Ansible au Sprint 0. Meme intention, mecanisme
+different : Terraform compare l'etat reel a l'etat desire et annonce zero
+ecart.
 
 ## Ce qu'il faut savoir raconter en entretien
 
