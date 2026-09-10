@@ -53,7 +53,7 @@ prealable a la connexion Argo CD -> repo GitOps :
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
 | S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | Livre le 2026-09-09, `fmt`, `validate` et `tflint` passent, aucune ressource creee |
-| S2-T2 | Creer le state `bootstrap` | Bloque | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
+| S2-T2 | Creer le state `bootstrap` | Prete | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
 | S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
 
 Objectif de reprise :
@@ -65,9 +65,14 @@ Objectif de reprise :
   de juillet 2026 y dorment en `us-east-1`. Ils ne genent pas, les SCPs ne
   s'appliquant jamais au management account, mais ils fausseront l'attribution
   de cout si le POC redemarre ;
-- deux prerequis sur trois sont faits le 2026-09-10 : MFA activee sur
-  l'utilisateur administrateur (cle U2F, root deja protege) et alias de compte
-  `shopdemo-mgmt` cree. Reste le profil AWS CLI dedie ;
+- les trois prerequis sont faits le 2026-09-10 : MFA activee sur l'utilisateur
+  administrateur (cle U2F, root deja protege), alias de compte `shopdemo-mgmt`
+  cree, et profil AWS CLI `shopdemo-mgmt` ajoute en `eu-west-1`. Toujours
+  utiliser ce profil, jamais l'ancien qui reste en `us-east-1` pour le POC ;
+- contrepartie du profil ajoute plutot que renomme : la cle d'acces existe en
+  double dans `~/.aws/credentials`. Une rotation devra mettre a jour les deux
+  sections. Sauvegardes horodatees `~/.aws/*.bak-*` creees avant modification,
+  a supprimer une fois la situation stabilisee car elles contiennent la cle ;
 - la MFA protege la console, pas la cle d'acces statique admin active depuis
   juillet, qui contourne la MFA par construction. Cette cle est necessaire pour
   amorcer `S2-T2` ; sa desactivation est prevue apres Identity Center en

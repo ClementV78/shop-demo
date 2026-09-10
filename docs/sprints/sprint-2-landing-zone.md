@@ -58,8 +58,10 @@ Consequence structurante : le management account n'est jamais un compte de workl
 |---|---|---|
 | MFA sur l'utilisateur administrateur | `Fait` le 2026-09-10 | Cle U2F. La MFA du compte root etait deja active |
 | Alias de compte `shopdemo-mgmt` | `Fait` le 2026-09-10 | L'URL de console devient lisible sans le numero de compte |
-| Profil AWS CLI dedie | `A faire` | Le profil actuel porte un nom herite d'un autre usage, ce qui invite a la confusion entre comptes |
+| Profil AWS CLI dedie | `Fait` le 2026-09-10 | Profil `shopdemo-mgmt` ajoute a cote de l'existant plutot qu'en remplacement, ce qui permet a chacun de porter sa propre region : `eu-west-1` pour ShopDemo, `us-east-1` conservee pour le POC preexistant |
 | Statuer sur les residus du POC | `A faire`, sans urgence | Cout nul aujourd'hui. A trancher avant `S2-T6`, sans quoi une reprise du POC brouillerait l'attribution de cout |
+
+Contrepartie assumee du profil ajoute plutot que renomme : la meme cle d'acces existe desormais en double dans `~/.aws/credentials`. Une rotation de cette cle devra mettre a jour les deux sections, sans quoi l'une des deux cessera de fonctionner sans explication evidente. Le point disparaitra quand la cle statique sera retiree au profit d'Identity Center en `S2-T5`.
 
 Nuance importante sur la MFA. Elle protege la connexion console, pas la cle d'acces statique de l'utilisateur administrateur, active depuis juillet 2026. Une cle d'acces contourne la MFA par construction, sauf policy exigeant explicitement `aws:MultiFactorAuthPresent`. Cette cle est necessaire pour amorcer `S2-T2` ; sa desactivation est prevue une fois Identity Center livre en `S2-T5` et le role OIDC en `S2-T7`.
 
