@@ -31,7 +31,35 @@ Sprint cadre le 2026-09-09. Aucune ressource AWS creee a ce stade.
 
 Un compte AWS existant sert de point de depart. Il n'appartient a aucune Organization aujourd'hui. Il sera promu en **management account** en creant l'Organization depuis lui, ce qui est une operation sans destruction et sans migration de ressources.
 
+Compte retenu le 2026-09-10, apres inventaire de trois comptes accessibles depuis le poste. Son identifiant n'est pas versionne, conformement aux regles du depot sur les identifiants de comptes reels : il vit dans un `terraform.tfvars` local et dans un profil AWS CLI dedie.
+
+Etat verifie du compte au moment du choix :
+
+| Point | Constat |
+|---|---|
+| Organization | Aucune, `AWSOrganizationsNotInUseException`. Le compte est eligible |
+| Droits disponibles | Un utilisateur IAM avec `AdministratorAccess`, suffisant pour Organizations |
+| Contenu preexistant | **Non vide** : un POC Bedrock AgentCore et un bootstrap CDK datant de juillet 2026, en `us-east-1` |
+| Consommation | `0.00 USD` sur les 30 derniers jours. Le POC est dormant et le credit intact |
+| MFA | **Absente** sur l'utilisateur administrateur, qui porte une cle d'acces statique active |
+| Alias de compte | Aucun, l'URL de console reste l'identifiant numerique |
+
+Deux consequences a retenir de cet inventaire.
+
+Les ressources residuelles sont en `us-east-1`, hors du perimetre de la SCP `deny-regions-outside-eu`. Elles ne seront pourtant pas cassees, parce que **les SCPs ne s'appliquent jamais au management account**. C'est aussi la raison de fond pour laquelle ce compte ne doit porter aucun workload : c'est le seul de l'organisation sur lequel aucun garde-fou ne s'applique.
+
+Le budget `cout-reel` livre en `S2-T6` verra la consommation de ce POC si elle reprend. L'attribution a ShopDemo devra donc reposer sur les tags obligatoires et non sur le total du compte.
+
 Consequence structurante : le management account n'est jamais un compte de workload. Aucune ressource ShopDemo n'y sera deployee. Il porte l'Organization, les SCPs, IAM Identity Center, le CloudTrail organisationnel, et le state `bootstrap`.
+
+### Prerequis avant S2-T2
+
+| Action | Pourquoi | Qui |
+|---|---|---|
+| Activer la MFA sur l'utilisateur administrateur | Un compte portant du credit, avec une cle statique admin et sans MFA, est la cible la plus rentable qui soit. `require-mfa-for-console` livree en `S2-T4` ne protegera pas ce compte, exempt de SCP | Console AWS, proprietaire |
+| Definir un alias de compte | Rend l'URL de console lisible et le compte identifiable sans son numero | Console ou CLI |
+| Creer un profil AWS CLI dedie | Le profil actuel porte un nom herite d'un autre usage, ce qui invite a la confusion entre comptes | Poste local |
+| Statuer sur les residus du POC | Cout nul aujourd'hui, donc aucune urgence. A trancher avant que les budgets ne brouillent l'attribution | Proprietaire |
 
 ### Comptes cibles
 

@@ -53,11 +53,24 @@ prealable a la connexion Argo CD -> repo GitOps :
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
 | S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | Livre le 2026-09-09, `fmt`, `validate` et `tflint` passent, aucune ressource creee |
-| S2-T2 | Creer le state `bootstrap` | Planifie | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
+| S2-T2 | Creer le state `bootstrap` | Bloque | Bucket S3 versionne et chiffre, `use_lockfile = true` sans DynamoDB, `prevent_destroy`, puis migration du state local vers S3 |
 | S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
 
 Objectif de reprise :
 
+- le management account est choisi depuis le 2026-09-10, apres inventaire.
+  Son identifiant reste hors du depot. Compte eligible, aucune Organization,
+  `AdministratorAccess` disponible, `0.00 USD` consommes sur 30 jours ;
+- **le compte n'est pas vide** : un POC Bedrock AgentCore et un bootstrap CDK
+  de juillet 2026 y dorment en `us-east-1`. Ils ne genent pas, les SCPs ne
+  s'appliquant jamais au management account, mais ils fausseront l'attribution
+  de cout si le POC redemarre ;
+- `S2-T2` est `Bloque` sur trois prerequis a faire hors Terraform : activer la
+  MFA sur l'utilisateur administrateur, definir un alias de compte, et creer un
+  profil AWS CLI dedie. Detail dans le fichier de sprint ;
+- la MFA est le point le plus urgent : compte porteur de credit, cle d'acces
+  statique admin active depuis juillet, aucune MFA, et `require-mfa-for-console`
+  ne protegera pas ce compte puisqu'il est exempt de SCP ;
 - `S2-T2` est la premiere tache qui cree des ressources AWS. Rien ne doit
   partir sans demande explicite ;
 - deux points ont ete tranches en `S2-T1` et n'ont plus a etre rediscutes :
