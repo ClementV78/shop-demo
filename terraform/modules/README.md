@@ -2,7 +2,11 @@
 
 Modules internes du projet, appelés par les states racine de [`../bootstrap/`](../bootstrap/) et, à partir du Sprint 3, de [`../envs/`](../envs/).
 
-Vide en `S2-T1` : la structure est posée avant que le premier module existe, exactement comme `gitops/` avait été posé avant l'installation d'Argo CD.
+Le module [`aws-organization`](aws-organization/README.md) est livre en `S2-T3`. Creation AWS, convergence et rattachements valides par le proprietaire.
+
+Le module [`aws-scp`](aws-scp/README.md) gere les six SCPs et leurs attachements au seul compte sandbox. Le lot complet est deploye ; la policy regionale et la protection S3 ont une preuve d'effet AWS, les autres preuves restent a produire.
+
+Le module [`aws-sso`](aws-sso/README.md) gere les groupes, permission sets et affectations IAM Identity Center de S2-T5. Il est deploye avec dix-neuf ajouts ; l'utilisateur est active et la matrice du portail est validee, tandis que le test fonctionnel des droits reste a effectuer.
 
 Modules attendus dans le Sprint 2 :
 

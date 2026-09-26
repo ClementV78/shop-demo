@@ -16,9 +16,9 @@ Ce sprint est le premier a engager des couts AWS reels et a manipuler des contro
 |---|---|---|---|
 | S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | S1 |
 | S2-T2 | Creer le state `bootstrap` : backend S3, verrou, chiffrement | Termine | S2-T1 |
-| S2-T3 | Module `aws-organization` : Organization, OUs, comptes enfants | Planifie | S2-T2 |
-| S2-T4 | Module `aws-scp` : six SCPs, testees en sandbox avant les OUs | Planifie | S2-T3 |
-| S2-T5 | Module `aws-sso` : IAM Identity Center et permission sets | Planifie | S2-T3 |
+| S2-T3 | Module `aws-organization` : Organization, OUs, comptes enfants | Termine | S2-T2 |
+| S2-T4 | Module `aws-scp` : six SCPs, testees en sandbox avant les OUs | En cours | S2-T3 |
+| S2-T5 | Module `aws-sso` : IAM Identity Center et permission sets | En cours | S2-T3 |
 | S2-T6 | Module `aws-baseline` : CloudTrail, Config, budgets, toggle de posture | Planifie | S2-T3 |
 | S2-T7 | Role OIDC GitLab vers AWS, sans cle IAM longue duree | Planifie | S2-T2 |
 | S2-T8 | Documenter account vending, services globaux, couts et destruction | Planifie | S2-T4, S2-T5, S2-T6, S2-T7 |
@@ -29,7 +29,7 @@ Sprint cadre le 2026-09-09. Aucune ressource AWS creee a ce stade.
 
 ### Point de depart
 
-Un compte AWS existant sert de point de depart. Il n'appartient a aucune Organization aujourd'hui. Il sera promu en **management account** en creant l'Organization depuis lui, ce qui est une operation sans destruction et sans migration de ressources.
+Un compte AWS existant sert de point de depart. Au moment du cadrage, il n'appartenait a aucune Organization. Il est devenu le **management account** lors de S2-T3, sans destruction ni migration de ses ressources existantes.
 
 Compte retenu le 2026-09-10, apres inventaire de trois comptes accessibles depuis le poste. Son identifiant n'est pas versionne, conformement aux regles du depot sur les identifiants de comptes reels : il vit dans un `terraform.tfvars` local et dans un profil AWS CLI dedie.
 
@@ -277,7 +277,13 @@ Cout constate : le state pese 12 Ko. La facturation S3 Standard a 0,023 USD par 
 
 ### S2-T3 - Module aws-organization
 
-Etat : `Planifie`.
+Etat : `Termine` le 2026-09-24.
+
+Module et appel bootstrap prepares : [guide et interface](../../terraform/modules/aws-organization/README.md). OUs et comptes utilisent des cles stables, les emails sensibles sont controles pour format, ensemble des cles et unicite. Organization, OUs et comptes portent `prevent_destroy`.
+
+Validations locales du 2026-09-24 : `terraform validate` sur bootstrap et TFLint passent ; `terraform test` avec provider AWS simule 6.63.0 passe (3 tests : topologie, emails dupliques, compte manquant). Aucun test ne cree de ressource AWS. `terraform fmt -recursive -check terraform/` et `git diff --check` passent.
+
+Plan AWS reel produit et relu le 2026-09-24, apres renseignement des emails locaux : `terraform plan -input=false -lock-timeout=30s -detailed-exitcode -out=tfplan` retourne 2 (changements prevus). Inspection JSON : huit creations (une Organization ALL, trois OUs, quatre comptes), aucune modification, suppression ou remplacement ; six ressources S3 et sorties existantes inchangees, aucune derive detectee. Correspondance des quatre emails avec les cles d'entree verifiee sans journaliser les valeurs. Plan et tfvars ignores par Git. Validation finale realisee par le proprietaire et rapportee dans la session : reception des emails test confirmee ; `terraform apply tfplan` termine avec `8 added, 0 changed, 0 destroyed` ; `terraform plan -detailed-exitcode` retourne `No changes` et le code `0` ; rattachements des quatre comptes aux trois OUs confirmes dans la console AWS Organizations. Ces controles AWS n'ont pas ete reexecutes par l'agent.
 
 Objectif : creer l'Organization depuis le compte existant, les trois OUs et les quatre comptes enfants.
 
@@ -293,7 +299,19 @@ Criteres d'acceptation : plan relu ligne a ligne avant apply, en verifiant nomme
 
 ### S2-T4 - Module aws-scp
 
-Etat : `Planifie`.
+Etat : `En cours`.
+
+Preuves rapportees par le proprietaire le 2026-09-25 : acces console IAM active pour l'utilisateur administrateur existant ; bascule vers `OrganizationAccountAccessRole` dans sandbox reussie ; activation manuelle du type SCP ; consultation EC2 initialement possible en `eu-west-1` et `us-east-1`, puis refusee uniquement hors Europe apres attachement au compte sandbox de `test-deny-ec2-outside-europe`. Acces retabli apres detachement et policy temporaire supprimee. `FullAWSAccess` conserve. Ce test pedagogique limite a EC2 ne valide pas encore la policy regionale complete.
+
+L'activation est maintenant declaree par `enabled_policy_types = ["SERVICE_CONTROL_POLICY"]` dans le module Organization. Le proprietaire confirme le plan de convergence sans changement (code 0). Aucun apply lance par l'agent.
+
+Premiere policy deployee dans [aws-scp](../../terraform/modules/aws-scp/README.md) : `deny-regions-outside-eu`, scope `eu-*` confirme, exceptions detaillees dans [scp-global-services.md](../scp-global-services.md). La premiere reponse « c ok » avait ete interpretee a tort comme une confirmation d'apply : le `terraform state list` transmis ensuite ne contenait pas la policy. Le proprietaire a finalement cree ensemble la policy et son attachement au seul compte sandbox avec `2 added, 0 changed, 0 destroyed`.
+
+Validations AWS rapportees par le proprietaire le 2026-09-25 : avant attachement, les quatre consultations etaient accessibles ; apres attachement, EC2 Instances en `us-east-1` est refuse, EC2 Instances en `eu-west-1`, IAM Roles et CloudFront Distributions restent accessibles. Le plan apres apply retourne `No changes` et le code `0`. L'attachement Terraform est conserve. Ces preuves couvrent les quatre consultations, pas toutes les actions ni toutes les exceptions de la policy.
+
+Les cinq autres SCPs et leurs attachements sandbox ont ete deployes en un lot a la demande du proprietaire. Le provider `aws.sandbox` configure d'abord les quatre protections S3 de compte, avant l'attachement de `deny-public-s3`. Le plan annoncait onze ajouts, aucune modification ou suppression ; le proprietaire confirme son apply. Les limites MFA (utilisateurs IAM directs, pas roles), root et CloudTrail ainsi que les preuves manquantes sont explicites dans le [guide SCP](../../terraform/modules/aws-scp/README.md#lot-sandbox-complet). Validation AWS rapportee pour S3 : via un profil local nomme assumant `OrganizationAccountAccessRole`, une reecriture des quatre protections a `true` avec `s3:PutAccountPublicAccessBlock` est refusee explicitement par une SCP ; aucune protection n'a ete diminuee. Les autres effets du lot ne sont pas encore revendiques comme verifies. Validation locale du lot : bootstrap `terraform validate`, TFLint, six tests Terraform simules et trente-quatre cas de requetes Python reussis ; formatage et controle du diff OK. Les exceptions ACM/WAF de CloudFront restent a concevoir avant extension aux OUs utiles. Validations locales precedentes : `terraform validate` sur module et bootstrap, TFLint du bootstrap, un test Terraform avec provider simule et matrice Python de quatorze requetes reussis. Aucun appel AWS reexecute par l'agent pour enregistrer les confirmations du proprietaire.
+
+Avant le test MFA reel, un defaut de conception a ete corrige : la premiere version refusait aussi les actions necessaires a l'enrolement du dispositif. La policy suit maintenant le modele AWS `Deny` avec `NotAction`, limite aux appels d'enrolement et a `sts:GetSessionToken`, tout en refusant notamment la suppression d'un dispositif sans MFA. Les tests locaux passent ; le proprietaire a confirme le plan puis l'apply de cette modification en place. Le resume exact de l'apply n'a pas ete conserve comme preuve.
 
 Objectif : livrer les six SCPs prevues, en prouvant leur effet avant de les appliquer aux comptes utiles.
 
@@ -309,7 +327,21 @@ Criteres d'acceptation : chaque SCP est attachee a une OU seulement apres avoir 
 
 ### S2-T5 - Module aws-sso
 
-Etat : `Planifie`.
+Etat : `En cours`.
+
+Le module, sa matrice d'acces et ses tests locaux sont disponibles dans [terraform/modules/aws-sso](../../terraform/modules/aws-sso/README.md). L'instance d'organisation IAM Identity Center est active dans `eu-west-1`, le module est deploye et l'utilisateur voit la matrice attendue dans le portail.
+
+Premiere tentative d'apply S2-T5 : echec sans creation Identity Center. L'activation console avait ajoute l'acces de confiance Organizations `sso.amazonaws.com`, mais `aws_organizations_organization.this` ne le declarait pas. Terraform l'a retire au debut de l'apply, puis les trois groupes ont echoue avec `IdentityStore not present` et les trois permission sets avec `IAM Identity Center instance is inaccessible`. Cause corrigee dans le module Organization : l'acces de confiance fait maintenant partie de l'etat desire. La reprise doit montrer une modification de l'Organization pour le retablir et dix-neuf creations Identity Center, sans autre changement.
+
+Reprise reussie apres restauration et declaration de l'acces de confiance : le proprietaire confirme `Apply complete! Resources: 19 added, 0 changed, 0 destroyed.` Les trois groupes, trois permission sets, trois attachements de policies et dix affectations de comptes sont maintenant deployes. L'utilisateur est cree, active et rattache aux groupes `ShopDemo-Developers` et `ShopDemo-Readers` ; le test fonctionnel des droits reste a effectuer.
+
+Validation portail rapportee par le proprietaire : l'utilisateur Identity Center est active et voit les quatre comptes membres. `DevAccess` et `ReadOnly` apparaissent sur sandbox et workload-staging ; seul `ReadOnly` apparait sur workload-prod et security-audit ; `AdminAccess` n'apparait nulle part. La capture transmise n'est pas versionnee car elle contient les identifiants et emails reels des comptes. Il reste a confirmer une action autorisee avec `DevAccess` et la meme action refusee avec `ReadOnly`.
+
+Frontiere d'automatisation retenue : l'instance d'organisation est activee manuellement une seule fois, car l'API AWS `CreateInstance` ne permet pas de la creer depuis le management account. Terraform decouvre ensuite cette instance et gere les groupes, permission sets, policies et affectations. L'utilisateur du proprietaire reste manuel dans ce lab pour ne pas inscrire son identite personnelle dans le state ; en entreprise, cette partie serait normalement synchronisee depuis un fournisseur d'identite via SCIM. Aucun groupe, permission set ou rattachement de compte ne doit etre cree manuellement apres le bootstrap.
+
+<p align="center"><img src="../diagrams/s2-identity-center-access.svg" alt="Acces IAM Identity Center aux comptes membres et chemin break-glass" width="1100"></p>
+
+Le chemin courant passe par le portail, un groupe et un permission set. Le chemin d'urgence IAM reste separe et limite au management account tant qu'Identity Center et OIDC ne sont pas totalement valides.
 
 Objectif : remplacer l'usage d'utilisateurs IAM par un acces federe, avec des permission sets differencies.
 
@@ -378,8 +410,8 @@ Livrables :
 | Backend S3 operationnel | Verifie | State migre dans S3, chiffre `AES256`, `plan` rejoue sans ecart |
 | Verrouillage de state | Verifie | Deux executions concurrentes, la seconde rejetee avec `Error acquiring the state lock` |
 | Backend et provider distincts | Verifie | Migration en echec `403` tant que `backend.hcl` ne portait pas son propre `profile` |
-| Organization et comptes | A produire | Plan relu avant apply, comptes rattaches aux bonnes OUs |
-| Effet des SCPs | A produire | Mesure avant et apres attachement, par SCP, en `sandbox` |
+| Organization et comptes | Verifie | Plan relu ; apply 8 ajouts, plan suivant code 0 et rattachements confirmes par le proprietaire le 2026-09-24 |
+| Effet des SCPs | Partiellement verifie | Region et verrouillage S3 confirmes en sandbox ; root, MFA, cles IAM et CloudTrail restent a tester ou a marquer explicitement non verifies |
 | Services globaux preserves | A produire | Appel a un service global reussi malgre `deny-regions-outside-eu` |
 | Acces federe | A produire | Connexion reelle sur deux permission sets aux droits distincts |
 | Journalisation centralisee | A produire | Evenement d'un compte enfant retrouve dans le CloudTrail central |

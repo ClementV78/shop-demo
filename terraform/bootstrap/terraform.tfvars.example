@@ -14,10 +14,10 @@ project     = "shopdemo"
 environment = "bootstrap"
 owner       = "shopdemo"
 
-# Les emails des comptes enfants arrivent en S2-T3 et restent hors du depot.
-# account_emails = {
-#   security_audit   = "REMPLACER"
-#   workload_staging = "REMPLACER"
-#   workload_prod    = "REMPLACER"
-#   sandbox          = "REMPLACER"
-# }
+# Replace locally with four distinct, accessible addresses unused by AWS accounts.
+account_emails = {
+  security_audit   = "audit@example.com"
+  workload_staging = "staging@example.com"
+  workload_prod    = "prod@example.com"
+  sandbox          = "sandbox@example.com"
+}

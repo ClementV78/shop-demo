@@ -11,8 +11,7 @@ Suivi detaille :
 [`docs/sprints/sprint-1-gitops-local.md`](sprints/sprint-1-gitops-local.md) et
 [`docs/sprints/sprint-0-ansible.md`](sprints/sprint-0-ansible.md).
 
-Aucune ressource AWS n'existe a ce jour. Aucun `terraform apply` n'a ete
-execute.
+Le backend S3 bootstrap a ete cree et le state migre en S2-T2. S2-T3 est termine : apply execute par le proprietaire (8 ajouts), plan suivant sans changement (code 0), rattachements confirmes dans la console.
 
 ## Etat du depot Git (a lire avant toute action git)
 
@@ -35,7 +34,7 @@ prealable a la connexion Argo CD -> repo GitOps :
   read_registry, write_registry`) a ete recree avec le role `Maintainer` pour
   pouvoir pousser sur `main` malgre la protection ; l'ancien token en cache
   local a ete revoque et remplace. Attention : ce meme token sert aussi au
-  runner GitLab CI (`create_runner`/`manage_runner`) — verifier si un futur
+  runner GitLab CI (`create_runner`/`manage_runner`), verifier si un futur
   souci CI est lie a ce changement de role ;
 - mirroring verifie et fonctionnel : `git ls-remote origin refs/heads/main`
   et `git ls-remote gitlab refs/heads/main` matchent (`4c7b8ba`). Le premier
@@ -52,9 +51,9 @@ prealable a la connexion Argo CD -> repo GitOps :
 
 | ID | Tache | Etat | Prochaine action |
 |---|---|---|---|
-| S2-T1 | Poser la structure Terraform du depot et les conventions | Termine | Livre le 2026-09-09, `fmt`, `validate` et `tflint` passent, aucune ressource creee |
-| S2-T2 | Creer le state `bootstrap` | Termine | Livre le 2026-09-10. State dans S3, chiffre, verrouille, local supprime |
-| S2-T3 | Module `aws-organization` | Planifie | Promouvoir le compte existant en management account, creer les trois OUs et les quatre comptes enfants |
+| S2-T3 | Module `aws-organization` | Termine | Apply : 8 ajouts ; plan suivant : code 0 ; rattachements aux OUs confirmes par le proprietaire |
+| S2-T4 | Module `aws-scp` | En cours | Policy MFA corrigee et appliquee ; region et verrouillage S3 verifies, autres preuves differees |
+| S2-T5 | Module `aws-sso` | En cours | Apply 19 ajouts et matrice du portail verifies. Confirmer une action autorisee avec DevAccess et refusee avec ReadOnly |
 
 Commandes a connaitre pour toute action Terraform de ce sprint :
 
@@ -85,10 +84,7 @@ Objectif de reprise :
   juillet, qui contourne la MFA par construction. Cette cle est necessaire pour
   amorcer `S2-T2` ; sa desactivation est prevue apres Identity Center en
   `S2-T5` et le role OIDC en `S2-T7` ;
-- `S2-T3` est la prochaine tache, et la plus difficile a defaire du sprint :
-  creer une Organization transforme le compte en management account
-  definitivement, et un compte enfant ne se supprime pas, il se ferme avec 90
-  jours de periode suspendue. Rien ne doit partir sans demande explicite ;
+- `S2-T3` est termine. Les comptes et OUs sont des fondations permanentes ; ne pas les detruire en fin de session workload. `S2-T4` commence par la comprehension des SCPs et leur test en sandbox ;
 - piege deja rencontre et a ne pas re-decouvrir : **le backend ne lit pas le
   bloc `provider`**. Il resout ses credentials separement, d'ou le `profile`
   dans `backend.hcl`. Le garde-fou `allowed_account_ids` ne protege que le
@@ -552,13 +548,9 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Demarrer `S2-T1` : structure Terraform, conventions et `.gitignore`, sans
-   aucune ressource creee.
-2. Enchainer sur `S2-T2`, le state `bootstrap`, pour sortir du state local le
-   plus tot possible. Verifier d'abord la version de Terraform installee : a
-   partir de la 1.10 le verrou S3 natif remplace la table DynamoDB.
-3. Ne lancer `S2-T3` qu'apres relecture du plan, les emails des quatre comptes
-   restant hors du depot.
+1. Valider une action reversible avec `DevAccess` dans sandbox, puis confirmer que la meme action est refusee avec `ReadOnly` dans workload-prod.
+2. Supprimer immediatement toute ressource de test creee dans sandbox.
+3. Reprendre plus tard les [preuves du lot SCP](../terraform/modules/aws-scp/README.md#preuves-attendues-et-limites-de-test). Root et CloudTrail restent non verifies sans scenario artificiel trompeur.
 4. Reprendre les dettes du Sprint 1 quand elles bloqueront : `AppProject`
    dedie, securisation du namespace `argocd`, webhook GitLab vers Argo CD.
 

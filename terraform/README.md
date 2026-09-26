@@ -78,6 +78,8 @@ tflint --init --config="$(pwd)/terraform/.tflint.hcl"
 
 État au 2026-09-10 : `S2-T1` a posé la structure sans créer de ressource, et `S2-T2` a livré le bucket de state, chiffré, versionné et verrouillé par fichier S3 natif.
 
-N'existent pas encore : l'Organization et les comptes (`S2-T3`), les SCPs (`S2-T4`), Identity Center (`S2-T5`), la baseline de posture (`S2-T6`) et le rôle OIDC GitLab (`S2-T7`).
+Le module `aws-organization` est prepare et teste localement en `S2-T3` : voir son [guide](modules/aws-organization/README.md). Le plan reel a ete relu : huit ajouts, aucun changement du backend. Apply execute par le proprietaire : huit ajouts ; plan suivant sans changement (code 0), rattachements confirmes.
+
+S2-T4 : les [six SCPs](modules/aws-scp/README.md#lot-sandbox-complet), leurs attachements au seul compte sandbox et la protection publique S3 du compte sont deployes. La policy regionale et le verrouillage S3 ont une preuve d'effet AWS ; les preuves root, MFA, cles IAM et CloudTrail restent a produire avant extension aux OUs utiles. Le [module IAM Identity Center](modules/aws-sso/README.md) de S2-T5 est deploye : dix-neuf ressources ajoutees, sans modification ni suppression. L'utilisateur est active et la matrice d'acces est visible dans le portail ; le test fonctionnel `DevAccess`/`ReadOnly` reste a effectuer. La baseline de posture (`S2-T6`) et le role OIDC GitLab (`S2-T7`) ne sont pas deployes.
 
 L'EC2 runner `bootstrap` reste hors périmètre du Sprint 2 : il n'a d'utilité qu'avec le VPC du Sprint 3 et coûterait une instance permanente d'ici là.

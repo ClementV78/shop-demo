@@ -12,6 +12,7 @@
 ## Documents techniques
 
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md) — page maitre architecture avec schema global et navigation
+- [`installation.md`](installation.md) - manuel d'installation vivant de la plateforme, avec actions manuelles, automatisation et validations
 - [`comprendre-le-projet.md`](comprendre-le-projet.md) — lecture rapide pour comprendre le projet et en parler
 - [`comment-ca-marche.md`](comment-ca-marche.md) — explication technique progressive des sprints avec liens vers le code
 - [`glossaire.md`](glossaire.md) — definitions courtes des composants et concepts

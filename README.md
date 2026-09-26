@@ -47,6 +47,8 @@ Plutôt qu'une suite d'exercices isolés, ce projet relie Terraform, Ansible, Ku
 
 ## Quick start
 
+Pour le parcours complet, y compris les frontieres entre actions manuelles et automatisation Terraform, suivre le [manuel d'installation de la plateforme](docs/installation.md).
+
 Ce qui existe aujourd'hui : un bootstrap local reproductible autour d'Ansible,
 avec les roles `k3s-install`, `cilium-setup`, `ministack-setup`,
 `cloudflare-tunnel` et `gitlab-runner`, puis une premiere structure GitOps
@@ -89,7 +91,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 2` : Landing Zone AWS. `S2-T1` terminé, aucune ressource AWS créée à ce jour |
+| Sprint actif | `Sprint 2` : Landing Zone AWS. Organization, comptes et SCPs sandbox deployes ; IAM Identity Center en cours |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
@@ -110,12 +112,13 @@ staging, et seule la pose d'un tag semver promeut en production. Le rollback a
 été exécuté sur un incident réel, pas seulement décrit. Voir le
 [guide d'exploitation](docs/exploitation-gitops.md).
 
-Le `Sprint 2` est cadré : Landing Zone AWS multi-comptes, plus le state Terraform `bootstrap`. Un compte AWS existant devient management account, trois OUs et quatre comptes enfants sont créés, six SCPs sont éprouvées en compte `sandbox` avant d'être appliquées, et l'authentification de la CI passe par OIDC sans aucune clé IAM. C'est le premier sprint qui engage des coûts AWS réels, cible d'environ 5$ par mois avec la posture forte derrière un interrupteur. Le détail, les coûts estimés et les limites de réversibilité vivent dans [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md).
+Le `Sprint 2` est en cours : le state Terraform `bootstrap`, l'Organization, les trois OUs, les quatre comptes membres et les six SCPs attachees au sandbox sont deployes. La policy regionale et la protection S3 ont ete validees sur AWS. IAM Identity Center est active et sa configuration Terraform est deployee ; la matrice d'acces du portail est validee et le test fonctionnel des droits reste a effectuer. La baseline et l'authentification GitLab OIDC restent a livrer. Le detail, les couts estimes et les limites de reversibilite vivent dans [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md).
 
 ## Démarrer ici
 
 | Lien | Contenu |
 |---|---|
+| [`docs/installation.md`](docs/installation.md) | Manuel d'installation vivant : lab local, bootstrap AWS, actions manuelles et automatisation |
 | [`docs/comprendre-le-projet.md`](docs/comprendre-le-projet.md) | Vision globale, etat actuel, chemin cible et pitch entretien |
 | [`docs/comment-ca-marche.md`](docs/comment-ca-marche.md) | Explication technique progressive : comment les sprints sont construits dans le code |
 | [`docs/glossaire.md`](docs/glossaire.md) | Definitions courtes : Cilium, Hubble, CoreDNS, Terraform, GitOps, AWS, etc. |

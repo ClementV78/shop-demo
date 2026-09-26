@@ -15,3 +15,18 @@ provider "aws" {
     tags = local.common_tags
   }
 }
+
+provider "aws" {
+  alias               = "sandbox"
+  region              = var.aws_region
+  profile             = var.aws_profile
+  allowed_account_ids = [module.organization.account_ids["sandbox"]]
+
+  assume_role {
+    role_arn = "arn:aws:iam::${module.organization.account_ids["sandbox"]}:role/OrganizationAccountAccessRole"
+  }
+
+  default_tags {
+    tags = merge(local.common_tags, { Environment = "sandbox" })
+  }
+}

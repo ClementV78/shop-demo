@@ -137,6 +137,7 @@ La montee en competence du proprietaire est un objectif aussi important que la l
 - Dans les documents, distinguez faits, decisions, hypotheses, travail planifie, preuves et risques acceptes.
 - Incluez chemins, commandes, validation, rollback, nettoyage et couts lorsque pertinents.
 - Distinguez toujours AWS API Gateway du Kubernetes Gateway API.
+- Integrez tout schema genere qui reste utile au projet dans au moins un document pertinent et referencez-le dans `docs/diagrams/README.md`. Un schema peut rester hors documentation uniquement s'il repond a une question ponctuelle de l'utilisateur sans valeur durable pour le projet.
 
 ## Validations Attendues
 
