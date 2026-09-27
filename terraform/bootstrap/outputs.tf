@@ -30,3 +30,13 @@ output "backend_config" {
     }
   EOT
 }
+
+output "audit_log_bucket" {
+  description = "Central S3 bucket for organization CloudTrail and member AWS Config delivery."
+  value       = module.baseline.audit_log_bucket
+}
+
+output "organization_trail_arn" {
+  description = "ARN of the multi-region organization CloudTrail."
+  value       = module.baseline.organization_trail_arn
+}

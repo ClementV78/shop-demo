@@ -1,10 +1,10 @@
 # Manuel d'installation de la plateforme ShopDemo
 
-[Statut du manuel](#statut-du-manuel) · [Principes](#principes) · [Prerequis](#prerequis) · [1. Installer le lab local](#1-installer-le-lab-local) · [2. Preparer l'acces AWS](#2-preparer-lacces-aws) · [3. Reprendre le bootstrap Terraform](#3-reprendre-le-bootstrap-terraform) · [4. Activer IAM Identity Center](#4-activer-iam-identity-center) · [5. Deployer la configuration Identity Center](#5-deployer-la-configuration-identity-center) · [6. Creer et tester l'utilisateur](#6-creer-et-tester-lutilisateur) · [Etapes futures](#etapes-futures)
+[Statut du manuel](#statut-du-manuel) · [Principes](#principes) · [Modele mental des acces AWS](#modele-mental-des-acces-aws) · [Prerequis](#prerequis) · [1. Installer le lab local](#1-installer-le-lab-local) · [2. Preparer l'acces AWS](#2-preparer-lacces-aws) · [3. Reprendre le bootstrap Terraform](#3-reprendre-le-bootstrap-terraform) · [4. Activer IAM Identity Center](#4-activer-iam-identity-center) · [5. Deployer la configuration Identity Center](#5-deployer-la-configuration-identity-center) · [6. Creer et tester l'utilisateur](#6-creer-et-tester-lutilisateur) · [Etapes futures](#etapes-futures)
 
 ## Statut du manuel
 
-Ce document est le parcours operateur de reference pour installer ShopDemo. Il evolue avec les sprints et distingue ce qui est disponible, ce qui exige une action manuelle et ce qui reste planifie. Aujourd'hui, le lab local, la base GitOps, la Landing Zone AWS et la configuration IAM Identity Center sont disponibles. Le test fonctionnel final des droits Identity Center reste a effectuer. EKS, la baseline AWS complete, OIDC GitLab et les workloads applicatifs ne sont pas encore installables de bout en bout.
+Ce document est le parcours operateur de reference pour installer ShopDemo. Il evolue avec les sprints et distingue ce qui est disponible, ce qui exige une action manuelle et ce qui reste planifie. Aujourd'hui, le lab local, la base GitOps, la Landing Zone AWS, IAM Identity Center et la baseline AWS permanente sont disponibles. Les preuves fonctionnelles de la baseline restent a produire. EKS, OIDC GitLab et les workloads applicatifs ne sont pas encore installables de bout en bout.
 
 Le tout premier amorcage du bucket S3 de state a ete realise en S2-T2 avec un state local, puis migre vers S3. Le depot courant est configure pour reprendre ce backend existant. Une reinstallation dans une organisation AWS totalement vierge exige encore une procedure d'amorcage dediee a extraire et valider avant S2-T8 ; ne pas contourner cette limite en creant un bucket ou un state concurrent sans procedure de migration.
 
@@ -15,6 +15,24 @@ Le tout premier amorcage du bucket S3 de state a ete realise en S2-T2 avec un st
 - Les profils AWS sont toujours nommes. Aucun compte n'est selectionne implicitement par un profil par defaut.
 - `backend.hcl`, `terraform.tfvars`, les plans et les states restent hors de Git.
 - Une action manuelle d'amorcage doit etre suivie par une configuration declarative ; elle ne doit pas devenir une seconde source de verite.
+
+## Modele mental des acces AWS
+
+<p align="center"><img src="diagrams/s2-aws-access-mental-model.svg" alt="Modele mental des utilisateurs, groupes, permission sets, roles, comptes, OUs, ressources et acces cross-account AWS" width="1200"></p>
+
+| Objet | Modele mental | Effet concret |
+|---|---|---|
+| Utilisateur Identity Center | Une personne identifiee au niveau central | S'authentifie une fois et obtient des sessions temporaires dans les comptes autorises |
+| Groupe | Un ensemble de personnes ayant le meme besoin | Relie plusieurs utilisateurs aux memes permission sets |
+| Permission set | Un modele central de droits | Identity Center provisionne un role IAM correspondant dans chaque compte affecte |
+| Role IAM | Un costume de permissions dans un compte | Une identite l'assume pour obtenir une session temporaire dans ce compte |
+| Compte AWS | Une frontiere de propriete et d'isolation | Possede ses roles, VPC, clusters, bases, buckets et autres ressources |
+| OU | Un dossier de gouvernance pour des comptes | Transmet notamment les SCPs ; ne possede aucune ressource et ne donne aucun acces entre comptes |
+| `sts:AssumeRole` | Un changement temporaire d'identite | Permet a une identite source d'utiliser un role cible si les deux cotes l'autorisent |
+
+Dans le modele cible ShopDemo, les utilisateurs humains sont centralises dans IAM Identity Center. On ne cree donc pas un utilisateur IAM dans chaque compte membre. Un utilisateur IAM local reste techniquement possible, mais il est reserve a une exception documentee comme le chemin d'urgence temporaire du management account.
+
+Un compte d'audit ne voit pas automatiquement les autres comptes parce qu'ils appartiennent a la meme Organization. L'acces cross-account exige un role dans le compte cible, une trust policy qui accepte l'identite source et une permission `sts:AssumeRole` cote source. Les SCPs des deux comptes continuent de limiter les actions possibles.
 
 ## Prerequis
 
@@ -125,6 +143,8 @@ La creation de l'utilisateur du proprietaire reste manuelle dans ce lab afin de 
 5. Ouvrir le portail AWS et verifier `DevAccess` dans `sandbox`.
 6. Ouvrir `ReadOnly` dans `workload-prod` et confirmer qu'une modification est refusee.
 
+Validation realisee le 2026-09-27 : avec `DevAccess` dans sandbox, un parametre SSM Standard a ete cree puis supprime dans `eu-west-1`. Avec `ReadOnly` dans workload-prod, la creation du meme parametre a ete refusee. Cette preuve rapportee par le proprietaire confirme que les deux permission sets produisent des droits effectivement differents sans laisser de ressource de test.
+
 Le modele a retenir est :
 
 ```text
@@ -140,8 +160,8 @@ L'utilisateur IAM du management account avec MFA reste temporairement le chemin 
 | Lab local k3s, Cilium, MiniStack | Disponible | Ansible |
 | Base GitOps et Argo CD | Disponible | Manifests et reconciliation GitOps |
 | Organization, comptes et SCPs sandbox | Deployee | Terraform, avec preuves AWS manuelles ciblees |
-| IAM Identity Center | En cours | Activation initiale manuelle, configuration Terraform, activation utilisateur manuelle |
-| Baseline CloudTrail, Config et budgets | Planifiee, S2-T6 | Terraform |
+| IAM Identity Center | Termine | Activation initiale manuelle, configuration Terraform, activation utilisateur et test fonctionnel |
+| Baseline CloudTrail, Config et budgets | En cours | Socle permanent deploye par Terraform, preuves fonctionnelles restantes |
 | Authentification GitLab OIDC | Planifiee, S2-T7 | Terraform et validation CI |
 | VPC, EKS, RDS et workloads AWS | Planifies, Sprint 3 | Terraform, Ansible et GitOps |
 

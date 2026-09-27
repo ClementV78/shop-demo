@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="AWS baseline">
+    <mxGraphModel dx="1200" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="Baseline AWS ShopDemo" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=24;fontStyle=1;fontColor=#14213d;" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="520" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Compte management" style="swimlane;startSize=36;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#f7faff;strokeColor=#8fb8ff;strokeWidth=2;fontStyle=1;fontSize=14;container=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="90" width="360" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="CloudTrail organisationnel&#xa;multi-region + validation" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontSize=13;" vertex="1" parent="3">
+          <mxGeometry x="40" y="65" width="280" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="2 budgets&#xa;cout reel / cout facture" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontSize=13;" vertex="1" parent="3">
+          <mxGeometry x="40" y="175" width="130" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Cost Anomaly Detection&#xa;alerte quotidienne" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#fff4db;strokeColor=#f0b44c;strokeWidth=2;fontSize=13;" vertex="1" parent="3">
+          <mxGeometry x="190" y="175" width="130" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="Email d'alerte" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=2;fontSize=13;" vertex="1" parent="3">
+          <mxGeometry x="115" y="290" width="130" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Compte security-audit" style="swimlane;startSize=36;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontStyle=1;fontSize=14;container=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="490" y="90" width="350" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Bucket S3 central d'audit&#xa;chiffre, versionne, prive&#xa;retention 365 jours" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8fff9;strokeColor=#8ee3a3;strokeWidth=2;fontSize=13;" vertex="1" parent="8">
+          <mxGeometry x="55" y="65" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="AWS Config&#xa;recorder + 2 regles" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontSize=13;" vertex="1" parent="8">
+          <mxGeometry x="55" y="210" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Comptes membres" style="swimlane;startSize=36;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#f7faff;strokeColor=#8fb8ff;strokeWidth=2;fontStyle=1;fontSize=14;container=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="920" y="90" width="350" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="workload-staging" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=2;fontSize=13;" vertex="1" parent="11">
+          <mxGeometry x="45" y="65" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="workload-prod" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=2;fontSize=13;" vertex="1" parent="11">
+          <mxGeometry x="45" y="140" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="sandbox" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9ca9ba;strokeWidth=2;fontSize=13;" vertex="1" parent="11">
+          <mxGeometry x="45" y="215" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Dans chaque compte&#xa;Config recorder + required-tags + cloudtrail-enabled" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#f2fffd;strokeColor=#43d3c2;strokeWidth=2;fontSize=12;" vertex="1" parent="11">
+          <mxGeometry x="45" y="290" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="Posture complete temporaire : enable_full_posture = true" style="swimlane;startSize=36;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#fff1e8;strokeColor=#f58534;strokeWidth=2;fontStyle=1;fontSize=14;container=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="550" width="780" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="GuardDuty&#xa;4 detecteurs" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontSize=13;" vertex="1" parent="16">
+          <mxGeometry x="80" y="65" width="250" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="AWS Config Conformance Pack&#xa;CIS AWS v1.4 Level 1 dans 4 comptes" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#fff3f5;strokeColor=#ff7e98;strokeWidth=2;fontSize=13;" vertex="1" parent="16">
+          <mxGeometry x="450" y="65" width="250" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="logs de management" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.35;" edge="1" parent="1" source="4" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="snapshots et historique Config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeWidth=2;exitX=0;exitY=0.82;entryX=1;entryY=0.82;" edge="1" parent="1" source="15" target="9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="430" />
+              <mxPoint x="880" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="21" value="notifications" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeWidth=2;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="5" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="notifications" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeWidth=2;exitX=0.5;exitY=1;entryX=0.75;entryY=0;" edge="1" parent="1" source="6" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="active / desactive les ressources couteuses" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeWidth=2;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="16" target="10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

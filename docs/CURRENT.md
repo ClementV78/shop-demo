@@ -53,7 +53,8 @@ prealable a la connexion Argo CD -> repo GitOps :
 |---|---|---|---|
 | S2-T3 | Module `aws-organization` | Termine | Apply : 8 ajouts ; plan suivant : code 0 ; rattachements aux OUs confirmes par le proprietaire |
 | S2-T4 | Module `aws-scp` | En cours | Policy MFA corrigee et appliquee ; region et verrouillage S3 verifies, autres preuves differees |
-| S2-T5 | Module `aws-sso` | En cours | Apply 19 ajouts et matrice du portail verifies. Confirmer une action autorisee avec DevAccess et refusee avec ReadOnly |
+| S2-T5 | Module `aws-sso` | Termine | Apply 19 ajouts, matrice du portail et difference fonctionnelle DevAccess/ReadOnly verifies |
+| S2-T6 | Module `aws-baseline` | En cours | Socle permanent deploye ; verifier convergence, livraison CloudTrail et recorders Config |
 
 Commandes a connaitre pour toute action Terraform de ce sprint :
 
@@ -548,8 +549,8 @@ Points de vigilance non bloquants :
 
 ## Prochaine reprise recommandee
 
-1. Valider une action reversible avec `DevAccess` dans sandbox, puis confirmer que la meme action est refusee avec `ReadOnly` dans workload-prod.
-2. Supprimer immediatement toute ressource de test creee dans sandbox.
+1. Confirmer la convergence S2-T6 avec un plan sans changement et `enable_full_posture = false`.
+2. Verifier la livraison d'un evenement d'un compte enfant dans le bucket central et l'etat des quatre recorders AWS Config.
 3. Reprendre plus tard les [preuves du lot SCP](../terraform/modules/aws-scp/README.md#preuves-attendues-et-limites-de-test). Root et CloudTrail restent non verifies sans scenario artificiel trompeur.
 4. Reprendre les dettes du Sprint 1 quand elles bloqueront : `AppProject`
    dedie, securisation du namespace `argocd`, webhook GitLab vers Argo CD.

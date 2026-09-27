@@ -30,3 +30,48 @@ provider "aws" {
     tags = merge(local.common_tags, { Environment = "sandbox" })
   }
 }
+
+provider "aws" {
+  alias               = "security_audit"
+  region              = var.aws_region
+  profile             = var.aws_profile
+  allowed_account_ids = [module.organization.account_ids["security_audit"]]
+
+  assume_role {
+    role_arn = "arn:aws:iam::${module.organization.account_ids["security_audit"]}:role/OrganizationAccountAccessRole"
+  }
+
+  default_tags {
+    tags = merge(local.common_tags, { Environment = "security-audit" })
+  }
+}
+
+provider "aws" {
+  alias               = "workload_staging"
+  region              = var.aws_region
+  profile             = var.aws_profile
+  allowed_account_ids = [module.organization.account_ids["workload_staging"]]
+
+  assume_role {
+    role_arn = "arn:aws:iam::${module.organization.account_ids["workload_staging"]}:role/OrganizationAccountAccessRole"
+  }
+
+  default_tags {
+    tags = merge(local.common_tags, { Environment = "staging" })
+  }
+}
+
+provider "aws" {
+  alias               = "workload_prod"
+  region              = var.aws_region
+  profile             = var.aws_profile
+  allowed_account_ids = [module.organization.account_ids["workload_prod"]]
+
+  assume_role {
+    role_arn = "arn:aws:iam::${module.organization.account_ids["workload_prod"]}:role/OrganizationAccountAccessRole"
+  }
+
+  default_tags {
+    tags = merge(local.common_tags, { Environment = "prod" })
+  }
+}

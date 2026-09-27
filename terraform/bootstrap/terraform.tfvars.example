@@ -21,3 +21,15 @@ account_emails = {
   workload_prod    = "prod@example.com"
   sandbox          = "sandbox@example.com"
 }
+
+# This address receives AWS Budgets and Cost Anomaly Detection notifications.
+# AWS stores it in the Terraform state through the corresponding resources.
+alert_email = "alerts@example.com"
+
+monthly_budget_amount  = 25
+billed_budget_amount   = 1
+cost_anomaly_threshold = 5
+
+# Keep false for the permanent low-cost baseline. Enable only for a bounded
+# security review session, then review a plan that returns it to false.
+enable_full_posture = false

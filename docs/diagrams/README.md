@@ -51,6 +51,8 @@ Regle de lecture :
 |---|---|---|---|---|
 | Amorcage du state bootstrap | [`s2-bootstrap-state-sequence.svg`](s2-bootstrap-state-sequence.svg) | [`s2-bootstrap-state-sequence.workflow.json`](s2-bootstrap-state-sequence.workflow.json) | [`s2-bootstrap-state-sequence.html`](s2-bootstrap-state-sequence.html) | `docs/sprints/sprint-2-landing-zone.md` |
 | Acces IAM Identity Center | [`s2-identity-center-access.svg`](s2-identity-center-access.svg) | [`s2-identity-center-access.drawio`](s2-identity-center-access.drawio) | - | `docs/installation.md`, `docs/sprints/sprint-2-landing-zone.md`, `terraform/modules/aws-sso/README.md` |
+| Modele mental des acces AWS | [`s2-aws-access-mental-model.svg`](s2-aws-access-mental-model.svg) | [`s2-aws-access-mental-model.drawio`](s2-aws-access-mental-model.drawio) | - | `docs/installation.md` |
+| Baseline AWS multi-compte | [`s2-aws-baseline.svg`](s2-aws-baseline.svg) | [`s2-aws-baseline.drawio`](s2-aws-baseline.drawio) | - | `docs/sprints/sprint-2-landing-zone.md`, `terraform/modules/aws-baseline/README.md` |
 
 Les schemas `organisation-aws` et `terraform-states`, listes plus bas dans
 "Architecture cible", couvrent aussi le Sprint 2 et ont ete corriges le

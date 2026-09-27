@@ -13,7 +13,7 @@ Module permanent appele par `terraform/bootstrap/`, conforme a [S2-T3](../../../
 | `workload_prod` | `workload-prod` | Workloads |
 | `sandbox` | `sandbox` | Sandbox |
 
-`feature_set = "ALL"` active toutes les fonctionnalites Organizations. `enabled_policy_types = ["SERVICE_CONTROL_POLICY"]` declare explicitement l'activation du type SCP, effectuee initialement en console pendant S2-T4. `aws_service_access_principals = ["sso.amazonaws.com"]` conserve l'acces de confiance ajoute lors de l'activation IAM Identity Center ; sans cette declaration, Terraform le retirerait comme une derive et rendrait l'instance inaccessible. AWS peut installer ses policies par defaut : ne pas confondre celles-ci avec les SCP restrictives du projet prevues en S2-T4.
+`feature_set = "ALL"` active toutes les fonctionnalites Organizations. `enabled_policy_types = ["SERVICE_CONTROL_POLICY"]` declare explicitement l'activation du type SCP, effectuee initialement en console pendant S2-T4. `aws_service_access_principals` conserve l'acces de confiance IAM Identity Center et autorise CloudTrail a creer le trail organisationnel de S2-T6 ; sans cette declaration, Terraform retirerait ces integrations comme une derive. AWS peut installer ses policies par defaut : ne pas confondre celles-ci avec les SCP restrictives du projet prevues en S2-T4.
 
 ## Interface
 
@@ -53,7 +53,7 @@ Le plan ne prouve ni la disponibilite des emails ni les quotas de creation de co
 
 `prevent_destroy` protege Organization, OUs et comptes tant que ces blocs existent dans la configuration. Retirer un bloc retire aussi son garde-fou : ce n'est pas une protection cote AWS. `close_on_deletion = false` n'autorise aucune fermeture automatique et ne remplace pas cette protection.
 
-Le role d'administration initial des nouveaux comptes suit le comportement AWS par defaut. Son acces depuis le management account doit etre compris avant creation ; Identity Center et les permissions fines seront traites en S2-T5. Aucun workload payant n'est ajoute par ce module ; le backend S3 existant conserve ses frais de stockage et de requetes.
+Le role d'administration initial des nouveaux comptes suit le comportement AWS par defaut. Identity Center et les permissions fines ont ensuite ete deployes et valides en S2-T5 ; ce role initial reste un chemin d'administration distinct. Aucun workload payant n'est ajoute par ce module ; le backend S3 existant conserve ses frais de stockage et de requetes.
 
 Avant apply, rollback : retirer les changements de configuration non appliques. Apres creation, aucun nettoyage automatique : conserver les fondations et traiter toute sortie ou fermeture de compte comme une operation distincte. Ne pas utiliser `terraform destroy` pour terminer une session workload.
 

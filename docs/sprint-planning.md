@@ -106,7 +106,7 @@ spec:
 - Module `aws-sso` — IAM Identity Center, permission sets `AdminAccess` (break-glass uniquement) / `DevAccess` / `ReadOnly`
 - Module `aws-baseline` — **posture à deux niveaux** via `enable_full_posture` :
   - **Toujours actif (~5$/mois)** : 1 CloudTrail multi-région (management account), AWS Config limité aux règles `required-tags` + `cloudtrail-enabled`, S3 logs, deux budgets (`cout-reel` hors crédits pour le signal FinOps, `cout-facture` crédits inclus comme détecteur d'épuisement des crédits), Cost Anomaly Detection. Budgets par compte reportés au Sprint 3, l'attribution passant d'ici là par les tags obligatoires et Cost Explorer
-  - **`enable_full_posture = true` (sessions Sprint 3+, ~+4$/jour)** : GuardDuty sur les 4 comptes, règles AWS Config CIS complètes — activé via `terraform apply -target=module.aws_baseline` en début de session, désactivé en fin de session
+  - **`enable_full_posture = true` (sessions Sprint 3+, cout variable a mesurer)** : GuardDuty sur les 4 comptes et conformance pack AWS de correspondance CIS AWS Foundations v1.4 Level 1. Activation et desactivation par un plan complet avec la variable explicite, sans `-target`
 - State Terraform `bootstrap` : bucket S3 versionné et chiffré, verrouillage de state, migration depuis le state local, conformément à [`ADR-003`](adr/ADR-003-separate-bootstrap-and-workload-states.md)
 - Rôle OIDC GitLab vers AWS : provider OIDC, condition de trust restreinte au projet GitLab, zéro clé IAM longue durée. L'EC2 runner `bootstrap` reste hors scope du sprint, il n'a d'utilité qu'avec le VPC du Sprint 3
 - `docs/account-vending.md` — procédure de création d'un nouveau compte

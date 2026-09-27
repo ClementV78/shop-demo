@@ -91,7 +91,7 @@ Le projet avance sprint par sprint, avec un suivi versionné dans `docs/`.
 
 | | |
 |---|---|
-| Sprint actif | `Sprint 2` : Landing Zone AWS. Organization, comptes et SCPs sandbox deployes ; IAM Identity Center en cours |
+| Sprint actif | `Sprint 2` : Landing Zone AWS. Organization, comptes, SCPs sandbox, IAM Identity Center et baseline permanente deployes |
 | Suivi détaillé | [`docs/CURRENT.md`](docs/CURRENT.md) |
 
 | Sprint | Sujet | État | Fichier de suivi |
@@ -112,7 +112,7 @@ staging, et seule la pose d'un tag semver promeut en production. Le rollback a
 été exécuté sur un incident réel, pas seulement décrit. Voir le
 [guide d'exploitation](docs/exploitation-gitops.md).
 
-Le `Sprint 2` est en cours : le state Terraform `bootstrap`, l'Organization, les trois OUs, les quatre comptes membres et les six SCPs attachees au sandbox sont deployes. La policy regionale et la protection S3 ont ete validees sur AWS. IAM Identity Center est active et sa configuration Terraform est deployee ; la matrice d'acces du portail est validee et le test fonctionnel des droits reste a effectuer. La baseline et l'authentification GitLab OIDC restent a livrer. Le detail, les couts estimes et les limites de reversibilite vivent dans [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md).
+Le `Sprint 2` est en cours : le state Terraform `bootstrap`, l'Organization, les trois OUs, les quatre comptes membres et les six SCPs attachees au sandbox sont deployes. La policy regionale et la protection S3 ont ete validees sur AWS. IAM Identity Center est deploye et valide par une ecriture SSM autorisee avec `DevAccess` dans sandbox, puis refusee avec `ReadOnly` dans workload-prod. La baseline permanente est aussi deployee : CloudTrail organisationnel, AWS Config dans les comptes membres, bucket d'audit central, budgets et Cost Anomaly Detection. Ses preuves fonctionnelles restent a produire avant S2-T7, l'authentification GitLab OIDC. Le detail, les couts estimes et les limites de reversibilite vivent dans [`sprint-2-landing-zone.md`](docs/sprints/sprint-2-landing-zone.md).
 
 ## Démarrer ici
 

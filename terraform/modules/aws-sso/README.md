@@ -24,7 +24,7 @@ Le groupe administrateur reste vide pendant l'exploitation normale. `PowerUserAc
 
 `aws_identitystore_group.this` cree les groupes. `aws_ssoadmin_permission_set.this` definit le nom et la duree de session. `aws_ssoadmin_managed_policy_attachment.this` attache une policy AWS geree a chaque permission set. Enfin, `aws_ssoadmin_account_assignment.this` relie un groupe, un permission set et un compte AWS. Cette derniere ressource depend explicitement des policies pour ne pas provisionner un role incomplet dans les comptes cibles.
 
-Le root bootstrap passe les IDs produits par `module.organization`. `nonsensitive(...)` retire uniquement le marquage Terraform : les IDs de comptes ne sont pas des secrets, mais la sortie du module Organization est marquee sensible pour eviter leur affichage accidentel.
+Le root bootstrap passe les IDs produits par `module.organization`. Cette reference cree la dependance necessaire pour les affectations de comptes, sans placer un `depends_on` sur le module SSO complet. Une dependance globale reporterait la lecture de l'instance Identity Center des qu'une autre propriete de l'Organization change et produirait de faux remplacements avec `instance_arn` et `identity_store_id` inconnus pendant le plan. `nonsensitive(...)` retire uniquement le marquage Terraform : les IDs de comptes ne sont pas des secrets, mais la sortie du module Organization est marquee sensible pour eviter leur affichage accidentel.
 
 ## Frontiere d'automatisation
 
@@ -53,7 +53,7 @@ terraform apply tfplan
 
 Apres l'apply, creer l'utilisateur dans le portail IAM Identity Center, puis l'ajouter a `ShopDemo-Developers` et `ShopDemo-Readers`. Le portail doit presenter deux acces sur `sandbox` et `workload-staging`, puis uniquement `ReadOnly` sur `workload-prod` et `security-audit`.
 
-Le portail a ete valide avec la matrice attendue : quatre comptes, `DevAccess` limite a sandbox et staging, `ReadOnly` sur les quatre comptes et aucun `AdminAccess` pour l'utilisateur courant. La preuve fonctionnelle restante consiste a executer une action reversible dans `sandbox` avec `DevAccess`, puis a confirmer que la meme action est refusee dans `workload-prod` avec `ReadOnly`. Aucun ajout au groupe `ShopDemo-Admins` n'est necessaire.
+Le portail a ete valide avec la matrice attendue : quatre comptes, `DevAccess` limite a sandbox et staging, `ReadOnly` sur les quatre comptes et aucun `AdminAccess` pour l'utilisateur courant. Le 2026-09-27, `DevAccess` a permis de creer puis supprimer un parametre SSM Standard dans sandbox, tandis que `ReadOnly` a refuse la creation du meme parametre dans workload-prod. Cette preuve fonctionnelle rapportee par le proprietaire valide les droits differencies sans laisser de ressource de test. Aucun ajout au groupe `ShopDemo-Admins` n'est necessaire.
 
 ## Break-glass
 

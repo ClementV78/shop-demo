@@ -18,8 +18,8 @@ Ce sprint est le premier a engager des couts AWS reels et a manipuler des contro
 | S2-T2 | Creer le state `bootstrap` : backend S3, verrou, chiffrement | Termine | S2-T1 |
 | S2-T3 | Module `aws-organization` : Organization, OUs, comptes enfants | Termine | S2-T2 |
 | S2-T4 | Module `aws-scp` : six SCPs, testees en sandbox avant les OUs | En cours | S2-T3 |
-| S2-T5 | Module `aws-sso` : IAM Identity Center et permission sets | En cours | S2-T3 |
-| S2-T6 | Module `aws-baseline` : CloudTrail, Config, budgets, toggle de posture | Planifie | S2-T3 |
+| S2-T5 | Module `aws-sso` : IAM Identity Center et permission sets | Termine | S2-T3 |
+| S2-T6 | Module `aws-baseline` : CloudTrail, Config, budgets, toggle de posture | En cours | S2-T3 |
 | S2-T7 | Role OIDC GitLab vers AWS, sans cle IAM longue duree | Planifie | S2-T2 |
 | S2-T8 | Documenter account vending, services globaux, couts et destruction | Planifie | S2-T4, S2-T5, S2-T6, S2-T7 |
 
@@ -138,11 +138,11 @@ Posture retenue : minimum permanent, avec la posture forte derriere un interrupt
 | SCPs | management | 0$ | Toujours actif |
 | CloudTrail organisationnel, management events | security-audit | 0$ pour le premier trail | Toujours actif |
 | Stockage S3 des logs CloudTrail | security-audit | environ 1$ | Toujours actif |
-| AWS Config, deux regles seulement | security-audit | environ 2 a 3$ | Toujours actif |
+| AWS Config, deux regles dans chacun des quatre comptes membres | tous | variable, a mesurer | Toujours actif |
 | Bucket S3 du state Terraform | management | negligeable | Toujours actif |
 | Budgets, deux, et Cost Anomaly Detection | management | 0$ sous reserve du quota gratuit | Toujours actif |
-| GuardDuty sur quatre comptes | tous | environ 4$ par jour actif | `enable_full_posture = false` |
-| Regles AWS Config CIS completes | tous | variable, significatif | `enable_full_posture = false` |
+| GuardDuty sur quatre comptes | tous | variable, a mesurer | `enable_full_posture = false` |
+| Conformance pack AWS de correspondance CIS Level 1 | tous | variable, significatif | `enable_full_posture = false` |
 
 Cible : environ 5$ par mois en permanence. La posture forte s'active en debut de session avec `enable_full_posture = true` et se desactive en fin de session.
 
@@ -156,8 +156,8 @@ Deux budgets sont donc livres plutot qu'un, parce qu'ils repondent a deux questi
 
 | Budget | Reglage | Question a laquelle il repond | Seuil |
 |---|---|---|---|
-| `cout-reel` | `include_credit = false`, `include_refund = false` | Combien mon architecture consomme-t-elle reellement ? | Cale sur la cible de train de depense du sprint |
-| `cout-facture` | Credits inclus, comportement par defaut | Combien vais-je reellement payer ? | Bas et proche de zero |
+| `cout-reel` | `include_credit = false`, `include_discount = false`, `include_refund = false` | Combien mon architecture consomme-t-elle reellement ? | 25 USD par defaut |
+| `cout-facture` | Credits et remises inclus | Combien vais-je reellement payer ? | 1 USD par defaut |
 
 Le second est en pratique un **detecteur d'epuisement des credits**. Il reste a zero tant qu'ils couvrent la facture ; le jour ou il sort de zero, la situation a change et il faut le savoir sans attendre le releve mensuel. Le premier reste le signal FinOps du projet et ne depend pas des credits.
 
@@ -327,15 +327,17 @@ Criteres d'acceptation : chaque SCP est attachee a une OU seulement apres avoir 
 
 ### S2-T5 - Module aws-sso
 
-Etat : `En cours`.
+Etat : `Termine` le 2026-09-27.
 
 Le module, sa matrice d'acces et ses tests locaux sont disponibles dans [terraform/modules/aws-sso](../../terraform/modules/aws-sso/README.md). L'instance d'organisation IAM Identity Center est active dans `eu-west-1`, le module est deploye et l'utilisateur voit la matrice attendue dans le portail.
 
 Premiere tentative d'apply S2-T5 : echec sans creation Identity Center. L'activation console avait ajoute l'acces de confiance Organizations `sso.amazonaws.com`, mais `aws_organizations_organization.this` ne le declarait pas. Terraform l'a retire au debut de l'apply, puis les trois groupes ont echoue avec `IdentityStore not present` et les trois permission sets avec `IAM Identity Center instance is inaccessible`. Cause corrigee dans le module Organization : l'acces de confiance fait maintenant partie de l'etat desire. La reprise doit montrer une modification de l'Organization pour le retablir et dix-neuf creations Identity Center, sans autre changement.
 
-Reprise reussie apres restauration et declaration de l'acces de confiance : le proprietaire confirme `Apply complete! Resources: 19 added, 0 changed, 0 destroyed.` Les trois groupes, trois permission sets, trois attachements de policies et dix affectations de comptes sont maintenant deployes. L'utilisateur est cree, active et rattache aux groupes `ShopDemo-Developers` et `ShopDemo-Readers` ; le test fonctionnel des droits reste a effectuer.
+Reprise reussie apres restauration et declaration de l'acces de confiance : le proprietaire confirme `Apply complete! Resources: 19 added, 0 changed, 0 destroyed.` Les trois groupes, trois permission sets, trois attachements de policies et dix affectations de comptes sont maintenant deployes. L'utilisateur est cree, active et rattache aux groupes `ShopDemo-Developers` et `ShopDemo-Readers`.
 
-Validation portail rapportee par le proprietaire : l'utilisateur Identity Center est active et voit les quatre comptes membres. `DevAccess` et `ReadOnly` apparaissent sur sandbox et workload-staging ; seul `ReadOnly` apparait sur workload-prod et security-audit ; `AdminAccess` n'apparait nulle part. La capture transmise n'est pas versionnee car elle contient les identifiants et emails reels des comptes. Il reste a confirmer une action autorisee avec `DevAccess` et la meme action refusee avec `ReadOnly`.
+Validation portail rapportee par le proprietaire : l'utilisateur Identity Center est active et voit les quatre comptes membres. `DevAccess` et `ReadOnly` apparaissent sur sandbox et workload-staging ; seul `ReadOnly` apparait sur workload-prod et security-audit ; `AdminAccess` n'apparait nulle part. La capture transmise n'est pas versionnee car elle contient les identifiants et emails reels des comptes.
+
+Validation fonctionnelle rapportee le 2026-09-27 : dans `eu-west-1`, la session `DevAccess` du compte sandbox a cree puis supprime le parametre SSM Standard `/shopdemo/validation/s2-identity-center`. La session `ReadOnly` de workload-prod a refuse la creation du meme parametre. Aucune ressource de test ne subsiste. Le critere d'acceptation de S2-T5 est rempli : une meme identite centrale obtient deux sessions temporaires aux droits effectivement differents selon le permission set et le compte choisis.
 
 Frontiere d'automatisation retenue : l'instance d'organisation est activee manuellement une seule fois, car l'API AWS `CreateInstance` ne permet pas de la creer depuis le management account. Terraform decouvre ensuite cette instance et gere les groupes, permission sets, policies et affectations. L'utilisateur du proprietaire reste manuel dans ce lab pour ne pas inscrire son identite personnelle dans le state ; en entreprise, cette partie serait normalement synchronisee depuis un fournisseur d'identite via SCIM. Aucun groupe, permission set ou rattachement de compte ne doit etre cree manuellement apres le bootstrap.
 
@@ -356,7 +358,7 @@ Criteres d'acceptation : une connexion reelle via le portail Identity Center abo
 
 ### S2-T6 - Module aws-baseline
 
-Etat : `Planifie`.
+Etat : `En cours`. Le code, les tests mockes, la documentation et le deploiement du socle permanent sont termines ; les preuves fonctionnelles restent a realiser.
 
 Objectif : poser la journalisation, la detection de derive de cout et la posture de securite, avec un interrupteur qui separe le permanent du couteux.
 
@@ -364,10 +366,30 @@ Livrables :
 
 - module `terraform/modules/aws-baseline/` avec la variable `enable_full_posture` ;
 - toujours actif : CloudTrail organisationnel multi-region, AWS Config limite a `required-tags` et `cloudtrail-enabled`, bucket S3 de logs, **deux budgets** `cout-reel` hors credits et `cout-facture` credits inclus, Cost Anomaly Detection ;
-- derriere l'interrupteur : GuardDuty sur les quatre comptes et les regles AWS Config CIS completes ;
+- derriere l'interrupteur : GuardDuty sur les quatre comptes et le conformance pack AWS de correspondance CIS AWS Foundations v1.4 Level 1 ;
 - procedure d'activation et de desactivation en debut et fin de session.
 
 Criteres d'acceptation : un evenement realise dans un compte enfant apparait dans le CloudTrail centralise, et l'interrupteur produit bien un plan qui cree ou detruit uniquement les ressources couteuses.
+
+<p align="center"><img src="../diagrams/s2-aws-baseline.svg" alt="Baseline AWS multi-compte avec controles permanents et posture complete temporaire" width="1200"></p>
+
+Implementation preparee le 2026-09-27 :
+
+- bucket S3 chiffre en SSE-S3, versionne, prive, TLS obligatoire et retention de 365 jours dans `security-audit` ;
+- CloudTrail organisationnel multi-region dans le management account, avec validation d'integrite et evenements de management ;
+- recorder AWS Config et deux regles minimales dans chacun des quatre comptes membres ;
+- deux budgets mensuels et Cost Anomaly Detection dans le management account ;
+- quatre detecteurs GuardDuty et quatre conformance packs derriere `enable_full_posture` ;
+- `terraform test` valide les branches `false` et `true` avec providers mockes, sans appel AWS ;
+- `terraform validate` passe depuis le root `bootstrap` avec les cinq providers correctement relies.
+
+Le terme precedent « CIS complet » etait trop fort. AWS presente ce fichier comme un sample de correspondance avec CIS Level 1 et precise qu'un conformance pack ne garantit pas a lui seul la conformite. Le projet conserve donc le template officiel, mais documente cette limite explicitement.
+
+Correction de plan le 2026-09-27 : l'ajout de l'acces de confiance CloudTrail dans l'Organization rendait temporairement inconnus `instance_arn` et `identity_store_id` a cause d'un `depends_on` place sur tout `module.sso`. Terraform proposait alors 19 faux remplacements Identity Center. La dependance globale a ete retiree ; les affectations conservent leur dependance implicite par les IDs de comptes, tandis que l'activation d'Identity Center reste un prerequis manuel anterieur au module SSO.
+
+Premier apply S2-T6 le 2026-09-27 : les ressources independantes ont ete creees, puis `CreateTrail` a refuse la policy S3. La policy autorisait le chemin `AWSLogs/<organization-id>/*`, mais omettait le chemin distinct `AWSLogs/<management-account-id>/*` exige par CloudTrail pour un trail organisationnel. Le bloc management a ete ajoute avant de produire un nouveau plan ; l'ancien plan partiellement applique ne doit pas etre rejoue.
+
+Le second apply du 2026-09-27 a termine le deploiement avec une creation, une modification et aucune destruction. Le trail organisationnel et le bucket central sont exposes par les outputs Terraform. La posture complete reste desactivee. Un plan sans changement, la livraison reelle d'un evenement enfant dans le bucket central et l'etat des recorders Config restent a verifier avant de clore S2-T6.
 
 ### S2-T7 - Role OIDC GitLab vers AWS
 
@@ -413,7 +435,7 @@ Livrables :
 | Organization et comptes | Verifie | Plan relu ; apply 8 ajouts, plan suivant code 0 et rattachements confirmes par le proprietaire le 2026-09-24 |
 | Effet des SCPs | Partiellement verifie | Region et verrouillage S3 confirmes en sandbox ; root, MFA, cles IAM et CloudTrail restent a tester ou a marquer explicitement non verifies |
 | Services globaux preserves | A produire | Appel a un service global reussi malgre `deny-regions-outside-eu` |
-| Acces federe | A produire | Connexion reelle sur deux permission sets aux droits distincts |
+| Acces federe | Verifie | Parametre SSM cree et supprime avec DevAccess dans sandbox, creation refusee avec ReadOnly dans workload-prod le 2026-09-27 |
 | Journalisation centralisee | A produire | Evenement d'un compte enfant retrouve dans le CloudTrail central |
 | Rejouabilite du bootstrap | A produire | `terraform plan -detailed-exitcode` rejoue retourne `0` |
 | Protection contre le remplacement | A produire | Plan refuse par `prevent_destroy` sur le bucket de state et sur un compte enfant |

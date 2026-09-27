@@ -6,7 +6,9 @@ Le module [`aws-organization`](aws-organization/README.md) est livre en `S2-T3`.
 
 Le module [`aws-scp`](aws-scp/README.md) gere les six SCPs et leurs attachements au seul compte sandbox. Le lot complet est deploye ; la policy regionale et la protection S3 ont une preuve d'effet AWS, les autres preuves restent a produire.
 
-Le module [`aws-sso`](aws-sso/README.md) gere les groupes, permission sets et affectations IAM Identity Center de S2-T5. Il est deploye avec dix-neuf ajouts ; l'utilisateur est active et la matrice du portail est validee, tandis que le test fonctionnel des droits reste a effectuer.
+Le module [`aws-sso`](aws-sso/README.md) gere les groupes, permission sets et affectations IAM Identity Center de S2-T5. Il est deploye avec dix-neuf ajouts ; l'utilisateur, la matrice du portail et la difference fonctionnelle entre `DevAccess` et `ReadOnly` sont valides.
+
+Le module [`aws-baseline`](aws-baseline/README.md) gere CloudTrail, AWS Config, les controles de cout et la posture complete optionnelle de S2-T6. Le socle permanent est deploye ; ses preuves fonctionnelles restent a produire. Les deux branches du toggle sont validees localement.
 
 Modules attendus dans le Sprint 2 :
 

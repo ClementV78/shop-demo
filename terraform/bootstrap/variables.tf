@@ -78,3 +78,53 @@ variable "account_emails" {
     error_message = "Each account must have a distinct email address."
   }
 }
+
+variable "alert_email" {
+  description = "Email address that receives budget and cost anomaly notifications. It is stored in Terraform state."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
+    error_message = "Provide a valid alert email address."
+  }
+}
+
+variable "monthly_budget_amount" {
+  description = "Monthly threshold in USD for the real usage budget, excluding credits and discounts."
+  type        = number
+  default     = 25
+
+  validation {
+    condition     = var.monthly_budget_amount > 0
+    error_message = "The monthly budget amount must be greater than zero."
+  }
+}
+
+variable "billed_budget_amount" {
+  description = "Low monthly threshold in USD that detects when credits no longer cover the bill."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.billed_budget_amount > 0
+    error_message = "The billed budget amount must be greater than zero."
+  }
+}
+
+variable "cost_anomaly_threshold" {
+  description = "Minimum absolute impact in USD before Cost Anomaly Detection sends an alert."
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.cost_anomaly_threshold > 0
+    error_message = "The anomaly threshold must be greater than zero."
+  }
+}
+
+variable "enable_full_posture" {
+  description = "Enable temporary GuardDuty detectors and the CIS Level 1 AWS Config conformance pack in all member accounts."
+  type        = bool
+  default     = false
+}
